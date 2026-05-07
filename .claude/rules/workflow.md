@@ -1,6 +1,6 @@
 # Workflow Rules
 
-이 파일은 개발을 실제로 진행할 때의 작업 단위, commit, PR/공유 메모 기준을 잡는 가벼운 운영 가이드다. 코드 품질 기준은 [coding.md](coding.md), Test Bench와 실험 결과 기준은 [experiments.md](experiments.md)를 본다.
+이 파일은 commit, PR/공유 메모, 문서 업데이트 같은 작업 운영 기준을 잡는 가벼운 가이드다. 작업 라우팅은 루트 [CLAUDE.md](../../CLAUDE.md)를 본다.
 
 이 규칙은 강한 gate가 아니라 기본값이다. 예외가 필요하면 commit message나 PR/작업 메모에 짧게 이유를 남긴다.
 
@@ -55,6 +55,8 @@ PR이나 공유 메모는 길게 쓰기보다 아래 4가지를 빠뜨리지 않
 - 남은 위험: 아직 확인하지 못한 것, 다음 작업으로 넘길 것
 
 실험 결과를 공유할 때는 run id, dataset, policy version, changed 항목을 같이 적는다. 수치만 단독으로 쓰지 않는다.
+
+수치를 PR/메모에 인용할 때는 `result-evidence-checker` agent로 한 번 본다 — Playground 화면 수치는 인용 출처로 쓰지 않는다.
 
 ## 문서 업데이트 기준
 

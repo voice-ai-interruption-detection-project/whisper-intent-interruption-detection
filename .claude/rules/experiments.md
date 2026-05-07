@@ -1,6 +1,6 @@
 # Experiment Rules
 
-이 파일은 **Test Bench(scenario set batch eval) 작업 시 참고하는** 가이드다. Playground(평소 dev 표면) 작업은 [coding.md](coding.md)와 [workflow.md](workflow.md)를 보면 된다 — Playground는 expected_action·run artifact 계약이 없다.
+이 파일은 Test Bench(scenario set batch eval) 작업 시 참고하는 가이드다. Playground는 expected_action·run artifact 계약이 없어서 이 파일을 거치지 않는다. 작업 라우팅은 루트 [CLAUDE.md](../../CLAUDE.md)를 본다.
 
 ## Source of Truth 분리
 
@@ -44,6 +44,7 @@
 - Primary (사용자 시점): `false_stop`, `missed_switch`, `action_confusion`, `ambiguous_intent`, `STT_uncertainty`. 보고서·README가 쓰는 단어.
 - Secondary (디버깅 시점): `transcription`, `signal`, `intent`, `policy_threshold`, `eval_criteria`, `latency_streaming`. 디버깅할 때만 켠다.
 - 두 축을 평면에 섞어 나열하지 않는다.
+- 실패 케이스가 쌓인 직후 `failure-classifier` agent로 두 축 분류 결과를 받는다 (issue·다음 실험 계획 직전).
 
 ## 규칙 추가 기준
 
