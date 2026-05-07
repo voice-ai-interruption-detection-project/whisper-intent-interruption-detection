@@ -2,6 +2,8 @@
 
 작성일: 2026-05-07 (Work Bench framing 정리)
 
+> 상태: 참고 자료. 이 문서는 하네스 설계 배경과 적용 후보를 설명하며, active 작업 가드나 필수 gate가 아니다.
+
 ## 이 한 장에 담은 것
 
 페어가 깊이 들어가기 전에 **이 한 장만 읽고도** 다음 셋을 잡고 가게 만들었다.
@@ -21,11 +23,11 @@
 근거가 된 자료는 네 묶음. 각각 다른 판단을 도와줬다.
 
 1. **외부 AI coding harness 사례** (gstack, Superpowers, BMAD, Codex/Claude 공식 가이드) — 단계 gate 감각과 "evidence 없이 완료를 말하지 않는다"를 가져옴. framework 통째로는 안 가져옴 (1주차 POC에 무겁다).
-2. **비슷한 문제를 푼 내부 사례** (장기 지식 허브, 글쓰기 운영 repo) — "원천을 보호하고 검증을 분리한다", report-only agent 패턴을 가져옴.
+2. **비슷한 문제를 푼 기존 운영 사례** (장기 지식 허브, 글쓰기 운영 repo) — "원천을 보호하고 검증을 분리한다", report-only agent 패턴을 가져옴.
 3. **이전 RAG/QA 파이프라인 프로젝트 (sprint-4)** — 가장 직접적인 선례. `run_id` 폴더, snapshot 함께 저장, eval=runner 재사용을 그대로 가져옴. override layer / planner / fixture fingerprint는 **지금 필요한 실체가 없어서** 2~3단계로 미룸.
 4. **회의 결정 + 5/7 페어 onboarding 직전 검토** — "비교 콘솔" framing이 dev playground를 빠뜨린다는 의견이 나와, Work Bench(상위) + Playground/Test Bench(하위 두 surface)로 framing을 재정리.
 
-자세한 분석은 [research/](research/) 아래에 archive로 남아 있다. 평소 작업엔 들어갈 일 없고 "왜 이건 안 가져왔지?" 같은 질문이 생겼을 때만 들춘다.
+자세한 분석은 [research/](research/) 아래에 참고 자료로 남아 있다. 평소 작업의 필수 읽기 자료는 아니고, "왜 이건 안 가져왔지?" 같은 질문이 생겼을 때 배경을 확인하는 용도다.
 
 ## 2. 무엇을 약속하나 — `concept.md`의 6 원칙
 
@@ -66,7 +68,7 @@ Test Bench 흐름 (마일스톤)
 
 각 Test Bench run은 `run_meta.json`에 `run_id` / `source` / `policy_snapshot` / `criteria_snapshot` / `latency_ms` / `command` 등을 같이 남긴다 (전체 12 필드는 plan.md의 표 참조). 같은 `run_id` 폴더가 이미 있으면 두 번째 실행은 거부된다 — overwrite 사고가 코드로 막힌다. Playground는 이 계약을 따르지 않으므로 외부 인용 출처가 될 수 없다.
 
-검토는 4지점에 걸친다. 각 시점마다 [.claude/agents/](../../.claude/agents/)에 정의된 report-only agent를 부르면 됨.
+검토 역할은 4지점으로 나눠 생각할 수 있다. 저장소에 report-only agent가 있으면 같은 역할로 활용할 수 있지만, 이 문서가 agent 실행을 필수 절차로 강제하지는 않는다.
 
 | 시점 | agent | 보는 것 |
 | --- | --- | --- |
@@ -93,5 +95,4 @@ Test Bench 흐름 (마일스톤)
 - 원칙만 빠르게 다시 보고 싶음 → [concept.md](concept.md)
 - 지금 단계에서 무엇까지 만들어야 하는지 → [plan.md](plan.md)
 - "왜 이건 안 가져왔지?" 같은 질문 → [research/](research/)
-- 작업 시 항상 켜둘 가드 → 실험 측 [.claude/rules/experiments.md](../../.claude/rules/experiments.md), 개발 측 [.claude/rules/coding.md](../../.claude/rules/coding.md), 작업 운영 측 [.claude/rules/workflow.md](../../.claude/rules/workflow.md)
-- 검토용 4 agent → [.claude/agents/](../../.claude/agents/)
+- 실제 작업 기준 확인 → 루트 [CLAUDE.md](../../../CLAUDE.md)와 최신 [README.md](../../../README.md)
