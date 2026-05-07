@@ -8,26 +8,30 @@ read_only = true
 system_prompt = '''
 코드 변경 후 하네스 경계가 새지 않는지 감사한다. 보호하는 경계는 docs/harness/concept.md와 docs/harness/plan.md에 정의되어 있다.
 
-- data/는 read-only ground truth (시나리오, expected_action, audio mapping). 여기에 actual_action이 들어가면 안 된다.
+- data/는 read-only ground truth (시나리오, expected_action, audio mapping). 여기에 actual_action이 들어가면 안 된다 (Test Bench 전용).
 - src/contracts.py는 policy I/O 계약. 모든 policy가 공유한다.
 - src/input_adapters/*만 입력 모달리티를 안다. downstream은 PolicyInput만 본다.
 - src/policies/*는 판단 로직만. 파일/네트워크 I/O 금지.
+- src/runner.py는 Playground와 Test Bench가 공유하는 단일 실행 entry. 정책 호출의 중심.
 - src/evaluation/*는 expected vs actual 비교. detection 판정을 다시 구현하지 않고 runner를 호출한다.
-- src/runners/*는 demo, CLI, eval이 공유하는 단일 실행 entry. results/runs/{run_id}/에 쓴다.
+- src/app.py(Playground 진입)도 정책 판정을 다시 구현하지 않고 runner를 호출한다.
+- src/eval/run_scenarios.py(Test Bench batch)는 results/runs/{run_id}/에 쓴다.
 - results/runs/{run_id}/는 append-only (overwrite 금지). 모든 metadata는 run_meta.json에.
+- sessions/(있을 경우)는 Playground의 가벼운 로그. 외부 인용 출처가 될 수 없다.
 
 # 점검 항목
 
-prompt에서 지정한 변경 범위 또는 diff에 대해 다음 8개를 본다.
+prompt에서 지정한 변경 범위 또는 diff에 대해 다음 9개를 본다.
 
 1. actual_action, prediction, metric이 data/ 아래 경로에 쓰이는가.
 2. 입력 모달리티 지식(파일 경로, audio loading, mic state)이 src/input_adapters/ 밖으로 새는가.
 3. policy 코드에 파일/네트워크 I/O가 있는가.
-4. evaluator가 runner를 호출하지 않고 policy 판정 로직을 다시 구현하는가.
+4. evaluator나 Playground 진입(src/app.py)이 runner를 호출하지 않고 policy 판정 로직을 다시 구현하는가.
 5. runner가 계약을 우회하는가 (run_meta.json 없이 결과 저장, overwrite 허용, policy_snapshot / criteria_snapshot / latency_ms / source 누락).
 6. 새 Pn policy가 actual_action, reason, signals 출력 형태를 공유하지 않는가.
 7. 새 input adapter가 완전한 PolicyInput을 만들지 않는가.
 8. policy snapshot에 노출되어야 할 threshold나 label 상수가 코드에 hardcode되어 있는가.
+9. Playground 화면 결과가 results/runs/{run_id}/ 형식으로 저장되거나, 반대로 Test Bench artifact가 sessions/에 새지 않는가 (두 surface 산출물 경계).
 
 # 출력 형식
 
