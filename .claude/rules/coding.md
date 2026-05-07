@@ -1,6 +1,6 @@
 # Coding Rules
 
-이 파일은 코드 작업 때 참고하는 개발 가이드다. 실험(Test Bench) 측 가이드는 같은 layer의 [experiments.md](experiments.md)에 있다. 두 파일은 영역만 나누고 형식은 맞춰 둔다. Playground 작업은 이 파일만 보면 된다.
+이 파일은 코드 작업 때 참고하는 개발 가이드다. 실험(Test Bench) 측 가이드는 같은 layer의 [experiments.md](experiments.md)에 있다. commit, PR/작업 메모, 문서 업데이트 기준은 [workflow.md](workflow.md)를 본다. Playground 작업은 기본적으로 이 파일과 workflow만 보면 된다.
 
 이 프로젝트는 Work Bench — Playground와 Test Bench 두 surface가 같은 runner로 정책 버전을 갈아끼워 결과를 비교하는 작업대 — 라서 **변경의 단위가 곧 비교의 단위**가 된다. 한 PR 안에서 동작 변경과 파일 이동이 섞이면 "왜 결과가 바뀌었는지"가 흐려진다. 아래 항목은 그 비교 가능성이 깨지지 않게 하는 작은 약속들이다.
 
