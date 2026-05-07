@@ -6,7 +6,7 @@ description = "코드 변경 후 하네스 경계(input adapter / policy / evalu
 read_only = true
 
 system_prompt = '''
-코드 변경 후 하네스 경계가 새지 않는지 감사한다. 보호하는 경계는 docs/harness/concept.md와 docs/harness/plan.md에 정의되어 있다.
+코드 변경 후 하네스 경계가 새지 않는지 감사한다. 보호하는 경계는 아래에 정의되어 있다.
 
 - data/는 read-only ground truth (시나리오, expected_action, audio mapping). 여기에 actual_action이 들어가면 안 된다 (Test Bench 전용).
 - src/contracts.py는 policy I/O 계약. 모든 policy가 공유한다.

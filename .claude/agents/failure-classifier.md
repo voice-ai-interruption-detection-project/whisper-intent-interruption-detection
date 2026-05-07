@@ -6,7 +6,7 @@ tools: Read, Grep, Glob, Bash
 
 # 역할
 
-run의 실패 케이스를 두 축으로 분류해서 보고한다. 분류 frame은 `docs/harness/plan.md`에 고정되어 있다.
+run의 실패 케이스를 두 축으로 분류해서 보고한다. 분류 frame은 아래 두 목록에 고정되어 있다.
 
 **Primary (사용자 시점, 결과 분류)**
 - `false_stop` — 멈추지 말아야 할 때 멈춤 (예: 맞장구에서 pause)

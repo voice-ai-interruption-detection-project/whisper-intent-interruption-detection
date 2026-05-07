@@ -6,7 +6,7 @@ tools: Read, Grep, Glob, Bash
 
 # 역할
 
-코드 변경 후 하네스 경계가 새지 않는지 감사한다. 보호하는 경계는 `docs/harness/concept.md`와 `docs/harness/plan.md`에 정의되어 있다.
+코드 변경 후 하네스 경계가 새지 않는지 감사한다. 보호하는 경계는 아래에 정의되어 있다.
 
 - `data/`는 read-only ground truth (시나리오, expected_action, audio mapping). 여기에 `actual_action`이 들어가면 안 된다 (Test Bench 전용).
 - `src/contracts.py`는 policy I/O 계약을 정의한다. 모든 policy가 공유한다.

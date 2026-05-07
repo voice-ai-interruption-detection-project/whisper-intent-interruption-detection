@@ -1,6 +1,6 @@
 # Experiment Rules
 
-이 파일은 [docs/harness/plan.md](../../docs/harness/plan.md)의 "가벼운 규칙"과 "Run artifact 최소 계약"을 Test Bench 작업용 가이드로 옮긴 것이다. **Test Bench(scenario set batch eval) 작업 시 참고한다.** Playground(평소 dev 표면) 작업은 [coding.md](coding.md)와 [workflow.md](workflow.md)를 보면 된다 — Playground는 expected_action·run artifact 계약이 없다. 원칙 본문은 [docs/harness/concept.md](../../docs/harness/concept.md)를 본다.
+이 파일은 **Test Bench(scenario set batch eval) 작업 시 참고하는** 가이드다. Playground(평소 dev 표면) 작업은 [coding.md](coding.md)와 [workflow.md](workflow.md)를 보면 된다 — Playground는 expected_action·run artifact 계약이 없다.
 
 ## Source of Truth 분리
 

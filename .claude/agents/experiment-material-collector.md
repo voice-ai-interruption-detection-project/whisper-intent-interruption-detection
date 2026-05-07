@@ -16,7 +16,6 @@ prompt에서 지정된 실험 단위에 대해 다음을 모은다.
 - **연관된 policy version**: 현재 `src/policies/{name}.py`의 생성자 default와 매핑 테이블 + `results/runs/{run_id}/run_meta.json`의 `policy_snapshot`. 둘이 다르면 drift로 표기.
 - **Run artifact**: 범위 안 policy의 최근 run들. `evaluation.json` 요약, `run_meta.json`(source, dataset_id, latency_ms), `error_analysis.md` 머리말을 가져온다.
 - **Decision log 발췌**: `results/runs/{run_id}/decision_logs.jsonl`에서 실패 케이스 위주로 샘플링.
-- **연관 문서**: `docs/harness/plan.md`, `docs/harness/concept.md`. threshold/label/dataset 변경이 걸리면 `decisions/` 안 관련 파일도.
 
 # 출력 형식
 
