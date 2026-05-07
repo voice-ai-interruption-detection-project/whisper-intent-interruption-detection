@@ -36,7 +36,7 @@
 | 1 | 기준 원본과 실행 결과를 섞지 않는다 (Test Bench scope) | `expected_action`은 `data/scenarios.json`, `actual_action`은 `results/runs/` — 한 파일에 같이 못 들어감 |
 | 2 | 입력 방식은 달라도 판단 구조는 하나 | Text/Audio/Mic이 달라도 정책에 들어가는 형태는 `PolicyInput` 하나 |
 | 3 | 작은 완주 단위로 닫는다 (surface별로 다름) | Playground=화면 결과 표시, Test Bench=run artifact 4종 |
-| 4 | Test Bench artifact가 외부 인용의 유일한 출처 | README/report 수치는 results/runs/에서만, Playground 화면 수치 금지 |
+| 4 | Test Bench artifact가 외부 인용의 유일한 출처 | README/report 수치는 results/runs/에서 가져오고, Playground 화면 수치는 인용 출처로 쓰지 않음 |
 | 5 | Playground와 Test Bench는 같은 runner를 호출 | app.py도 evaluator도 정책 판정을 다시 구현하지 않음 |
 | 6 | Agent와 skill은 역할로 본다 (report-only) | 검증·분류는 agent가, 파일 수정은 사람이 |
 

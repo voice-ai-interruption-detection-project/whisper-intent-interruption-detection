@@ -1,6 +1,6 @@
 # Experiment Rules
 
-이 파일은 [docs/harness/plan.md](../../docs/harness/plan.md)의 "가벼운 규칙"과 "Run artifact 최소 계약"을 작업 시 항상 켜둘 가드 형태로 코드화한 것이다. **Test Bench(scenario set batch eval) 작업 시 켜진다.** Playground(평소 dev 표면) 작업은 [coding.md](coding.md)만 적용된다 — Playground는 expected_action·run artifact 계약이 없다. 원칙 본문은 [docs/harness/concept.md](../../docs/harness/concept.md)를 본다.
+이 파일은 [docs/harness/plan.md](../../docs/harness/plan.md)의 "가벼운 규칙"과 "Run artifact 최소 계약"을 Test Bench 작업용 가이드로 옮긴 것이다. **Test Bench(scenario set batch eval) 작업 시 참고한다.** Playground(평소 dev 표면) 작업은 [coding.md](coding.md)만 보면 된다 — Playground는 expected_action·run artifact 계약이 없다. 원칙 본문은 [docs/harness/concept.md](../../docs/harness/concept.md)를 본다.
 
 ## Source of Truth 분리
 
@@ -22,8 +22,8 @@
 ## 코드 변경 단위 (실험 측)
 
 - 새 action label 추가: label 이름, 의미, 어떤 expected_action 예시가 있는지 같이 기록한다.
-- 새 policy version 추가: 기존 evaluator를 그대로 통과해야 한다 (eval 코드 변경 없음).
-- threshold 변경: 상수/생성자 인자로 바꾸고 `policy_snapshot`에 노출시킨다. magic number 금지.
+- 새 policy version 추가: 기존 evaluator를 그대로 통과하는 형태를 기준으로 둔다 (eval 코드 변경 없음).
+- threshold 변경: 상수/생성자 인자로 바꾸고 `policy_snapshot`에 노출시킨다. magic number는 줄인다.
 
 리팩토링·의존성·한 번에 한 변수 같은 일반 개발 가드는 [coding.md](coding.md)에 둔다.
 
@@ -36,7 +36,7 @@
 ## 검증된 수치만 공유한다
 
 - README, report, presentation, slack 등에 수치를 인용할 때는 `results/runs/{run_id}` 가 존재하고 같은 값을 가져야 한다.
-- **Playground 화면에서 본 수치는 외부 인용 금지** — 같은 정책으로 Test Bench batch를 한 번 돌려서 run artifact를 만든 다음에만 인용한다.
+- Playground 화면에서 본 수치는 외부 인용 출처로 쓰지 않는다. 같은 정책으로 Test Bench batch를 한 번 돌려서 run artifact를 만든 다음 인용한다.
 - 외부 공유 전에는 `result-evidence-checker` agent로 한 번 더 본다.
 
 ## 실패는 두 축으로 본다
@@ -45,6 +45,6 @@
 - Secondary (디버깅 시점): `transcription`, `signal`, `intent`, `policy_threshold`, `eval_criteria`, `latency_streaming`. 디버깅할 때만 켠다.
 - 두 축을 평면에 섞어 나열하지 않는다.
 
-## 빼면 실수하는가
+## 규칙 추가 기준
 
-이 파일에 추가할 새 규칙은 "빼면 실수하는가" 질문을 통과해야 한다. 규칙이 늘어나는 것보다 사고가 줄어드는 것이 중요하다.
+이 파일에 추가할 새 규칙은 실험 재현성, 비교 가능성, 수치 인용 정확도를 높이는지 기준으로 본다. 가벼운 체크리스트는 먼저 추가해도 되고, hook/scanner 같은 자동 체크는 목적과 범위만 짧게 남긴다.
