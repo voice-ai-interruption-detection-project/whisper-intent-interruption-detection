@@ -1,0 +1,72 @@
+site_name: Wind Docs
+site_description: Whisper Intent Interruption Detection - AI Voice Agent Interruption Handling
+site_author: Team WIID
+
+theme:
+  name: material
+  language: ko
+  palette:
+    scheme: slate
+    primary: brown
+    accent: cyan
+  features:
+    - navigation.instant
+    - navigation.tabs
+    - navigation.expand
+    - toc.integrate
+    - content.code.copy
+    - search.suggest
+    - search.highlight
+
+nav:
+  - Home: index.md
+
+  - Problem Definition:
+    - 왜 이 문제인가: 01-problem/why.md
+    - VAD-only의 한계: 01-problem/limitations.md
+    - 우리의 질문: 01-problem/question.md
+
+  - Approach & Design:
+    - Solution Overview: 02-design/overview.md
+    - Action Labels: 02-design/action-labels.md
+    - Event Types & Intents: 02-design/event-types.md
+    - Evaluation Approach: 02-design/evaluation.md
+
+  - Data & Scenarios:
+    - Scenario Schema: 03-data/schema.md
+    - Scenario Bank: 03-data/bank.md
+    - Input Modes: 03-data/input-modes.md
+
+  - Demo & Examples:
+    - Demo 1 - False Stop: 04-demo/demo1.md
+    - Demo 2 - Missed Intent Switch: 04-demo/demo2.md
+    - Demo 3 - Ambiguous Case: 04-demo/demo3.md
+
+  - Resources:
+    - Team & Timeline: 05-resources/team.md
+    - Papers & References: 05-resources/papers.md
+    - Repository: 05-resources/repo.md
+
+plugins:
+  - search:
+      lang: ko
+
+markdown_extensions:
+  - pymdownx.highlight:
+      use_pygments: true
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - tables
+  - attr_list
+  - md_in_html
+  - toc:
+      toc_depth: "2-3"
+
+extra_css:
+  - assets/custom.css
+
+copyright: Copyright &copy; 2026 Team WIID
