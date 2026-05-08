@@ -45,7 +45,43 @@
 
 ### 💻 Day 2 (2026-05-08, 금)
 
-**목표:** Baseline 구현과 초기 평가
+**계획 목표:** Baseline 구현과 초기 평가
+
+**📋 실제 진행 내용 (10:30~17:05)**
+
+#### 완료된 작업
+
+| 순서 | 내용 | 산출물 |
+|------|------|--------|
+| **1** | 전체 구조 파악 + 파이프라인 이해 (45분) | — |
+| **2** | event_type + action label 토론 (35분) | 경계 기준 초안 |
+| **3** | 6가지 intent 확정 + AI 발화 템플릿 (20~60자) | `기획/PHASE2-intent별-AI발화-템플릿.md` (18개 발화) |
+| **4** | 30개 시나리오 생성 (영문 ID 표준화) | `기획/PHASE3-30개-시나리오-초안.md` |
+| **5** | 대표 케이스 5개 선정 (False Stop, Missed Switch 등) | `기획/PHASE3-대표케이스-5개-선정.md` |
+| **6** | JSON 변환 (30개 시나리오) | ✅ `data/scenarios.json`, `data/scenario_stats.json` |
+
+#### 핵심 산출물
+
+- ✅ **data/scenarios.json** — 30개 시나리오 완성 (JSON 유효성 검증)
+  - Event Type 분포: no_speech 4개, noise 4개, backchannel 6개, same_intent_question 6개, intent_shift 6개, complaint 2개, ambiguous 2개
+- ✅ **기획 문서 3개** — intent 발화 템플릿, 시나리오 초안, 대표 케이스 선정
+
+#### 토론 결과: 세 가지 경계 기준 정의
+
+1. **same_intent_question vs intent_shift** — 같은 범주인가, 다른 범주인가?
+2. **complaint 심각도** (stop_and_switch vs handoff) — 불만 정도와 상담사 개입 필요성
+3. **backchannel vs ambiguous** — 빠르고 명확한 "이해" vs 느리고 불명확한 "의문"
+
+#### 커밋 이력
+
+```
+d78968e docs: scenario JSON 예시에서 intent ID를 영문 스네이크_케이스로 표준화
+5fcacd2 docs: scenario schema 통일 - intent ID를 영문으로 표준화
+640ccaf docs: action label 'pause' → 'respond_and_continue'로 명칭 변경
+4273baa feat(data): 커머스 시나리오 30개 생성 및 분포 통계
+```
+
+**→ Day 2 계획(Baseline 구현)은 Day 3(2026-05-09)로 연기됨**
 
 ```
 1. Scenario Loader 작성 (Role B)
