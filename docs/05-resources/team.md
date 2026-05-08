@@ -55,16 +55,16 @@
 |------|------|--------|
 | **1** | 전체 구조 파악 + 파이프라인 이해 (45분) | — |
 | **2** | event_type + action label 토론 (35분) | 경계 기준 초안 |
-| **3** | 6가지 intent 확정 + AI 발화 템플릿 (20~60자) | `기획/PHASE2-intent별-AI발화-템플릿.md` (18개 발화) |
-| **4** | 30개 시나리오 생성 (영문 ID 표준화) | `기획/PHASE3-30개-시나리오-초안.md` |
-| **5** | 대표 케이스 5개 선정 (False Stop, Missed Switch 등) | `기획/PHASE3-대표케이스-5개-선정.md` |
+| **3** | 6가지 intent 확정 + AI 발화 템플릿 (20~60자) | `data/scenarios.json`의 intent, AI 발화 필드 |
+| **4** | 30개 시나리오 생성 (영문 ID 표준화) | `data/scenarios.json` |
+| **5** | 대표 케이스 5개 선정 (False Stop, Missed Switch 등) | `docs/03-data/bank.md`, `data/scenario_stats.json` |
 | **6** | JSON 변환 (30개 시나리오) | ✅ `data/scenarios.json`, `data/scenario_stats.json` |
 
 #### 핵심 산출물
 
 - ✅ **data/scenarios.json** — 30개 시나리오 완성 (JSON 유효성 검증)
   - Event Type 분포: no_speech 4개, noise 4개, backchannel 6개, same_intent_question 6개, intent_shift 6개, complaint 2개, ambiguous 2개
-- ✅ **기획 문서 3개** — intent 발화 템플릿, 시나리오 초안, 대표 케이스 선정
+- ✅ **데이터 기준 자료** — intent 발화, 시나리오 30개, 대표 케이스와 분포 통계
 
 #### 토론 결과: 세 가지 경계 기준 정의
 

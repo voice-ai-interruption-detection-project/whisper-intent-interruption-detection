@@ -50,7 +50,7 @@ tags: []
 
 | 날짜 | 제목 | status | 관련 PR / run |
 | --- | --- | --- | --- |
-|  |  |  |  |
+| 2026-05-09 | Product Planning Archive Boundary | active |  |
 
 ## 다른 기록과의 경계
 

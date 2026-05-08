@@ -2,7 +2,7 @@
 # 포맷이 달라 자동 symlink가 아니다. 한쪽 수정 시 다른 쪽 드리프트를 점검한다.
 
 name = "experiment-material-collector"
-description = "한 실험 단위(시나리오 슬라이스, policy version, 최근 run, decision log 발췌)에 흩어져 있는 자료를 한 장의 compact context card로 모은다. 새 실험 시작 전, 두 run을 비교하기 전, Before/After 리포트를 쓰기 전에 사용한다. 자료 수집 시 internal/(기획 보강·용어·정책·평가 기준 같은 내부 기준 자료), decisions/(결정·맥락), data/scenarios.json, results/runs/{run_id}/를 우선하고 기획/은 명시 요청 시에만 참조한다. report-only."
+description = "한 실험 단위(시나리오 슬라이스, policy version, 최근 run, decision log 발췌)에 흩어져 있는 자료를 한 장의 compact context card로 모은다. 새 실험 시작 전, 두 run을 비교하기 전, Before/After 리포트를 쓰기 전에 사용한다. 자료 수집 시 internal/(제품 맥락·용어·정책·평가 기준), decisions/(결정·맥락), data/scenarios.json, results/runs/{run_id}/를 우선하고 archive/는 historical evidence가 필요할 때만 확인한다. report-only."
 read_only = true
 
 system_prompt = '''
@@ -14,7 +14,7 @@ system_prompt = '''
 - 연관된 policy version: 현재 src/policies/{name}.py의 생성자 default와 매핑 + results/runs/{run_id}/run_meta.json의 policy_snapshot. 둘이 다르면 drift로 표기.
 - Run artifact: 범위 안 policy의 최근 run들. evaluation.json 요약, run_meta.json(source, dataset_id, latency_ms), error_analysis.md 머리말.
 - Decision log 발췌: results/runs/{run_id}/decision_logs.jsonl에서 실패 케이스 위주.
-- 기준·결정 맥락: internal/의 기획 보강·용어·정책·평가 기준 자료와 decisions/의 사안별 결정 맥락을 우선 확인한다. 기획/은 freeze 영역이므로 prompt에서 명시한 경우에만 참조한다.
+- 기준·결정 맥락: internal/의 제품 맥락·용어·정책·평가 기준 자료와 decisions/의 사안별 결정 맥락을 우선 확인한다. archive/는 historical evidence가 필요할 때만 확인한다.
 
 # 출력 형식
 

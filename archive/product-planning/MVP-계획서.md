@@ -467,7 +467,7 @@ if intent is unclear or stt_uncertainty is high:
 
 ## 예상 폴더 구조
 
-구현 위치는 별도 코드 프로젝트 `~/Desktop/10_work/interrupt-aware-call-agent`를 기준으로 한다. 이 팀프로젝트 폴더에서는 `작업/interrupt-aware-call-agent/` symlink로 접근한다. 구조는 아래를 기준으로 시작하되, 실제 repo 구조에 맞게 조정한다.
+초기 계획 당시에는 별도 코드 프로젝트를 가정했지만, 현재 repo에서는 루트의 `src/`, `data/`, `results/` 구조를 기준으로 조정한다. 아래 구조는 archive에 남은 초기 후보로만 본다.
 
 ```text
 interrupt-aware-call-agent/
