@@ -258,14 +258,18 @@ async def upload_audio(file: UploadFile):
 ```yaml
 # config.yaml
 ai_action_policy:
-  p0:
-    name: "VAD-only baseline"
-  p1:
-    name: "VAD + Backchannel Rule"
-  p2:
-    name: "STT + Intent Shift"
-  p3:
-    name: "AI Action Policy Decision Table"
+  baseline:
+    display_name: "Baseline"
+    description: "VAD-only"
+  policy_v1:
+    display_name: "Policy v1"
+    description: "VAD + Backchannel Rule"
+  policy_v2:
+    display_name: "Policy v2"
+    description: "STT + Intent Shift"
+  policy_v3:
+    display_name: "Policy v3"
+    description: "AI Action Policy Decision Table"
 
 intent_descriptions:
   배송조회: "배송 상태 확인, 배송 일정"
@@ -409,10 +413,10 @@ FastAPI 앱
 │   ├── STT: openai-whisper
 │   └── Intent Embedding: sentence-transformers
 ├── AI Action Policy 실행
-│   ├── P0 VAD-only baseline
-│   ├── P1 VAD + Backchannel Rule
-│   ├── P2 STT + Intent Shift
-│   └── P3 AI Action Policy Decision Table
+│   ├── Baseline      — VAD-only
+│   ├── Policy v1     — VAD + Backchannel Rule
+│   ├── Policy v2     — STT + Intent Shift
+│   └── Policy v3     — AI Action Policy Decision Table
 ├── Evaluation
 │   ├── Accuracy, Confusion Matrix
 │   ├── False Stop Rate, Missed Switch Rate
@@ -476,7 +480,7 @@ FastAPI 앱
 | --- | --- |
 | FR0: Input Mode Console (Text/Audio) | FastAPI, python-multipart, openai-whisper |
 | FR1: Scenario Bank | Pydantic, pandas |
-| FR2: AI Action Policy V1~V3 | 모든 패키지 (통합) |
+| FR2: AI Action Policy (Policy v1~v3) | 모든 패키지 (통합) |
 | FR3: Intent Shift Detection | sentence-transformers, numpy |
 | FR4: Text Replay Evaluation | scikit-learn, pandas, rich |
 | FR5: Audio File Test | soundfile, librosa, openai-whisper |
@@ -487,7 +491,7 @@ FastAPI 앱
 
 ## 🚀 다음 단계
 
-1. **데이터 준비**: `scenarios.csv` 작성 (30개 이상 시나리오)
+1. **데이터 준비**: `scenarios.json` 작성 (30개 이상 시나리오, `.claude/rules/experiments.md` Source of Truth 참조)
 2. **API 개발**: scenario 조회, predict, evaluate 엔드포인트 구현
 3. **Signal 처리**: VAD, STT, Intent embedding 통합
 4. **AI Action Policy**: P0~P3 판단 로직 구현

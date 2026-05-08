@@ -33,6 +33,17 @@ Policy v3: Full AI Action Policy
 └─ 성과: Accuracy ↑ (전체 성능 향상)
 ```
 
+### 명칭 매핑
+
+표시 라벨은 외부 문서·발표·README에서 쓰고, 코드 식별자는 파일명·yaml 키·run_id에서 쓴다.
+
+| 표시 라벨 | 코드 식별자 | run_id 접미사 |
+|---|---|---|
+| `Baseline` | `baseline` | `..._baseline` |
+| `Policy v1` | `policy_v1` | `..._policy_v1` |
+| `Policy v2` | `policy_v2` | `..._policy_v2` |
+| `Policy v3` | `policy_v3` | `..._policy_v3` |
+
 ---
 
 ## 정책별 상세

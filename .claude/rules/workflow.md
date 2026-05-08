@@ -16,13 +16,13 @@
 commit 제목은 기본적으로 아래 타입 중 하나로 시작한다. type과 scope는 영어 소문자 키워드로 쓰고, 설명 문장은 한국어로 쓴다. scope는 선택이다.
 
 ```text
-feat(policy): p1 이벤트 매핑 추가
+feat(policy): policy_v1 이벤트 매핑 추가
 fix(eval): 결과 덮어쓰기 방지
 refactor(runner): adapter와 policy 호출 분리
 test(harness): 필수 run metadata 검증 추가
 docs: quickstart 추가
 chore: ruff와 pre-commit 기본 설정 추가
-exp: p0/p1 경계 사례 비교
+exp: baseline/policy_v1 경계 사례 비교
 ```
 
 | 타입 | 언제 쓰나 |
