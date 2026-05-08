@@ -1,275 +1,171 @@
-# Terminology Consistency and Confusion Analysis
+# Terminology Consistency Branch Context Brief
 
-이 문서는 `docs/` 본문을 바로 고치기 전에, 현재 프로젝트에서 어떤 정합성 문제가 있고 왜 팀원이 헷갈렸는지 정리한 임시 분석 메모다.
+이 문서는 `docs/internal-terminology-sync` 브랜치에서 왜 internal 기준 자료를 보강했는지, 어떤 혼선 패턴을 확인했는지, 지금까지 무엇을 정리했는지 남기는 임시 context brief다.
 
-목적은 두 가지다.
+`docs/` 본문을 바로 고치기 위한 문서가 아니라, 이후 공개 문서를 정리할 때 기준이 흐트러지지 않게 하기 위한 작업 메모다.
 
-- `internal/` 기준 자료를 보강할 때 무엇을 설명해야 하는지 정한다.
-- 나중에 `docs/` 본문을 고칠 때 단순 search-replace가 아니라, 헷갈림의 원인을 기준으로 고친다.
+## 왜 이 문서를 만들었나
 
-이 문서는 공개 문서가 아니라 `temp/` 작업 메모다. 안정되면 필요한 내용만 `internal/`로 승격한다.
+이 브랜치의 출발점은 이전 구조 정리 PR에서 남긴 follow-up이었다.
 
-## 결론
+- `docs/` 본문에는 오래된 label, 미실측 수치, flat result tree 설명이 남아 있었다.
+- `기획/`에는 좋은 설명 흐름과 용어 결정의 흔적이 있지만, 현재 기준과 섞어 쓰기에는 낡은 표현도 있었다.
+- 페어 대화에서는 용어 자체보다 `층위`, `schema key/value`, `policy input/output`, `evaluation`이 한 화면에 겹칠 때 이해가 어려워지는 패턴이 반복됐다.
 
-현재 혼선의 핵심은 단어 하나가 어려운 것이 아니라, 같은 대상이 여러 층위에서 동시에 등장한다는 점이다.
+따라서 이번 브랜치는 공개 문서 본문을 바로 고치는 대신, 먼저 `internal/`에 현재 기준을 맞추는 작업으로 진행했다.
+
+## 이번 브랜치에서 확인한 핵심 혼선
+
+### 1. Key와 value가 같은 개념처럼 보임
+
+예를 들어 아래 표현은 두 층위를 동시에 담고 있다.
 
 ```text
-제품 장면
--> 개념 용어
--> schema key/value
--> 실행 pipeline
--> 평가 결과 / failure taxonomy
+event_type = intent_shift
 ```
 
-대화에서는 추상 용어만 볼 때 헷갈림이 생겼고, 구체 장면을 schema key/value와 pipeline에 연결했을 때 이해가 풀렸다.
+`event_type`은 schema key이고, `intent_shift`는 그 key에 들어가는 enum value다. 이 구분이 흐려지면 `backchannel`이 event type인지 action label인지, `expected_action`이 key인지 label인지 계속 다시 확인하게 된다.
 
-따라서 지금 필요한 내부 자료는 단순 용어 사전보다 **한 scenario가 schema와 pipeline을 어떻게 통과하는지 보여주는 worked example**에 가깝다.
-
-## 정합성 문제
-
-### 1. 현재 action label과 과거 label이 섞임
-
-현재 기준 action label은 `respond_and_continue`다. 하지만 과거 문서와 예시에는 `pause`가 남아 있다.
-
-이 문제는 단순 이름 잔재처럼 보이지만, 실제로는 의미도 흔든다.
-
-- `pause`: 잠깐 멈춘다는 동작만 강조한다.
-- `respond_and_continue`: 같은 주제 질문에 답하고 원래 흐름으로 돌아간다는 제품 행동을 설명한다.
-
-따라서 `same_intent_question`과 연결되는 action은 `pause`가 아니라 `respond_and_continue`로 설명해야 한다.
+이번 브랜치에서는 이 문제를 [internal/reference/schema-keys.md](../internal/reference/schema-keys.md)로 분리했다.
 
 ### 2. Event Type과 Action Label이 같은 층위처럼 보임
-
-원본 대화에서 `backchannel`이 action label인지 event type인지 헷갈리는 장면이 있었다.
 
 현재 기준은 아래처럼 분리된다.
 
 | 층위 | 예시 | 의미 |
 | --- | --- | --- |
-| `event_type` | `backchannel`, `intent_shift`, `same_intent_question` | 고객이 보낸 신호의 종류 |
-| `expected_action` | `continue`, `respond_and_continue`, `stop_and_switch` | AI가 해야 하는 행동 |
+| `event_type` | `backchannel`, `intent_shift`, `same_intent_question` | 고객 신호의 종류 |
+| action label | `continue`, `respond_and_continue`, `stop_and_switch` | AI가 선택할 행동 |
 
-문서가 이 둘을 한 표면에 나열하면 “고객 신호”와 “AI 행동”이 뒤섞여 보인다.
+`event_type`은 고객 쪽 신호이고, action label은 AI 쪽 행동이다.
 
-### 3. Expected Action과 Actual Action이 같은 값 집합을 다른 역할로 씀
+이번 브랜치에서는 [internal/reference/event-types.md](../internal/reference/event-types.md)와 [internal/reference/action-labels.md](../internal/reference/action-labels.md)를 나눠 이 구분을 고정했다.
 
-원본 대화에서 `expected action이 액션 라벨이죠`, `기대 행동`, `정답`, `내가 예상한 거랑 실제 액션` 같은 표현이 이어졌다. 이 흐름은 `expected_action`과 `actual_action`이 서로 다른 action 체계가 아니라, 같은 action label vocabulary를 기준/결과 역할로 나눠 쓰기 때문에 생기는 혼선이다.
+### 3. Expected와 Actual은 다른 값 체계가 아니라 다른 역할임
 
-현재 기준은 아래처럼 분리된다.
+`expected_action`과 `actual_action`은 같은 action label vocabulary를 쓴다.
 
 | 이름 | 값 집합 | 역할 | 위치 |
 | --- | --- | --- | --- |
-| action label | `continue`, `respond_and_continue`, `stop_and_switch` 등 | AI 행동 선택지 이름 | internal 기준, policy 코드 |
-| `expected_action` | action label vocabulary | 사람이 미리 정한 정답/기준 | `data/scenarios.json` |
-| `actual_action` | action label vocabulary | policy 실행 후 나온 결과/예측 | `results/runs/{run_id}/` |
+| `expected_action` | action label vocabulary | 사람이 정한 기준/정답 | `data/scenarios.json` |
+| `actual_action` | action label vocabulary | policy 실행 결과/예측 | `results/runs/{run_id}/decision_logs.jsonl` |
 
-따라서 `expected_action = stop_and_switch`, `actual_action = respond_and_continue`는 “expected와 actual이 다른 종류”라는 뜻이 아니다. 같은 선택지 집합 안에서 기준과 policy 결과가 달랐다는 뜻이다.
+따라서 `expected_action = stop_and_switch`, `actual_action = respond_and_continue`는 “두 용어가 다른 체계”라는 뜻이 아니다. 같은 선택지 집합 안에서 기준과 policy 결과가 달랐다는 뜻이다.
 
-### 4. Scenario의 크기가 불명확함
+### 4. Schema와 pipeline이 섞임
 
-대화에서는 scenario를 전체 상담 흐름으로 볼지, AI 발화 중 고객이 끼어드는 한 순간으로 볼지 혼선이 있었다.
-
-현재 기준은 후자다.
+schema는 한 scenario에 필요한 정보를 담는 key/value 목록이다. pipeline은 그 값들이 실행 중 어떤 순서로 쓰이는지 나타내는 흐름이다.
 
 ```text
-scenario = AI가 말하는 중 고객 신호가 들어오는 한 순간의 테스트 카드
-```
-
-전체 ARS 메뉴나 상담 여정은 제품 맥락이다. scenario는 그중 policy 판단을 평가할 수 있는 작은 단위다.
-
-### 5. Input Mode가 AI 발화로 오해됨
-
-`input_mode`가 `ai_utterance`와 가까이 보이거나, schema key 순서와 pipeline 순서가 섞이면 “input mode가 AI가 말하는 방식인가?”처럼 읽힐 수 있다.
-
-현재 기준은 아래와 같다.
-
-| input mode | 의미 |
-| --- | --- |
-| Text Replay | 텍스트로 고객 신호를 넣어 policy 판단을 검증 |
-| Audio File Test | 음성 파일을 넣어 STT/signal 흐름까지 확인 |
-| Mic Trial | live mic 입력과 latency 확인 |
-
-즉 input mode는 AI 발화가 아니라 **같은 scenario를 어떤 입력 방식으로 주입할지**다.
-
-### 6. 목표 수치와 실측 수치가 섞일 위험
-
-`25% -> 8%`, `40% -> 12%` 같은 수치는 run artifact가 없으면 확정 결과처럼 쓰면 안 된다.
-
-현재 기준은 다음과 같다.
-
-- 실측 수치는 `results/runs/{run_id}/evaluation.json`에서 확인될 때만 인용한다.
-- 실험 전 수치는 목표, 예시, 가설로만 쓴다.
-- Playground 화면 수치는 외부 인용 출처로 쓰지 않는다.
-
-### 7. Results tree 설명이 두 갈래임
-
-active rule은 `results/runs/{run_id}/` 계약을 기준으로 한다. 과거 docs 일부는 flat `results/evaluation.json`, `results/decision_logs.jsonl`처럼 설명되어 있다.
-
-현재 기준은 다음 구조다.
-
-```text
-results/runs/{run_id}/
-├── run_meta.json
-├── evaluation.json
-├── decision_logs.jsonl
-└── error_analysis.md
-```
-
-## 헷갈리게 하는 포인트
-
-### 1. 용어가 사전식으로만 나열됨
-
-`scenario`, `policy`, `decision`, `action label`, `event type`이 한 화면에 병렬로 보이면, 어떤 것이 상위 개념이고 어떤 것이 결과인지 알기 어렵다.
-
-대화에서는 “프론트/백엔드처럼 머릿속에 매핑되는 구조가 없다”는 취지의 표현이 나왔다. 익숙한 개발 층위가 없으니 단어들이 모두 같은 높이에 놓인 것처럼 보인 것이다.
-
-### 2. Schema key 순서와 실제 pipeline 순서가 섞임
-
-schema 예시는 필드 목록이다. 하지만 사람이 읽을 때는 그 순서를 실행 순서처럼 오해하기 쉽다.
-
-예를 들어 `ai_utterance`, `user_utterance`, `event_type`, `expected_action`이 나열되면 다음처럼 헷갈릴 수 있다.
-
-- AI 발화가 input mode인가?
-- 고객 발화가 signal/transcript인가?
-- event type은 policy가 내는 값인가, 사람이 붙인 기준인가?
-- expected action은 action label과 같은가?
-- expected action과 actual action은 같은 체계인가, 다른 체계인가?
-
-이 혼선은 key/value를 실제 장면에 매핑하면서 풀렸다.
-
-### 3. 현재 상태와 목표 상태가 같은 문장에 들어감
-
-“샘플 수 6개”, “30개 scenario” 같은 표현은 현재 가진 데이터인지 목표인지 분리해서 쓰지 않으면 오해를 만든다.
-
-실제로 대화에서는 30개 scenario가 이미 있는 것으로 이해했다가, 오늘 만들어야 하는 목표임을 확인하면서 정정됐다.
-
-### 4. Text Replay가 음성 프로젝트와 분리된 것처럼 보임
-
-Text Replay만 보면 “음성 프로젝트인데 텍스트로 평가하면 목적에서 벗어나는 것 아닌가?”라는 질문이 자연스럽게 생긴다.
-
-이 혼선은 아래 연결 설명으로 풀렸다.
-
-```text
-audio/mic
--> STT/signal
--> intent/event key
--> AI Action Policy
--> action
-```
-
-Text Replay는 앞단의 audio/STT를 잠시 고정하고, 뒤쪽 policy 판단을 먼저 검증하는 단계다.
-
-### 5. Failure 이름이 고객 경험과 연결되지 않으면 외워야 하는 단어가 됨
-
-`false_stop`, `missed_switch`는 그냥 metric 이름으로 보면 어렵다.
-
-대화에서는 backchannel 예시와 연결하면서 이해가 풀렸다.
-
-- `false_stop`: 멈추지 않아도 되는 맞장구에서 AI가 멈춤
-- `missed_switch`: 멈추고 전환해야 하는데 기존 흐름을 계속함
-
-즉 failure taxonomy도 abstract label보다 고객 장면과 같이 설명해야 한다.
-
-## 이해가 풀리는 패턴
-
-원본 대화에서 반복된 이해 전환은 아래 순서였다.
-
-1. 추상 용어만 보고 헷갈림
-2. 하나의 구체 장면을 잡음
-3. 장면을 schema key/value에 매핑함
-4. 그 key/value가 policy input과 action output으로 이어지는 것을 봄
-5. expected와 actual 비교로 evaluation까지 연결함
-
-예시는 다음처럼 써야 한다.
-
-```text
-제품 장면:
-AI가 배송 상태를 설명하는 중 고객이 "그게 아니라 환불받고 싶은데요"라고 말함
-
-schema:
-ai_current_intent = shipping_inquiry
-ai_utterance = 현재 상품은 배송 중이며 내일 오후 도착 예정입니다.
-user_utterance = 그게 아니라 환불받고 싶은데요
-event_type = intent_shift
-expected_user_intent = refund_request
-expected_action = stop_and_switch
-
-pipeline:
-Text Replay input
--> user_utterance를 transcript처럼 사용
--> event_type / expected_user_intent 해석
+scenario card
+-> input mode
+-> event / intent 해석
 -> AI Action Policy 실행
 -> actual_action 생성
 -> expected_action과 비교
-
-failure:
-actual_action이 respond_and_continue면 missed_switch
-actual_action이 stop_and_switch면 expected와 일치
+-> failure 분류
 ```
 
-## Internal 자료 보강 결과와 다음 후보
+이 구분은 [internal/scenario-worked-example.md](../internal/scenario-worked-example.md)에 예시로 정리했다.
 
-현재 내부 기준 자료는 다음 세 축으로 나눴다.
+### 5. docs와 기획 문서에는 좋은 형식과 낡은 기준이 같이 있음
 
-- `internal/project-language-map.md`: 용어와 층위 지도
-- `internal/evaluation-and-results-contract.md`: 평가와 result 계약
-- `internal/scenario-worked-example.md`: 제품 장면에서 schema, pipeline, expected/actual 비교까지 이어지는 예시
+`docs/`와 `기획/`에서 가져올 만한 좋은 패턴은 긴 고객 장면 설명이 아니라, enum 값을 간결하게 정리하는 형식이었다.
 
-이번 보강에서는 아래 내용을 추가했다.
+예:
 
-- `expected_action`과 `actual_action`이 같은 action label vocabulary를 기준/결과 역할로 나눠 쓰는 구조
-- `event_type`, `expected_action`, `actual_action`을 한 화면에서 볼 때 헷갈리지 않기 위한 비교 표
-- scenario card에는 `expected_action`만 있고, `actual_action`은 policy 실행 후 run artifact에 생긴다는 경계
+- event type 7종을 개념, 대표 워딩/신호, 기본 expected action으로 나열
+- action label 6종을 의미와 경계로 정리
+- Text/Audio/Mic이 뒤쪽에서 같은 AI Action Policy로 연결된다는 도식
 
-남은 후보는 아래 정도다.
+하지만 그대로 가져오면 안 되는 것도 있었다.
 
-### 후보 A. `internal/current-state-vs-target.md` 추가
+- `pause`가 현재 action label처럼 남아 있음
+- `25% -> 8%`, `40% -> 12%` 같은 미실측 수치가 결과처럼 쓰임
+- `results/evaluation.json`, `results/decision_logs.jsonl` 같은 flat result tree 설명이 남아 있음
+- `30개 목표`, `30개 진행 중`, `30개 완료`가 문서별로 섞임
 
-현재 있는 것과 앞으로 만들 것을 분리한다.
+그래서 이번 브랜치에서는 문장 자체를 옮기기보다, 형식만 참고해 현재 기준 reference를 새로 만들었다.
 
-장점:
-- “30개가 이미 있는가, 오늘 만들어야 하는가” 같은 상태 혼선을 줄인다.
+## 이번 브랜치에서 정리한 기준
 
-단점:
-- 계속 갱신하지 않으면 금방 낡는다.
+### Internal 기준 자료 추가
 
-### 후보 B. docs 본문 정리 전 source-of-truth 점검표 추가
+| 파일 | 역할 |
+| --- | --- |
+| [internal/project-language-map.md](../internal/project-language-map.md) | 전체 층위와 읽는 순서 |
+| [internal/evaluation-and-results-contract.md](../internal/evaluation-and-results-contract.md) | expected/actual, metric, run artifact 계약 |
+| [internal/scenario-worked-example.md](../internal/scenario-worked-example.md) | 한 scenario가 schema, policy, evaluation으로 이어지는 예시 |
+| [internal/reference/schema-keys.md](../internal/reference/schema-keys.md) | schema key와 result key의 역할 구분 |
+| [internal/reference/event-types.md](../internal/reference/event-types.md) | `event_type` 7종 reference |
+| [internal/reference/action-labels.md](../internal/reference/action-labels.md) | action label 6종 reference |
 
-`docs/`를 실제로 고칠 때 어떤 internal 기준을 먼저 봐야 하는지 작은 체크리스트로 둔다.
+### Current 기준으로 고정한 것
 
-장점:
-- 공개 문서를 손보기 전 기준 경로가 선명해진다.
-- `docs/` body를 지금 당장 고치지 않는 경계와 잘 맞는다.
+- `pause`는 현재 action label로 쓰지 않는다.
+- 같은 주제 질문에 답하고 이어가는 행동은 `respond_and_continue`로 쓴다.
+- `expected_action`은 기준/정답이고, `actual_action`은 policy 실행 결과다.
+- `data/scenarios.json`에는 기준 원본만 둔다. `actual_action`, metric, decision log는 넣지 않는다.
+- 새 result는 `results/runs/{run_id}/` 구조를 기준으로 둔다.
+- 미실측 수치는 결과처럼 쓰지 않는다.
+- `docs/` 본문은 아직 고치지 않는다. internal 기준이 안정된 뒤 공개 문장으로 발췌한다.
 
-단점:
-- 현재는 `Project Language Map`, `Evaluation and Results Contract`, `Scenario Worked Example` 링크만으로도 충분할 수 있다.
+### 구조 정리
 
-## 추천
+- reference 성격의 문서 3개를 `internal/reference/` 아래로 묶었다.
+- `docs/archive/` 자료는 루트 `archive/`로 이전했다.
+- archive는 history/evidence로만 보고, active 기준과 충돌하면 `internal/`, `.claude/rules/`, 코드/데이터 쪽을 우선한다.
 
-지금은 추가 파일을 더 늘리기보다, 세 내부 문서를 기준으로 한 번 써보고 막히는 지점을 다시 모으는 편이 좋다.
+## 작업 이력
 
-이유:
+이번 브랜치에서 관련된 주요 commit은 아래 흐름이다.
 
-- expected/actual 혼선까지 현재 대화에서 확인된 큰 축은 internal에 반영했다.
-- `current-state-vs-target`는 유용하지만 계속 갱신하지 않으면 오히려 낡은 기준이 될 수 있다.
-- docs 본문을 아직 건드리지 않기로 했으므로, 다음 단계는 internal 기준을 안정화한 뒤 공개 문장으로 발췌하는 것이다.
+| commit | 내용 |
+| --- | --- |
+| `3e5bf39` | `internal/` 용어 지도와 평가 계약 추가 |
+| `4a47619` | `data/scenario_stats.json` 분포 정정 |
+| `377f207` | failure classifier 예시 label을 현재 기준으로 갱신 |
+| `6fcb92b` | 이 temp 혼선 분석 메모 최초 추가 |
+| `15d0ce4` | scenario worked example 추가 |
+| `8523aa3` | expected/actual action 역할 구분 보강 |
+| `b4964ae` | schema key, event type, action label reference 추가 |
+| `e6f4106` | reference 문서를 `internal/reference/`로 묶음 |
+| `27558c1` | `docs/archive` 자료를 루트 `archive`로 이동 |
 
-## Docs 본문 정리 시 체크리스트
+## docs 본문을 나중에 정리할 때 볼 것
 
-아직 `docs/` 본문은 고치지 않는다. 나중에 정리할 때는 아래를 본다.
+아직 `docs/` 본문은 고치지 않는다. 나중에 공개 문서를 정리할 때는 아래 순서로 본다.
+
+1. `internal/project-language-map.md`에서 전체 층위를 확인한다.
+2. key/value 혼선은 `internal/reference/schema-keys.md`를 기준으로 정리한다.
+3. enum 설명은 `internal/reference/event-types.md`, `internal/reference/action-labels.md`의 표 형식을 참고한다.
+4. 수치와 result tree는 `internal/evaluation-and-results-contract.md`를 기준으로 고친다.
+5. 흐름 설명이 필요하면 `internal/scenario-worked-example.md`의 순서를 따른다.
+
+체크리스트:
 
 - `pause`가 현재 action label처럼 쓰이는가?
 - `event_type`과 action label이 같은 층위로 보이는가?
+- schema key와 enum value를 같은 말처럼 설명하는가?
+- `expected_action`과 `actual_action`을 다른 값 체계처럼 설명하는가?
 - `scenario`가 전체 상담 플로우처럼 설명되는가?
-- `input_mode`가 AI 발화처럼 읽히는가?
+- `input_mode`가 AI 발화 방식처럼 읽히는가?
 - 목표 수치가 실측 결과처럼 쓰이는가?
 - flat `results/evaluation.json` 구조가 남아 있는가?
 - Text Replay가 음성 프로젝트의 대체물처럼 설명되는가?
-- failure taxonomy가 고객 장면 없이 metric 이름만 나열되는가?
+- failure taxonomy가 고객 경험/실패 유형과 연결되지 않고 metric 이름만 나열되는가?
 
-## 이번 분석에서 유지할 경계
+## 남은 follow-up
 
-- `docs/` 본문은 아직 수정하지 않는다.
-- 페어 원본은 evidence로만 보고, 프로젝트 문서에는 개인 로컬 절대경로를 넣지 않는다.
+- `docs/` 본문에서 `pause` 잔재를 `respond_and_continue` 기준으로 정리
+- `docs/` 본문에서 미실측 개선 수치를 목표/가설 표현으로 낮추거나 run artifact 기반 수치로 교체
+- `docs/02-design/evaluation.md`의 result tree 설명을 `results/runs/{run_id}/` 기준으로 정리
+- `docs/03-data/bank.md`처럼 현재 상태와 목표 상태가 섞인 문서 정리
+- `기획/` 자료를 계속 freeze 배경으로 둘지, 필요한 내용만 internal/docs로 승격한 뒤 삭제할지 검토
+
+## 유지할 경계
+
+- 이 문서는 공개 문서가 아니라 `temp/` 작업 메모다.
+- 페어 원본과 과거 docs는 evidence로만 보고, 프로젝트 문서에는 개인 로컬 절대경로를 넣지 않는다.
 - `기획/` 자료를 그대로 복사하지 않고, 현재 기준 어휘로 재정리한다.
 - 수치 인용은 run artifact가 생긴 뒤에 한다.
