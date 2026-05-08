@@ -57,7 +57,7 @@ AI: "배송 상황을 말씀드리겠습니다."
 
 ---
 
-### 3️⃣ `pause` — 잠깐 멈추고 답하기
+### 3️⃣ `respond_and_continue` — 고객 질문에 답하고 계속
 
 **정의:** AI가 잠깐 멈춰서 고객의 질문에 답한 후 이전 주제로 돌아감
 
@@ -143,7 +143,7 @@ AI: "배송 상황은 정상입니다."
 | `no_speech` | `continue` | 사용자 발화 없음 |
 | `noise` | `continue` | 배경음 또는 비언어 소리 |
 | `backchannel` | `continue` / `brief_ack` | "네", "음" 등 맞장구 |
-| `same_intent_question` | `pause` | 같은 주제 내 보충 질문 |
+| `same_intent_question` | `respond_and_continue` | 같은 주제 내 보충 질문 |
 | `intent_shift` | `stop_and_switch` | 다른 의도로 전환 |
 | `complaint` | `stop_and_switch` / `handoff` | 불만/긴급 발화 |
 | `ambiguous` | `ask_clarifying` | 의도 불명확 |
@@ -161,7 +161,7 @@ continue, brief_ack
   ↓
 불필요한 개입 (No Intervention)
 
-pause, stop_and_switch, ask_clarifying, handoff
+respond_and_continue, stop_and_switch, ask_clarifying, handoff
   ↓
 개입 필요 (Intervention Required)
 ```

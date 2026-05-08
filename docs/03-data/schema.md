@@ -106,7 +106,7 @@
 - **가능한 값**:
   - `continue`: 계속 말하기
   - `brief_ack`: 짧게 반응하고 계속
-  - `pause`: 멈추고 답하기
+  - `respond_and_continue`: 고객 질문에 답하고 계속
   - `stop_and_switch`: 주제 바꾸기
   - `ask_clarifying`: 확인 질문
   - `handoff`: 상담사 연결
@@ -244,7 +244,7 @@
   "ai_utterance": "현재 상품은 배송 중이며 내일 오후 도착 예정입니다.",
   "user_utterance": "배송비는 따로 드나요?",
   "event_type": "same_intent_question",
-  "expected_action": "pause",
+  "expected_action": "respond_and_continue",
   "expected_user_intent": "shipping_inquiry",
   "user_tone_hint": "neutral",
   "has_user_speech": true,
