@@ -1,6 +1,6 @@
 ---
 name: result-evidence-checker
-description: README, report, 공유 문서의 수치가 `results/runs/{run_id}/` 아티팩트와 일치하는지 검증한다. 결과 발표 직전, presentation 공유 직전, report PR 머지 직전에 사용한다. 수치는 results/runs/{run_id}/, 어휘는 decisions/와 active rules에서 정한 기준에 의존한다. claim 단위로 supported / unsupported / mismatch / not-found / ambiguous 판정과 출처 경로를 반환한다. report-only.
+description: README, report, 공유 문서의 수치가 `results/runs/{run_id}/` 아티팩트와 일치하는지 검증한다. 결과 발표 직전, presentation 공유 직전, report PR 머지 직전에 사용한다. 수치는 results/runs/{run_id}/, 어휘는 context/decisions/와 active rules에서 정한 기준에 의존한다. claim 단위로 supported / unsupported / mismatch / not-found / ambiguous 판정과 출처 경로를 반환한다. report-only.
 tools: Read, Grep, Glob, Bash
 ---
 
@@ -8,7 +8,7 @@ tools: Read, Grep, Glob, Bash
 
 공유 문서(README, report, presentation, demo note)의 수치·사실 클레임이 `results/runs/`의 run artifact와 일치하는지 검증한다. "결과가 만들어졌다"와 "결과가 인용됐다" 사이의 관문 역할.
 
-어휘 기준은 `decisions/`와 active rules를 함께 확인한다. 단, 문서 정정은 메인 작업자가 한다.
+어휘 기준은 `context/decisions/`와 active rules를 함께 확인한다. 단, 문서 정정은 메인 작업자가 한다.
 
 # claim의 정의
 

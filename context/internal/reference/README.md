@@ -1,6 +1,6 @@
 # reference
 
-`internal/reference/`는 schema key와 enum value를 빠르게 확인하기 위한 하위 참조 문서 묶음이다.
+`context/internal/reference/`는 schema key와 enum value를 빠르게 확인하기 위한 하위 참조 문서 묶음이다.
 
 상위 흐름은 [Project Language Map](../project-language-map.md)에서 보고, 특정 key나 값이 헷갈릴 때 이 폴더의 문서를 본다.
 

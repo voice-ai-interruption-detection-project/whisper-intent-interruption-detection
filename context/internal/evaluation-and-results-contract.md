@@ -10,7 +10,7 @@
 | --- | --- | --- |
 | `data/scenarios.json` | 기준 원본, expected action, 라벨링 근거 | actual action, metric, decision log |
 | `results/runs/{run_id}/` | policy 실행 결과, metric, decision log, run metadata | 기준 scenario 원본 수정본 |
-| `internal/` | 평가 기준 초안, 용어, 계약 설명 | 외부 인용 가능한 확정 수치 |
+| `context/internal/` | 평가 기준 초안, 용어, 계약 설명 | 외부 인용 가능한 확정 수치 |
 | `docs/` | 공개/공유용으로 다듬은 설명 | 출처 없는 수치, 실험 전 단정 |
 
 `expected_action`은 사람이 정한 기준이고, `actual_action`은 policy 실행 결과다. 두 값이 같은 파일에 섞이면 기준이 바뀐 것인지 policy가 바뀐 것인지 추적하기 어렵다.

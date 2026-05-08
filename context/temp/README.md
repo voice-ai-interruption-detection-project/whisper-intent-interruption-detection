@@ -1,4 +1,4 @@
-# temp
+# context/temp
 
 임시 작업 자료와 짧게 공유할 파일을 두는 영역이다.
 
@@ -8,7 +8,7 @@
 
 - Markdown 임시 파일은 `*.tmp.md` suffix를 권장한다.
 - 스크린샷, PDF, 짧은 캡처 자료는 필요하면 그대로 둔다.
-- 오래 남는 자료는 `internal/`이나 `decisions/`로 승격할지 검토한다.
+- 오래 남는 자료는 `context/internal/`이나 `context/decisions/`로 승격할지 검토한다.
 - 개인 로컬 경로, 인증 정보, 비공개 원문은 넣지 않는다.
 
 이 폴더는 mkdocs 공개 문서 영역이 아니다.

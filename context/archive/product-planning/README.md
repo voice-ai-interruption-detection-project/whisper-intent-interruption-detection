@@ -6,15 +6,15 @@
 
 | 기준 | 위치 |
 | --- | --- |
-| 제품 문제, 현재 범위, 비목표, 남은 결정 후보 | [internal/product-context.md](../../internal/product-context.md) |
-| 용어 층위와 읽는 순서 | [internal/project-language-map.md](../../internal/project-language-map.md) |
-| schema key와 enum value | [internal/reference/](../../internal/reference/) |
-| expected/actual, metric, run artifact 계약 | [internal/evaluation-and-results-contract.md](../../internal/evaluation-and-results-contract.md) |
+| 제품 문제, 현재 범위, 비목표, 남은 결정 후보 | [context/internal/product-context.md](../../internal/product-context.md) |
+| 용어 층위와 읽는 순서 | [context/internal/project-language-map.md](../../internal/project-language-map.md) |
+| schema key와 enum value | [context/internal/reference/](../../internal/reference/) |
+| expected/actual, metric, run artifact 계약 | [context/internal/evaluation-and-results-contract.md](../../internal/evaluation-and-results-contract.md) |
 
 ## 보관 기준
 
 - 이 폴더의 문서는 history/evidence로만 본다.
-- active 기준과 충돌하면 `internal/`, `decisions/`, 코드, 데이터 쪽을 우선한다.
+- active 기준과 충돌하면 `context/internal/`, `context/decisions/`, 코드, 데이터 쪽을 우선한다.
 - 다시 사용할 내용은 원문을 그대로 복사하지 않고 현재 기준 어휘로 재정리한 뒤 active 위치로 승격한다.
 - `pause`, flat `results/evaluation.json`, 미실측 목표 수치처럼 현재 기준에서 물러난 표현은 archive 맥락으로만 읽는다.
 

@@ -9,10 +9,10 @@
 이 브랜치의 출발점은 이전 구조 정리 PR에서 남긴 follow-up이었다.
 
 - `docs/` 본문에는 오래된 label, 미실측 수치, flat result tree 설명이 남아 있었다.
-- 초기 `기획/` 자료에는 좋은 설명 흐름과 용어 결정의 흔적이 있지만, 현재 기준과 섞어 쓰기에는 낡은 표현도 있었다. 해당 원문은 `archive/product-planning/`으로 이동했고, 제품 방향의 현재 기준은 `internal/product-context.md`로 재정리했다.
+- 초기 `기획/` 자료에는 좋은 설명 흐름과 용어 결정의 흔적이 있지만, 현재 기준과 섞어 쓰기에는 낡은 표현도 있었다. 해당 원문은 `context/archive/product-planning/`으로 이동했고, 제품 방향의 현재 기준은 `context/internal/product-context.md`로 재정리했다.
 - 페어 대화에서는 용어 자체보다 `층위`, `schema key/value`, `policy input/output`, `evaluation`이 한 화면에 겹칠 때 이해가 어려워지는 패턴이 반복됐다.
 
-따라서 이번 브랜치는 공개 문서 본문을 바로 고치는 대신, 먼저 `internal/`에 현재 기준을 맞추는 작업으로 진행했다.
+따라서 이번 브랜치는 공개 문서 본문을 바로 고치는 대신, 먼저 `context/internal/`에 현재 기준을 맞추는 작업으로 진행했다.
 
 ## 이번 브랜치에서 확인한 핵심 혼선
 
@@ -26,7 +26,7 @@ event_type = intent_shift
 
 `event_type`은 schema key이고, `intent_shift`는 그 key에 들어가는 enum value다. 이 구분이 흐려지면 `backchannel`이 event type인지 action label인지, `expected_action`이 key인지 label인지 계속 다시 확인하게 된다.
 
-이번 브랜치에서는 이 문제를 [internal/reference/schema-keys.md](../internal/reference/schema-keys.md)로 분리했다.
+이번 브랜치에서는 이 문제를 [context/internal/reference/schema-keys.md](../internal/reference/schema-keys.md)로 분리했다.
 
 ### 2. Event Type과 Action Label이 같은 층위처럼 보임
 
@@ -39,7 +39,7 @@ event_type = intent_shift
 
 `event_type`은 고객 쪽 신호이고, action label은 AI 쪽 행동이다.
 
-이번 브랜치에서는 [internal/reference/event-types.md](../internal/reference/event-types.md)와 [internal/reference/action-labels.md](../internal/reference/action-labels.md)를 나눠 이 구분을 고정했다.
+이번 브랜치에서는 [context/internal/reference/event-types.md](../internal/reference/event-types.md)와 [context/internal/reference/action-labels.md](../internal/reference/action-labels.md)를 나눠 이 구분을 고정했다.
 
 ### 3. Expected와 Actual은 다른 값 체계가 아니라 다른 역할임
 
@@ -66,7 +66,7 @@ scenario card
 -> failure 분류
 ```
 
-이 구분은 [internal/scenario-worked-example.md](../internal/scenario-worked-example.md)에 예시로 정리했다.
+이 구분은 [context/internal/scenario-worked-example.md](../internal/scenario-worked-example.md)에 예시로 정리했다.
 
 ### 5. docs와 기획 문서에는 좋은 형식과 낡은 기준이 같이 있음
 
@@ -91,7 +91,7 @@ scenario card
 
 초기 기획 문서에는 제품 문제, 범위, 입력 모드, action label, 실행 일정, 폴더 구조가 한꺼번에 들어 있었다. 페어 중에는 이 때문에 "무엇이 현재 제품 기준이고, 무엇이 용어 reference이며, 무엇이 날짜별 계획인지"를 다시 확인하는 일이 반복됐다.
 
-이번 브랜치에서는 제품 방향과 실행 범위는 [internal/product-context.md](../internal/product-context.md)에 두고, 용어 층위와 enum 값은 [internal/project-language-map.md](../internal/project-language-map.md)와 [internal/reference/](../internal/reference/) 아래로 분리했다.
+이번 브랜치에서는 제품 방향과 실행 범위는 [context/internal/product-context.md](../internal/product-context.md)에 두고, 용어 층위와 enum 값은 [context/internal/project-language-map.md](../internal/project-language-map.md)와 [context/internal/reference/](../internal/reference/) 아래로 분리했다.
 
 추가로 Workbench / Playground / Test Bench가 섞이지 않도록 제품 표면 기준을 product context와 language map에 나눠 적었다.
 
@@ -112,13 +112,13 @@ scenario card
 
 | 파일 | 역할 |
 | --- | --- |
-| [internal/project-language-map.md](../internal/project-language-map.md) | 전체 층위와 읽는 순서 |
-| [internal/product-context.md](../internal/product-context.md) | 제품 문제, 현재 범위, 제품 표면, 비목표, 남은 결정 후보 |
-| [internal/evaluation-and-results-contract.md](../internal/evaluation-and-results-contract.md) | expected/actual, metric, run artifact 계약 |
-| [internal/scenario-worked-example.md](../internal/scenario-worked-example.md) | 한 scenario가 schema, policy, evaluation으로 이어지는 예시 |
-| [internal/reference/schema-keys.md](../internal/reference/schema-keys.md) | schema key와 result key의 역할 구분 |
-| [internal/reference/event-types.md](../internal/reference/event-types.md) | `event_type` 7종 reference |
-| [internal/reference/action-labels.md](../internal/reference/action-labels.md) | action label 6종 reference |
+| [context/internal/project-language-map.md](../internal/project-language-map.md) | 전체 층위와 읽는 순서 |
+| [context/internal/product-context.md](../internal/product-context.md) | 제품 문제, 현재 범위, 제품 표면, 비목표, 남은 결정 후보 |
+| [context/internal/evaluation-and-results-contract.md](../internal/evaluation-and-results-contract.md) | expected/actual, metric, run artifact 계약 |
+| [context/internal/scenario-worked-example.md](../internal/scenario-worked-example.md) | 한 scenario가 schema, policy, evaluation으로 이어지는 예시 |
+| [context/internal/reference/schema-keys.md](../internal/reference/schema-keys.md) | schema key와 result key의 역할 구분 |
+| [context/internal/reference/event-types.md](../internal/reference/event-types.md) | `event_type` 7종 reference |
+| [context/internal/reference/action-labels.md](../internal/reference/action-labels.md) | action label 6종 reference |
 
 ### Current 기준으로 고정한 것
 
@@ -135,11 +135,12 @@ scenario card
 
 ### 구조 정리
 
-- reference 성격의 문서 3개를 `internal/reference/` 아래로 묶었다.
-- `docs/archive/` 자료는 루트 `archive/`로 이전했다.
-- archive는 history/evidence로만 보고, active 기준과 충돌하면 `internal/`, `.claude/rules/`, 코드/데이터 쪽을 우선한다.
-- 초기 `기획/` 원문은 `archive/product-planning/`으로 이동했다.
-- 루트 가이드, repo-local agents, Codex agent bridge도 `internal/product-context.md`와 archive 경계에 맞춰 갱신했다.
+- reference 성격의 문서 3개를 `context/internal/reference/` 아래로 묶었다.
+- `docs/archive/` 자료는 `context/archive/`로 이전했다.
+- archive는 history/evidence로만 보고, active 기준과 충돌하면 `context/internal/`, `.claude/rules/`, 코드/데이터 쪽을 우선한다.
+- 초기 `기획/` 원문은 `context/archive/product-planning/`으로 이동했다.
+- 루트 가이드, repo-local agents, Codex agent bridge도 `context/internal/product-context.md`와 archive 경계에 맞춰 갱신했다.
+- 운영/맥락 문서 루트 노출을 줄이기 위해 `internal/`, `decisions/`, `archive/`, `temp/`는 `context/` 아래로 접었다.
 
 ## 작업 이력
 
@@ -157,17 +158,18 @@ scenario card
 | `e6f4106` | reference 문서를 `internal/reference/`로 묶음 |
 | `27558c1` | `docs/archive` 자료를 루트 `archive`로 이동 |
 | `9cfe23f` | 초기 product planning 원문을 archive로 이동하고 `internal/product-context.md`를 현재 제품 기준으로 추가 |
+| `uncommitted` | `internal/`, `decisions/`, `archive/`, `temp/`를 `context/` 아래로 이동하고 하네스 경로 갱신 |
 
 ## docs 본문을 나중에 정리할 때 볼 것
 
 아직 `docs/` 본문은 고치지 않는다. 나중에 공개 문서를 정리할 때는 아래 순서로 본다.
 
-1. 제품 방향, 범위, 비목표는 `internal/product-context.md`를 먼저 본다.
-2. `internal/project-language-map.md`에서 전체 층위를 확인한다.
-3. key/value 혼선은 `internal/reference/schema-keys.md`를 기준으로 정리한다.
-4. enum 설명은 `internal/reference/event-types.md`, `internal/reference/action-labels.md`의 표 형식을 참고한다.
-5. 수치와 result tree는 `internal/evaluation-and-results-contract.md`를 기준으로 고친다.
-6. 흐름 설명이 필요하면 `internal/scenario-worked-example.md`의 순서를 따른다.
+1. 제품 방향, 범위, 비목표는 `context/internal/product-context.md`를 먼저 본다.
+2. `context/internal/project-language-map.md`에서 전체 층위를 확인한다.
+3. key/value 혼선은 `context/internal/reference/schema-keys.md`를 기준으로 정리한다.
+4. enum 설명은 `context/internal/reference/event-types.md`, `context/internal/reference/action-labels.md`의 표 형식을 참고한다.
+5. 수치와 result tree는 `context/internal/evaluation-and-results-contract.md`를 기준으로 고친다.
+6. 흐름 설명이 필요하면 `context/internal/scenario-worked-example.md`의 순서를 따른다.
 
 체크리스트:
 
@@ -190,11 +192,11 @@ scenario card
 - `docs/` 본문에서 미실측 개선 수치를 목표/가설 표현으로 낮추거나 run artifact 기반 수치로 교체
 - `docs/02-design/evaluation.md`의 result tree 설명을 `results/runs/{run_id}/` 기준으로 정리
 - `docs/03-data/bank.md`처럼 현재 상태와 목표 상태가 섞인 문서 정리
-- 완료: 초기 `기획/` 원문은 `archive/product-planning/`으로 이동하고, 필요한 내용은 `internal/` 기준 자료로 재정리
+- 완료: 초기 `기획/` 원문은 `context/archive/product-planning/`으로 이동하고, 필요한 내용은 `context/internal/` 기준 자료로 재정리
 
 ## 유지할 경계
 
-- 이 문서는 공개 문서가 아니라 `temp/` 작업 메모다.
+- 이 문서는 공개 문서가 아니라 `context/temp/` 작업 메모다.
 - 페어 원본과 과거 docs는 evidence로만 보고, 프로젝트 문서에는 개인 로컬 절대경로를 넣지 않는다.
 - archive의 초기 기획 자료를 그대로 복사하지 않고, 현재 기준 어휘로 재정리한다.
 - 수치 인용은 run artifact가 생긴 뒤에 한다.

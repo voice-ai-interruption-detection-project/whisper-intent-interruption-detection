@@ -1,4 +1,4 @@
-# decisions
+# context/decisions
 
 결정, 고민, AI 대화 맥락을 사안별로 보관하는 영역이다.
 
@@ -9,7 +9,7 @@
 기본 단위는 폴더다.
 
 ```text
-decisions/YYYY-MM-DD-{kebab-topic}/
+context/decisions/YYYY-MM-DD-{kebab-topic}/
 ├── README.md
 ├── context.md
 └── raw.md
@@ -50,6 +50,7 @@ tags: []
 
 | 날짜 | 제목 | status | 관련 PR / run |
 | --- | --- | --- | --- |
+| 2026-05-09 | Context Directory Boundary | active |  |
 | 2026-05-09 | Product Planning Archive Boundary | active |  |
 
 ## 다른 기록과의 경계

@@ -1,6 +1,6 @@
 ---
 name: experiment-material-collector
-description: 한 실험 단위(시나리오 슬라이스, policy version, 최근 run, decision log 발췌)에 흩어져 있는 자료를 한 장의 compact context card로 모은다. 새 실험 시작 전, 두 run을 비교하기 전, Before/After 리포트를 쓰기 전, 새 실험 슬라이스에 합류한 팀원이 들어올 때 사용한다. 자료 수집 시 internal/(제품 맥락·용어·정책·평가 기준), decisions/(결정·맥락), data/scenarios.json, results/runs/{run_id}/를 우선하고 archive/는 historical evidence가 필요할 때만 확인한다. report-only.
+description: 한 실험 단위(시나리오 슬라이스, policy version, 최근 run, decision log 발췌)에 흩어져 있는 자료를 한 장의 compact context card로 모은다. 새 실험 시작 전, 두 run을 비교하기 전, Before/After 리포트를 쓰기 전, 새 실험 슬라이스에 합류한 팀원이 들어올 때 사용한다. 자료 수집 시 context/internal/(제품 맥락·용어·정책·평가 기준), context/decisions/(결정·맥락), data/scenarios.json, results/runs/{run_id}/를 우선하고 context/archive/는 historical evidence가 필요할 때만 확인한다. report-only.
 tools: Read, Grep, Glob, Bash
 ---
 
@@ -16,7 +16,7 @@ prompt에서 지정된 실험 단위에 대해 다음을 모은다.
 - **연관된 policy version**: 현재 `src/policies/{name}.py`의 생성자 default와 매핑 테이블 + `results/runs/{run_id}/run_meta.json`의 `policy_snapshot`. 둘이 다르면 drift로 표기.
 - **Run artifact**: 범위 안 policy의 최근 run들. `evaluation.json` 요약, `run_meta.json`(source, dataset_id, latency_ms), `error_analysis.md` 머리말을 가져온다.
 - **Decision log 발췌**: `results/runs/{run_id}/decision_logs.jsonl`에서 실패 케이스 위주로 샘플링.
-- **기준·결정 맥락**: `internal/`의 제품 맥락·용어·정책·평가 기준 자료와 `decisions/`의 사안별 결정 맥락을 우선 확인한다. `archive/`는 historical evidence가 필요할 때만 확인한다.
+- **기준·결정 맥락**: `context/internal/`의 제품 맥락·용어·정책·평가 기준 자료와 `context/decisions/`의 사안별 결정 맥락을 우선 확인한다. `context/archive/`는 historical evidence가 필요할 때만 확인한다.
 
 # 출력 형식
 
