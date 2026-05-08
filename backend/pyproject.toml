@@ -1,0 +1,42 @@
+[project]
+name = "interruption-detection-backend"
+version = "0.1.0"
+description = "Interruption Detection Test Bench - Backend"
+authors = [
+    {name = "deepsea"}
+]
+requires-python = "^3.11"
+dependencies = [
+    "fastapi (>=0.136.1,<0.137.0)",
+    "uvicorn (>=0.46.0,<0.47.0)",
+    "pydantic (>=2.13.4,<3.0.0)",
+    "pydantic-settings (>=2.14.0,<3.0.0)",
+    "python-dotenv (>=1.2.2,<2.0.0)",
+    "sentence-transformers (>=5.4.1,<6.0.0)",
+    "numpy (>=2.4.4,<3.0.0)",
+    "pandas (>=3.0.2,<4.0.0)",
+    "scikit-learn (>=1.8.0,<2.0.0)",
+    "openai-whisper (>=20250625,<20250626)",
+    "webrtcvad (>=2.0.10,<3.0.0)",
+    "soundfile (>=0.13.1,<0.14.0)",
+    "librosa (>=0.11.0,<0.12.0)",
+    "python-multipart (>=0.0.27,<0.0.28)",
+    "pyyaml (>=6.0.3,<7.0.0)",
+    "rich (>=15.0.0,<16.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "pytest (>=9.0.3,<10.0.0)",
+    "pytest-asyncio (>=1.3.0,<2.0.0)",
+    "pytest-cov (>=7.1.0,<8.0.0)",
+    "httpx (>=0.28.1,<0.29.0)",
+    "black (>=26.3.1,<27.0.0)",
+    "ruff (>=0.15.12,<0.16.0)",
+    "mypy (>=2.0.0,<3.0.0)"
+]
