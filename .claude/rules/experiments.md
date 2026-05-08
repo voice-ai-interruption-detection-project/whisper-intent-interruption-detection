@@ -31,7 +31,8 @@
 
 - `src/evaluation/*`은 detection 판정 로직을 다시 구현하지 않는다.
 - `src/app.py`(Playground)도 정책 판정을 직접 구현하지 않는다 — 같은 `src/runner.py`를 호출한다.
-- demo, CLI, eval, Playground가 같은 runner entry를 통과한다. 새 entry를 만들면 기존 runner를 재사용하는지 먼저 확인한다.
+- `src/backend/`(FastAPI API 진입)도 정책 판정을 직접 구현하지 않는다 — 같은 `src/runner.py`를 호출한다.
+- demo, CLI, eval, Playground, Backend API가 같은 runner entry를 통과한다. 새 entry를 만들면 기존 runner를 재사용하는지 먼저 확인한다.
 
 ## 검증된 수치만 공유한다
 

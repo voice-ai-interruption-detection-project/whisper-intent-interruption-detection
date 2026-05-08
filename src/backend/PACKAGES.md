@@ -12,6 +12,8 @@ backend 패키지들은 다음 세 가지 핵심 기능을 지원합니다:
 2. **음성 신호 처리**: VAD(Voice Activity Detection), STT(Speech-to-Text), 오디오 파일 분석
 3. **Intent 분석**: 사용자 발화의 의도 변화 감지 및 AI Action Policy 판단
 
+> **하네스 invariant**: `src/backend/`는 API 표면이다. 정책 판정·평가 로직을 직접 구현하지 않고 `src/runner.py`를 호출한다. 다른 surface(Playground, demo, CLI, Test Bench eval)와 동등하게 단일 runner를 통과한다 (`.claude/rules/experiments.md` 참조).
+
 ---
 
 ## 🔌 API & 서버 (FastAPI 스택)
@@ -440,19 +442,25 @@ FastAPI 앱
 │           │   ├── scenario.py     # Scenario 조회/관리
 │           │   ├── predict.py      # Action 예측
 │           │   └── evaluate.py     # 평가 결과
-│           ├── services/
+│           ├── services/           # ※ 정책 로직 직접 구현 금지 — src/runner.py 호출
 │           │   ├── vad.py          # webrtcvad 래퍼
 │           │   ├── stt.py          # openai-whisper 래퍼
 │           │   ├── intent.py       # sentence-transformers intent shift
-│           │   └── policy.py       # AI Action Policy 로직 (P0~P3)
+│           │   └── policy.py       # runner 호출 어댑터 (정책 로직은 src/policies/에)
 │           └── utils/
 │               ├── audio.py        # soundfile, librosa 유틸리티
 │               └── metrics.py      # scikit-learn 기반 평가
 │
 ├── data/                   # 원본 시나리오 (read-only ground truth)
-│   ├── scenarios.csv       # Scenario bank (pandas 로드)
-│   ├── intents.yaml        # Intent descriptions (PyYAML)
-│   └── decision_log.json   # 실행 결과 로그
+│   ├── scenarios.json      # Scenario bank
+│   └── intents.yaml        # Intent descriptions (PyYAML)
+│
+├── results/                # Test Bench artifact (run_id 단위, append-only)
+│   └── runs/{run_id}/
+│       ├── run_meta.json
+│       ├── evaluation.json
+│       ├── decision_logs.jsonl
+│       └── error_analysis.md
 │
 └── tests/
     ├── test_api.py         # FastAPI + httpx 테스트
