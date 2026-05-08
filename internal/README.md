@@ -25,6 +25,9 @@
 ## 현재 기준 자료
 
 - [Project Language Map](project-language-map.md): scenario, input mode, event type, action label, policy version의 층위 정리
+- [Schema Key Reference](schema-key-reference.md): scenario 원본 key와 run result key의 역할 구분
+- [Event Type Reference](event-type-reference.md): `event_type` 7종의 개념, 대표 신호, 경계 기준
+- [Action Label Reference](action-label-reference.md): action label 6종의 의미와 expected/actual 역할 구분
 - [Scenario Worked Example](scenario-worked-example.md): 한 scenario가 schema key/value, policy 판단, evaluation으로 이어지는 예시
 - [Evaluation and Results Contract](evaluation-and-results-contract.md): metric, failure taxonomy, `results/runs/{run_id}/` 계약, 수치 인용 기준
 
