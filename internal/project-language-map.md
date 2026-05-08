@@ -1,0 +1,104 @@
+# Project Language Map
+
+이 문서는 프로젝트 안에서 자주 섞이는 단어의 층위를 맞추기 위한 내부 기준 자료다.
+
+`docs/`에 바로 공개 문장으로 옮기기 전, 팀 안에서 먼저 같은 뜻으로 쓰기 위한 작업용 문서다.
+
+## 한 줄 기준
+
+이 프로젝트는 전체 상담 앱을 한 번에 만들기보다, **AI가 말하는 중 고객 신호가 들어온 한 순간**을 scenario로 잘라 보고, AI Action Policy가 어떤 action label을 선택해야 자연스러운지 평가한다.
+
+```text
+scenario
+-> input_mode로 재생
+-> event_type / expected_user_intent 해석
+-> AI Action Policy 실행
+-> expected_action과 actual_action 비교
+-> Test Bench run artifact에 기록
+```
+
+## 핵심 용어
+
+| 용어 | 현재 기준 | 헷갈리지 말 것 |
+| --- | --- | --- |
+| `scenario` | AI 발화 중 고객 신호가 끼어드는 한 순간을 담은 테스트 카드 | 전체 상담 여정, ARS 메뉴 전체 흐름 |
+| `input_mode` | 같은 scenario를 어떤 방식으로 넣는지 나타내는 실행 방식 | 고객 신호의 종류 |
+| `event_type` | 고객이 보낸 신호의 종류 | AI가 해야 하는 행동 |
+| `expected_user_intent` | 고객 발화에서 읽히는 업무 의도 | AI의 현재 의도, action label |
+| `expected_action` | 사람이 정한 자연스러운 AI 행동 기준 | policy가 실제로 낸 결과 |
+| `actual_action` | policy 실행 결과 | `data/scenarios.json`에 들어가는 기준 원본 |
+| `AI Action Policy` | 고객 개입 상황에서 AI의 다음 행동을 정하는 규칙 | 단순 interruption detector |
+| `policy_version` | 어떤 개선 목표를 가진 policy인지 나타내는 비교 단위 | 모델 버전 전체, 배포 버전 |
+| `Test Bench` | scenario set에 policy를 batch로 돌리고 결과를 보존하는 표면 | Playground 화면, 임시 데모 |
+
+## Scenario는 테스트 카드다
+
+scenario 하나는 서비스 전체 플로우가 아니라 아래 정보를 묶은 작은 판단 단위다.
+
+- AI가 현재 설명하던 업무 의도
+- AI가 말하던 문장
+- 고객이 중간에 넣은 신호
+- 그 신호의 event type
+- 고객 의도
+- 자연스러운 expected action
+
+이 단위가 작아야 `expected_action`과 `actual_action`을 비교할 수 있고, 실패 케이스를 다시 분류할 수 있다.
+
+## Input Mode와 판단 구조
+
+| input_mode | 역할 | 1주차 위치 |
+| --- | --- | --- |
+| Text Replay | 텍스트 scenario로 policy 판단을 빠르게 검증 | 필수 |
+| Audio File Test | 대표 음성 파일에서 STT/signal 흐름을 연결 | 일부 연결 |
+| Mic Trial | live 입력과 latency를 확인 | 후순위 |
+
+Text Replay는 음성 프로젝트를 포기하는 단계가 아니다. 오디오/STT 앞단을 잠시 고정하고, 뒤쪽 AI Action Policy 판단 구조를 먼저 검증하는 단계다.
+
+## Event Type과 Action Label
+
+`event_type`은 고객 신호이고, action label은 AI 행동이다.
+
+| event_type | 고객 신호 | 기본 expected_action |
+| --- | --- | --- |
+| `no_speech` | 고객 발화 없음 | `continue` |
+| `noise` | 배경음, 비언어 소리 | `continue` |
+| `backchannel` | "네", "음", "알겠어요" 같은 맞장구 | `continue` 또는 `brief_ack` |
+| `same_intent_question` | 같은 업무 안의 보충 질문 | `respond_and_continue` |
+| `intent_shift` | 다른 업무 의도로 전환 | `stop_and_switch` |
+| `complaint` | 불만, 긴급 발화 | `stop_and_switch` 또는 `handoff` |
+| `ambiguous` | 의도가 불명확한 발화 | `ask_clarifying` |
+
+같은 event type이라도 tone, severity, 문맥에 따라 expected_action이 달라질 수 있다. 이때는 `notes`에 판단 근거를 남긴다.
+
+## Action Label 기준
+
+| action label | 의미 |
+| --- | --- |
+| `continue` | 현재 발화를 그대로 이어간다 |
+| `brief_ack` | 짧게 인정하고 이어간다 |
+| `respond_and_continue` | 같은 주제 질문에 답하고 원래 설명으로 돌아간다 |
+| `stop_and_switch` | 현재 발화를 멈추고 새 의도로 전환한다 |
+| `ask_clarifying` | 의도가 불명확해 확인 질문을 한다 |
+| `handoff` | AI가 처리하기 어렵다고 보고 상담사 연결 후보로 보낸다 |
+
+`pause`는 현재 action label로 쓰지 않는다. 같은 주제 질문에 답하고 이어가는 행동은 `respond_and_continue`로 쓴다.
+
+## Policy Version 기준
+
+| 표시 라벨 | 코드 식별자 | 개선 목표 |
+| --- | --- | --- |
+| Baseline | `baseline` | VAD-only 기준선 |
+| Policy v1 | `policy_v1` | backchannel/noise에서 false stop 줄이기 |
+| Policy v2 | `policy_v2` | intent shift에서 missed switch 줄이기 |
+| Policy v3 | `policy_v3` | complaint, ambiguous, tone까지 포함한 action 선택 |
+
+policy version은 "더 좋은 이름"이 아니라 **어떤 신호를 추가했을 때 어떤 실패가 줄었는지**를 비교하기 위한 단위다.
+
+## 문서로 옮기기 전 체크
+
+- `scenario`를 전체 상담 플로우처럼 설명하지 않았는가?
+- `event_type`과 action label을 같은 표면에 섞지 않았는가?
+- `pause`가 현재 label처럼 남아 있지 않은가?
+- `Text Replay`를 음성 단계의 대체물처럼 쓰지 않았는가?
+- policy version마다 개선 목표가 함께 적혀 있는가?
+- 수치가 있으면 `results/runs/{run_id}/` 출처가 함께 있는가?

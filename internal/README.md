@@ -22,6 +22,11 @@
 - docs에 옮길 수 있지만 아직 외부 공유 문장으로 다듬지 않은 자료
 - 코드나 데이터 변경 전에 팀 안에서 맞춰야 하는 설계 메모
 
+## 현재 기준 자료
+
+- [Project Language Map](project-language-map.md): scenario, input mode, event type, action label, policy version의 층위 정리
+- [Evaluation and Results Contract](evaluation-and-results-contract.md): metric, failure taxonomy, `results/runs/{run_id}/` 계약, 수치 인용 기준
+
 ## docs로 반영할 때
 
 1. `internal/`에서 기준과 용어를 먼저 맞춘다.
