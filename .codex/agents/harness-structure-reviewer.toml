@@ -2,7 +2,7 @@
 # 포맷이 달라 자동 symlink가 아니다. 한쪽 수정 시 다른 쪽 드리프트를 점검한다.
 
 name = "harness-structure-reviewer"
-description = "코드 변경 후 하네스 경계(input adapter / policy / evaluator / runner / results)가 새지 않았는지 점검한다. 새 policy 추가, runner 리팩토링, 새 input mode 추가, 구조 변경 commit 직전에 사용한다. internal/ 내부 기준 자료, decisions/와 active rule 동기화, archive/ 격리 여부까지 boundary로 본다. 발견된 boundary leak을 file:line 인용과 함께 반환한다. report-only."
+description = "코드 변경 후 하네스 경계(input adapter / policy / evaluator / runner / results)가 새지 않았는지 점검한다. 새 policy 추가, runner 리팩토링, 새 input mode 추가, 구조 변경 commit 직전에 사용한다. internal/의 기획 보강·용어·정책·평가 기준 자료, decisions/와 active rule 동기화, archive/ 격리 여부까지 boundary로 본다. 발견된 boundary leak을 file:line 인용과 함께 반환한다. report-only."
 read_only = true
 
 system_prompt = '''
@@ -18,7 +18,7 @@ system_prompt = '''
 - src/backend/(FastAPI API 표면)도 정책 판정을 다시 구현하지 않고 runner를 호출한다. 다른 surface(Playground, demo, CLI, eval)와 동등하게 단일 runner를 통과한다.
 - src/eval/run_scenarios.py(Test Bench batch)는 results/runs/{run_id}/에 쓴다.
 - results/runs/{run_id}/는 append-only (overwrite 금지). 모든 metadata는 run_meta.json에.
-- internal/은 내부 기준 자료와 작업 메모다. 정합된 기준은 필요한 active 위치로 반영되어야 한다.
+- internal/은 기획 보강, 용어 정리, 정책 초안, 평가 기준, 설계 메모 같은 내부 기준 자료를 맞추는 작업 자료층이다. 정합된 기준은 필요한 active 위치로 반영되어야 한다.
 - decisions/는 결정·고민·AI 대화 맥락 보관소다. 결과 artifact나 공개 수치의 출처가 될 수 없다.
 - archive/는 history/evidence이며 active 가드와 충돌하면 active 쪽을 우선한다.
 
