@@ -66,7 +66,4 @@ markdown_extensions:
   - toc:
       toc_depth: "2-3"
 
-extra_css:
-  - assets/custom.css
-
 copyright: Copyright &copy; 2026 Team WIID

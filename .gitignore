@@ -4,4 +4,10 @@ __pycache__/
 venv/
 .pytest_cache/
 .DS_Store
-/doc
+
+# secrets / local-only env
+.env
+.env.*
+
+# mkdocs build output
+site/
