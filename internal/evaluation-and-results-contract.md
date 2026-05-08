@@ -15,6 +15,15 @@
 
 `expected_action`은 사람이 정한 기준이고, `actual_action`은 policy 실행 결과다. 두 값이 같은 파일에 섞이면 기준이 바뀐 것인지 policy가 바뀐 것인지 추적하기 어렵다.
 
+`expected_action`과 `actual_action`은 같은 action label vocabulary를 쓴다. 차이는 label 종류가 아니라 평가에서 맡는 역할이다.
+
+| 항목 | 평가 역할 | 예시 값 | 저장 위치 |
+| --- | --- | --- | --- |
+| `expected_action` | 기준/정답 | `stop_and_switch` | `data/scenarios.json` |
+| `actual_action` | policy 결과/예측 | `respond_and_continue` | `results/runs/{run_id}/decision_logs.jsonl` |
+
+`action_accuracy`는 두 값이 같은 action label인지 비교한 비율이다. 값 집합은 같아야 하고, 저장 위치와 생성 시점은 달라야 한다.
+
 한 scenario가 `expected_action`과 `actual_action` 비교로 이어지는 구체 예시는 [Scenario Worked Example](scenario-worked-example.md)을 본다.
 
 ## Run Artifact 최소 계약
