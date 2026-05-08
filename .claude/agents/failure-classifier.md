@@ -9,9 +9,9 @@ tools: Read, Grep, Glob, Bash
 run의 실패 케이스를 두 축으로 분류해서 보고한다. 분류 frame은 아래 두 목록에 고정되어 있다.
 
 **Primary (사용자 시점, 결과 분류)**
-- `false_stop` — 멈추지 말아야 할 때 멈춤 (예: 맞장구에서 pause)
+- `false_stop` — 멈추지 말아야 할 때 개입으로 판단 (예: 맞장구에서 `respond_and_continue`로 판단)
 - `missed_switch` — 흐름 전환을 놓침 (예: 환불 의사를 무시)
-- `action_confusion` — 다른 valid action으로 판단 (예: pause vs stop_and_switch)
+- `action_confusion` — 다른 valid action으로 판단 (예: `respond_and_continue` vs `stop_and_switch`)
 - `ambiguous_intent` — 입력 자체에서 intent가 불명확
 - `STT_uncertainty` — transcript 노이즈가 오판을 유발
 
@@ -49,7 +49,7 @@ run의 실패 케이스를 두 축으로 분류해서 보고한다. 분류 frame
 ## Per-case
 | scenario_id | primary | secondary | evidence |
 | ----------- | ------- | --------- | -------- |
-| product_explain_complaint_01 | action_confusion | policy_threshold | reason="strong complaint -> stop_and_switch", expected=escalate |
+| product_explain_complaint_01 | action_confusion | policy_threshold | reason="strong complaint -> stop_and_switch", expected=handoff |
 
 ## Patterns
 - ...
