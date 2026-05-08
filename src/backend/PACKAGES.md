@@ -369,13 +369,12 @@ mypy src/
 
 ### 설치
 ```bash
-cd backend
 poetry install
 ```
 
 ### 개발 모드 실행
 ```bash
-poetry run uvicorn main:app --reload
+poetry run uvicorn backend.main:app --reload
 ```
 
 ### 테스트
@@ -427,29 +426,30 @@ FastAPI 앱
 ## 📝 주요 파일 구조 (예상)
 
 ```
-backend/
-├── pyproject.toml          # 이 프로젝트의 의존성 정의
+프로젝트 루트
+├── pyproject.toml          # Poetry + src layout
 ├── poetry.lock             # 정확한 버전 지정
-├── main.py                 # FastAPI 앱 진입점
-├── config.py               # pydantic-settings로 정의
-├── requirements.txt        # 필요시 pip용 (선택)
 │
-├── app/
-│   ├── models.py           # Pydantic 스키마 정의
-│   ├── api/
-│   │   ├── scenario.py     # Scenario 조회/관리
-│   │   ├── predict.py      # Action 예측
-│   │   └── evaluate.py     # 평가 결과
-│   ├── services/
-│   │   ├── vad.py          # webrtcvad 래퍼
-│   │   ├── stt.py          # openai-whisper 래퍼
-│   │   ├── intent.py       # sentence-transformers intent shift
-│   │   └── policy.py       # AI Action Policy 로직 (P0~P3)
-│   └── utils/
-│       ├── audio.py        # soundfile, librosa 유틸리티
-│       └── metrics.py      # scikit-learn 기반 평가
+├── src/
+│   └── backend/            # FastAPI API 표면
+│       ├── main.py         # FastAPI 앱 진입점
+│       ├── config.py       # pydantic-settings로 정의
+│       └── app/
+│           ├── models.py   # Pydantic 스키마 정의
+│           ├── api/
+│           │   ├── scenario.py     # Scenario 조회/관리
+│           │   ├── predict.py      # Action 예측
+│           │   └── evaluate.py     # 평가 결과
+│           ├── services/
+│           │   ├── vad.py          # webrtcvad 래퍼
+│           │   ├── stt.py          # openai-whisper 래퍼
+│           │   ├── intent.py       # sentence-transformers intent shift
+│           │   └── policy.py       # AI Action Policy 로직 (P0~P3)
+│           └── utils/
+│               ├── audio.py        # soundfile, librosa 유틸리티
+│               └── metrics.py      # scikit-learn 기반 평가
 │
-├── data/
+├── data/                   # 원본 시나리오 (read-only ground truth)
 │   ├── scenarios.csv       # Scenario bank (pandas 로드)
 │   ├── intents.yaml        # Intent descriptions (PyYAML)
 │   └── decision_log.json   # 실행 결과 로그
