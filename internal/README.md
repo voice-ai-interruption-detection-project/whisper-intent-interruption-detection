@@ -25,6 +25,7 @@
 ## 현재 기준 자료
 
 - [Project Language Map](project-language-map.md): scenario, input mode, event type, action label, policy version의 층위 정리
+- [Scenario Worked Example](scenario-worked-example.md): 한 scenario가 schema key/value, policy 판단, evaluation으로 이어지는 예시
 - [Evaluation and Results Contract](evaluation-and-results-contract.md): metric, failure taxonomy, `results/runs/{run_id}/` 계약, 수치 인용 기준
 
 ## docs로 반영할 때

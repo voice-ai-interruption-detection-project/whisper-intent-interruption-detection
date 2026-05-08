@@ -15,6 +15,8 @@
 
 `expected_action`은 사람이 정한 기준이고, `actual_action`은 policy 실행 결과다. 두 값이 같은 파일에 섞이면 기준이 바뀐 것인지 policy가 바뀐 것인지 추적하기 어렵다.
 
+한 scenario가 `expected_action`과 `actual_action` 비교로 이어지는 구체 예시는 [Scenario Worked Example](scenario-worked-example.md)을 본다.
+
 ## Run Artifact 최소 계약
 
 새 평가 결과는 아래 구조를 기준으로 둔다.
