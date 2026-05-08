@@ -154,12 +154,12 @@ Scenario
   "scenario_id": "commerce_refund_001",
   "level": 4,
   "domain": "commerce",
-  "ai_current_intent": "배송조회",
+  "ai_current_intent": "shipping_inquiry",
   "ai_utterance": "현재 상품은 배송 중이며 내일 오후 도착 예정입니다.",
   "user_utterance": "아 그게 아니라 환불받고 싶은데요.",
   "event_type": "intent_shift",
   "expected_action": "stop_and_switch",
-  "expected_user_intent": "환불요청",
+  "expected_user_intent": "refund_request",
   "user_tone_hint": "neutral",
   "has_user_speech": true,
   "notes": "AI 발화 중 사용자가 다른 업무 의도를 제시한 케이스"
@@ -194,14 +194,14 @@ Scenario
 
 1주차 커머스 intent 범위는 너무 넓히지 않는다.
 
-| intent | 예시 발화 |
-| --- | --- |
-| 배송조회 | "언제 도착해요?", "배송 상태 알려주세요" |
-| 환불요청 | "환불받고 싶어요", "돈 돌려받을 수 있나요?" |
-| 반품요청 | "반품하고 싶어요", "수거는 어떻게 하나요?" |
-| 결제문제 | "결제가 두 번 됐어요", "카드 취소됐나요?" |
-| 상품문의 | "사이즈가 맞나요?", "색상 변경 되나요?" |
-| 상담사연결 | "사람이랑 통화하고 싶어요" |
+| intent ID | 의미 | 예시 발화 |
+| --- | --- | --- |
+| `shipping_inquiry` | 배송 상태 조회 | "언제 도착해요?", "배송 상태 알려주세요" |
+| `refund_request` | 환불 요청 | "환불받고 싶어요", "돈 돌려받을 수 있나요?" |
+| `return_request` | 반품 요청 | "반품하고 싶어요", "수거는 어떻게 하나요?" |
+| `payment_issue` | 결제 문제 | "결제가 두 번 됐어요", "카드 취소됐나요?" |
+| `product_inquiry` | 상품 문의 | "사이즈가 맞나요?", "색상 변경 되나요?" |
+| `agent_connection` | 상담사 연결 | "사람이랑 통화하고 싶어요" |
 
 ### 데이터 규모
 
@@ -286,11 +286,11 @@ if intent is unclear or stt_uncertainty is high:
   "signals": {
     "has_user_speech": true,
     "stt_text": "아 그게 아니라 환불받고 싶은데요.",
-    "predicted_user_intent": "환불요청",
+    "predicted_user_intent": "refund_request",
     "intent_shift": true,
     "similarity_to_current_intent": 0.22
   },
-  "reason": "사용자 발화가 기존 배송조회 intent와 낮은 유사도를 보이고 환불요청 intent로 분류되어 전환 판단"
+  "reason": "사용자 발화가 기존 shipping_inquiry intent와 낮은 유사도를 보이고 refund_request intent로 분류되어 전환 판단"
 }
 ```
 
