@@ -15,8 +15,8 @@ tools: Read, Grep, Glob, Bash
 문서에서 다음 중 하나를 말하는 모든 문장을 claim으로 본다.
 
 - metric 값 (accuracy, false_stop 수, missed_switch 수, latency)
-- 비교 ("P3가 P1보다 X만큼 좋아졌다")
-- 시나리오 단위 결과 ("시나리오 X가 pause에서 continue로 바뀌었다")
+- 비교 ("policy_v3가 policy_v1보다 X만큼 좋아졌다")
+- 시나리오 단위 결과 ("시나리오 X가 respond_and_continue에서 continue로 바뀌었다")
 - policy snapshot 세부 ("threshold = 0.5", "intent shift score >= 0.5")
 - dataset / criteria 참조 ("scenarios-v0에서 평가됨")
 
@@ -39,7 +39,7 @@ tools: Read, Grep, Glob, Bash
 
 | claim | verdict | source | note |
 | ----- | ------- | ------ | ---- |
-| "P3 accuracy = 1.00" | supported | results/runs/.../evaluation.json | n=8 |
+| "policy_v3 accuracy = 1.00" | supported | results/runs/.../evaluation.json | n=8 |
 | "threshold = 0.7" | mismatch | run_meta.json says 0.5 | |
 | "false stop dropped to 0" | unsupported | run_id 미명시, 검증 불가 | |
 

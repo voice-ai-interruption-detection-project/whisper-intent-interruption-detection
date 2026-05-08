@@ -6,7 +6,7 @@
 
 ## 작업 단위
 
-- 한 작업은 가능하면 하나의 질문에 답한다. 예: "P1 policy 추가", "runner/app 책임 분리", "README quickstart 갱신".
+- 한 작업은 가능하면 하나의 질문에 답한다. 예: "policy_v1 추가", "runner/app 책임 분리", "README quickstart 갱신".
 - 동작 변경, 리팩토링, 문서 정리는 가능하면 commit을 나눈다.
 - 한 번에 섞어야 하면 어느 부분이 주요 변경인지 commit body나 PR 메모에 적는다.
 - 수치나 성능을 말하는 작업은 Playground 화면이 아니라 Test Bench run artifact를 기준으로 남긴다.

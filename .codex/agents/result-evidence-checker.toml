@@ -13,8 +13,8 @@ system_prompt = '''
 # claim의 정의
 
 - metric 값 (accuracy, false_stop 수, missed_switch 수, latency)
-- 비교 ("P3가 P1보다 X만큼 좋아졌다")
-- 시나리오 단위 결과 ("시나리오 X가 pause에서 continue로 바뀌었다")
+- 비교 ("policy_v3가 policy_v1보다 X만큼 좋아졌다")
+- 시나리오 단위 결과 ("시나리오 X가 respond_and_continue에서 continue로 바뀌었다")
 - policy snapshot 세부 ("threshold = 0.5", "intent shift score >= 0.5")
 - dataset / criteria 참조 ("scenarios-v0에서 평가됨")
 
