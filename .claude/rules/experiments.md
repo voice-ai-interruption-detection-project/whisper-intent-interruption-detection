@@ -39,6 +39,7 @@
 - README, report, presentation, slack 등에 수치를 인용할 때는 `results/runs/{run_id}` 가 존재하고 같은 값을 가져야 한다.
 - Playground 화면에서 본 수치는 외부 인용 출처로 쓰지 않는다. 같은 정책으로 Test Bench batch를 한 번 돌려서 run artifact를 만든 다음 인용한다.
 - 외부 공유 전에는 `result-evidence-checker` agent로 한 번 더 본다.
+- 외부 docs 어휘는 primary 5종(`false_stop`, `missed_switch`, `action_confusion`, `ambiguous_intent`, `STT_uncertainty`) 중 정의된 것만 사용한다.
 
 ## 실패는 두 축으로 본다
 

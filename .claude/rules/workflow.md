@@ -69,6 +69,8 @@ PR이나 공유 메모는 길게 쓰기보다 아래 4가지를 빠뜨리지 않
 - action label, policy version, 평가 기준
 - 팀원이 같은 repo만 보고 재현해야 하는 절차
 
+라벨·정책·평가 기준이 바뀌면 `decisions/`에 사안별 폴더를 추가하고(`record-decision` skill 권장), 필요한 기준 자료를 `internal/`에서 정리한 뒤 해당 active 위치에 반영한다.
+
 개인 로컬 경로, 개인 AI 도구 설정, 비공개 원천 자료 경로는 프로젝트 문서에 넣지 않는다.
 
 ## Sensor로 올릴 기준
