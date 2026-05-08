@@ -8,6 +8,9 @@ archive는 history/evidence로만 본다. active 가드, `internal/`, `decisions
 
 - 현재 작업 기준이나 구현 근거로 직접 쓰지 않는다.
 - 다시 사용할 내용은 그대로 참조하지 말고 `internal/`, `decisions/`, `.claude/rules/`, 코드/테스트 같은 active 위치로 승격한 뒤 사용한다.
-- `docs/archive/`에 남아 있는 기존 자료는 follow-up에서 이 영역으로 이전할 수 있다.
+
+## 보관 자료
+
+- `harness/`: Work Bench 하네스 설계 배경과 적용 후보를 보관한 자료.
 
 이 폴더는 mkdocs 공개 문서 영역이 아니다.
