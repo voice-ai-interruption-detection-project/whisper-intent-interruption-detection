@@ -76,7 +76,7 @@ AI: "배송 상황을 알려드리겠습니다."
 
 **고객의 의도:** "같은 주제인데 내 질문에 답해"
 
-**AI의 자연스러운 행동:** `pause` (멈추고 답하기)
+**AI의 자연스러운 행동:** `respond_and_continue` (멈추고 답하기)
 
 **예시:**
 ```
@@ -230,13 +230,13 @@ Action: "그러면 AI는 뭘 해야 하는가?"
   "level": 4,
   "domain": "commerce",
   
-  "ai_current_intent": "배송조회",
+  "ai_current_intent": "shipping_inquiry",
   "ai_utterance": "현재 상품은 배송 중이며 내일 오후 도착 예정입니다.",
   
   "user_utterance": "아 그게 아니라 환불받고 싶은데요.",
   
   "event_type": "intent_shift",
-  "expected_user_intent": "환불요청",
+  "expected_user_intent": "refund_request",
   "expected_action": "stop_and_switch",
   
   "has_user_speech": true,

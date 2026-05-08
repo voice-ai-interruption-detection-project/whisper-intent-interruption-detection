@@ -50,7 +50,7 @@
 #### `ai_current_intent` (string, required)
 - **의미**: AI가 진행 중이던 비즈니스 의도
 - **가능한 값**: `shipping_inquiry`, `refund_request`, `return_request`, `payment_issue`, `product_inquiry`, `agent_connection`
-- **예시**: `배송조회`
+- **예시**: `shipping_inquiry`
 
 #### `ai_utterance` (string, required)
 - **의미**: AI가 말하던 발화
@@ -99,7 +99,7 @@
 #### `expected_user_intent` (string or null, required)
 - **의미**: 사용자 발화에서 추출되는 비즈니스 의도
 - **값**: 위의 intent 목록 또는 `null` (의도 없음)
-- **예시**: `환불요청`
+- **예시**: `refund_request` (또는 `null`)
 
 #### `expected_action` (enum, required)
 - **의미**: 이 상황에서 AI가 해야 할 행동
@@ -230,7 +230,7 @@
   "expected_user_intent": "refund_request",
   "user_tone_hint": "neutral",
   "has_user_speech": true,
-  "notes": "배송조회와 환불요청 intent 경계"
+  "notes": "shipping_inquiry와 refund_request 간 명확한 의도 전환"
 }
 ```
 
@@ -248,7 +248,7 @@
   "expected_user_intent": "shipping_inquiry",
   "user_tone_hint": "neutral",
   "has_user_speech": true,
-  "notes": "같은 배송 주제 내 추가 질문"
+  "notes": "shipping_inquiry 주제 내 추가 질문"
 }
 ```
 
@@ -266,7 +266,7 @@
   "expected_user_intent": null,
   "user_tone_hint": "neutral",
   "has_user_speech": false,
-  "notes": "기침 소리"
+  "notes": "배경음 - 기침"
 }
 ```
 
@@ -284,7 +284,7 @@
   "expected_user_intent": null,
   "user_tone_hint": "urgent",
   "has_user_speech": true,
-  "notes": "긴급성 높은 불만 - 상담사 연결 필요"
+  "notes": "긴급 불만 - severity high, 상담사 연결 필요"
 }
 ```
 
