@@ -1,7 +1,7 @@
 # Backend 패키지 도구 설명
 
 > 상담 AI 끼어들기 감지 실험 콘솔의 백엔드 dependencies 가이드
-> PRD 참고: [MVP-PRD.md](../기획/MVP-PRD.md)
+> 작업 배경(contract 아님): [기획/MVP-PRD.md](../../기획/MVP-PRD.md) — 외부 노출 안 함
 
 ## 📋 개요
 
