@@ -6,7 +6,7 @@
 
 ## 작업 단위
 
-- 한 작업은 가능하면 하나의 질문에 답한다. 예: "P1 policy 추가", "runner/app 책임 분리", "README quickstart 갱신".
+- 한 작업은 가능하면 하나의 질문에 답한다. 예: "policy_v1 추가", "runner/app 책임 분리", "README quickstart 갱신".
 - 동작 변경, 리팩토링, 문서 정리는 가능하면 commit을 나눈다.
 - 한 번에 섞어야 하면 어느 부분이 주요 변경인지 commit body나 PR 메모에 적는다.
 - 수치나 성능을 말하는 작업은 Playground 화면이 아니라 Test Bench run artifact를 기준으로 남긴다.
@@ -69,7 +69,7 @@ PR이나 공유 메모는 길게 쓰기보다 아래 4가지를 빠뜨리지 않
 - action label, policy version, 평가 기준
 - 팀원이 같은 repo만 보고 재현해야 하는 절차
 
-라벨·정책·평가 기준이 바뀌면 `decisions/`에 사안별 폴더를 추가하고(`record-decision` skill 권장), 필요한 기준 자료를 `internal/`에서 정리한 뒤 해당 active 위치에 반영한다.
+라벨·정책·평가 기준이 바뀌면 `context/decisions/`에 사안별 폴더를 추가하고(`record-decision` skill 권장), 필요한 기준 자료를 `context/internal/`에서 정리한 뒤 해당 active 위치에 반영한다.
 
 개인 로컬 경로, 개인 AI 도구 설정, 비공개 원천 자료 경로는 프로젝트 문서에 넣지 않는다.
 

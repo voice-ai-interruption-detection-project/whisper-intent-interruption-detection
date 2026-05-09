@@ -25,8 +25,9 @@ poetry run pytest tests/ -v
 
 - 협업 경계와 작업 라우팅: [CLAUDE.md](CLAUDE.md)
 - 외부 공개 문서(mkdocs): [docs/](docs/)
-- 내부 기준 자료: [internal/](internal/)
-- 결정·맥락 기록: [decisions/](decisions/)
+- 내부 기준·결정·archive·임시 메모: [context/](context/)
+- 현재 내부 기준 자료: [context/internal/](context/internal/)
+- 결정·맥락 기록: [context/decisions/](context/decisions/)
 - 작업 시 참고하는 가드: [.claude/rules/](.claude/rules/)
 - 검증·분류용 report-only agent: [.claude/agents/](.claude/agents/)
 - repo-local skill: [.claude/skills/](.claude/skills/)
