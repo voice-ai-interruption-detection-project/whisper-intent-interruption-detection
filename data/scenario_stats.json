@@ -24,17 +24,28 @@
     "5": 1
   },
   "intent_distribution": {
-    "shipping_inquiry": 11,
-    "refund_request": 5,
-    "return_request": 4,
-    "payment_issue": 5,
-    "product_inquiry": 5,
-    "agent_connection": 0
+    "ai_current_intent": {
+      "shipping_inquiry": 11,
+      "refund_request": 5,
+      "return_request": 4,
+      "payment_issue": 5,
+      "product_inquiry": 5,
+      "agent_connection": 0
+    },
+    "expected_user_intent": {
+      "shipping_inquiry": 4,
+      "refund_request": 2,
+      "return_request": 2,
+      "payment_issue": 2,
+      "product_inquiry": 1,
+      "agent_connection": 1,
+      "null": 18
+    }
   },
   "total": 30,
-  "generated_date": "2026-05-08",
+  "generated_date": "2026-05-09",
   "notes": {
-    "intent_distribution_variance": "ai_current_intent의 실제 분포가 초기 목표(shipping_inquiry 8, refund_request 8)와 다르게 형성됨. 페어 검증 단계에서 조정 가능.",
+    "intent_distribution_variance": "ai_current_intent와 expected_user_intent를 분리 집계함. ai_current_intent의 실제 분포가 초기 목표(shipping_inquiry 8, refund_request 8)와 다르게 형성됨. 페어 검증 단계에서 조정 가능.",
     "action_label_allocation": "expected_action 분포: continue(12) + brief_ack(2) + respond_and_continue(6) + stop_and_switch(7) + ask_clarifying(2) + handoff(1) = 30개",
     "level_balance": "level 1~2: 17개, level 3: 7개, level 4~5: 6개로 학습 곡선 구성"
   }
