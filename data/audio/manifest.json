@@ -1,0 +1,225 @@
+{
+  "version": "audio_fixture_v1",
+  "items": [
+    {
+      "scenario_id": "commerce_backchannel_001",
+      "audio_path": "fixtures/commerce_backchannel_001.wav",
+      "audio_kind": "tts_user_utterance",
+      "transcript_source": "precomputed",
+      "expected_transcript": "네, 알겠어요.",
+      "expected_has_user_speech": true,
+      "language": "ko",
+      "notes": "Generated from data/scenarios.json user_utterance"
+    },
+    {
+      "scenario_id": "commerce_backchannel_002",
+      "audio_path": "fixtures/commerce_backchannel_002.wav",
+      "audio_kind": "tts_user_utterance",
+      "transcript_source": "precomputed",
+      "expected_transcript": "음, 알겠습니다.",
+      "expected_has_user_speech": true,
+      "language": "ko",
+      "notes": "Generated from data/scenarios.json user_utterance"
+    },
+    {
+      "scenario_id": "commerce_backchannel_003",
+      "audio_path": "fixtures/commerce_backchannel_003.wav",
+      "audio_kind": "tts_user_utterance",
+      "transcript_source": "precomputed",
+      "expected_transcript": "네.",
+      "expected_has_user_speech": true,
+      "language": "ko",
+      "notes": "Generated from data/scenarios.json user_utterance"
+    },
+    {
+      "scenario_id": "commerce_backchannel_004",
+      "audio_path": "fixtures/commerce_backchannel_004.wav",
+      "audio_kind": "tts_user_utterance",
+      "transcript_source": "precomputed",
+      "expected_transcript": "알겠어요.",
+      "expected_has_user_speech": true,
+      "language": "ko",
+      "notes": "Generated from data/scenarios.json user_utterance"
+    },
+    {
+      "scenario_id": "commerce_backchannel_005",
+      "audio_path": "fixtures/commerce_backchannel_005.wav",
+      "audio_kind": "tts_user_utterance",
+      "transcript_source": "precomputed",
+      "expected_transcript": "맞아요.",
+      "expected_has_user_speech": true,
+      "language": "ko",
+      "notes": "Generated from data/scenarios.json user_utterance"
+    },
+    {
+      "scenario_id": "commerce_backchannel_006",
+      "audio_path": "fixtures/commerce_backchannel_006.wav",
+      "audio_kind": "tts_user_utterance",
+      "transcript_source": "precomputed",
+      "expected_transcript": "네, 감사합니다.",
+      "expected_has_user_speech": true,
+      "language": "ko",
+      "notes": "Generated from data/scenarios.json user_utterance"
+    },
+    {
+      "scenario_id": "commerce_shipping_follow_001",
+      "audio_path": "fixtures/commerce_shipping_follow_001.wav",
+      "audio_kind": "tts_user_utterance",
+      "transcript_source": "precomputed",
+      "expected_transcript": "배송비는 얼마예요?",
+      "expected_has_user_speech": true,
+      "language": "ko",
+      "notes": "Generated from data/scenarios.json user_utterance"
+    },
+    {
+      "scenario_id": "commerce_shipping_follow_002",
+      "audio_path": "fixtures/commerce_shipping_follow_002.wav",
+      "audio_kind": "tts_user_utterance",
+      "transcript_source": "precomputed",
+      "expected_transcript": "추적번호는 어디서 봐요?",
+      "expected_has_user_speech": true,
+      "language": "ko",
+      "notes": "Generated from data/scenarios.json user_utterance"
+    },
+    {
+      "scenario_id": "commerce_refund_follow_001",
+      "audio_path": "fixtures/commerce_refund_follow_001.wav",
+      "audio_kind": "tts_user_utterance",
+      "transcript_source": "precomputed",
+      "expected_transcript": "환불은 계좌로 돌아오나요?",
+      "expected_has_user_speech": true,
+      "language": "ko",
+      "notes": "Generated from data/scenarios.json user_utterance"
+    },
+    {
+      "scenario_id": "commerce_return_follow_001",
+      "audio_path": "fixtures/commerce_return_follow_001.wav",
+      "audio_kind": "tts_user_utterance",
+      "transcript_source": "precomputed",
+      "expected_transcript": "반품은 비용이 드나요?",
+      "expected_has_user_speech": true,
+      "language": "ko",
+      "notes": "Generated from data/scenarios.json user_utterance"
+    },
+    {
+      "scenario_id": "commerce_product_follow_001",
+      "audio_path": "fixtures/commerce_product_follow_001.wav",
+      "audio_kind": "tts_user_utterance",
+      "transcript_source": "precomputed",
+      "expected_transcript": "어떤 사이즈를 추천하세요?",
+      "expected_has_user_speech": true,
+      "language": "ko",
+      "notes": "Generated from data/scenarios.json user_utterance"
+    },
+    {
+      "scenario_id": "commerce_payment_follow_001",
+      "audio_path": "fixtures/commerce_payment_follow_001.wav",
+      "audio_kind": "tts_user_utterance",
+      "transcript_source": "precomputed",
+      "expected_transcript": "환불은 언제 되나요?",
+      "expected_has_user_speech": true,
+      "language": "ko",
+      "notes": "Generated from data/scenarios.json user_utterance"
+    },
+    {
+      "scenario_id": "commerce_shipping_to_return_001",
+      "audio_path": "fixtures/commerce_shipping_to_return_001.wav",
+      "audio_kind": "tts_user_utterance",
+      "transcript_source": "precomputed",
+      "expected_transcript": "아니 반품하고 싶은데요.",
+      "expected_has_user_speech": true,
+      "language": "ko",
+      "notes": "Generated from data/scenarios.json user_utterance"
+    },
+    {
+      "scenario_id": "commerce_shipping_to_refund_001",
+      "audio_path": "fixtures/commerce_shipping_to_refund_001.wav",
+      "audio_kind": "tts_user_utterance",
+      "transcript_source": "precomputed",
+      "expected_transcript": "아니 환불받고 싶어요.",
+      "expected_has_user_speech": true,
+      "language": "ko",
+      "notes": "Generated from data/scenarios.json user_utterance"
+    },
+    {
+      "scenario_id": "commerce_refund_to_payment_001",
+      "audio_path": "fixtures/commerce_refund_to_payment_001.wav",
+      "audio_kind": "tts_user_utterance",
+      "transcript_source": "precomputed",
+      "expected_transcript": "아, 근데 결제가 두 번 된 거 같아요.",
+      "expected_has_user_speech": true,
+      "language": "ko",
+      "notes": "Generated from data/scenarios.json user_utterance"
+    },
+    {
+      "scenario_id": "commerce_return_to_shipping_001",
+      "audio_path": "fixtures/commerce_return_to_shipping_001.wav",
+      "audio_kind": "tts_user_utterance",
+      "transcript_source": "precomputed",
+      "expected_transcript": "근데 배송은 언제 되는 거죠?",
+      "expected_has_user_speech": true,
+      "language": "ko",
+      "notes": "Generated from data/scenarios.json user_utterance"
+    },
+    {
+      "scenario_id": "commerce_product_to_shipping_001",
+      "audio_path": "fixtures/commerce_product_to_shipping_001.wav",
+      "audio_kind": "tts_user_utterance",
+      "transcript_source": "precomputed",
+      "expected_transcript": "배송은 며칠 걸려요?",
+      "expected_has_user_speech": true,
+      "language": "ko",
+      "notes": "Generated from data/scenarios.json user_utterance"
+    },
+    {
+      "scenario_id": "commerce_payment_to_agent_001",
+      "audio_path": "fixtures/commerce_payment_to_agent_001.wav",
+      "audio_kind": "tts_user_utterance",
+      "transcript_source": "precomputed",
+      "expected_transcript": "이거 복잡하니까 사람이랑 통화하고 싶어요.",
+      "expected_has_user_speech": true,
+      "language": "ko",
+      "notes": "Generated from data/scenarios.json user_utterance"
+    },
+    {
+      "scenario_id": "commerce_complaint_001",
+      "audio_path": "fixtures/commerce_complaint_001.wav",
+      "audio_kind": "tts_user_utterance",
+      "transcript_source": "precomputed",
+      "expected_transcript": "뭐 이거 벌써 2주 됐잖아요.",
+      "expected_has_user_speech": true,
+      "language": "ko",
+      "notes": "Generated from data/scenarios.json user_utterance"
+    },
+    {
+      "scenario_id": "commerce_complaint_002",
+      "audio_path": "fixtures/commerce_complaint_002.wav",
+      "audio_kind": "tts_user_utterance",
+      "transcript_source": "precomputed",
+      "expected_transcript": "뭐 이딴 배송이야! 지금 당장 와야 돼!",
+      "expected_has_user_speech": true,
+      "language": "ko",
+      "notes": "Generated from data/scenarios.json user_utterance"
+    },
+    {
+      "scenario_id": "commerce_ambiguous_001",
+      "audio_path": "fixtures/commerce_ambiguous_001.wav",
+      "audio_kind": "tts_user_utterance",
+      "transcript_source": "precomputed",
+      "expected_transcript": "음... 잠깐요.",
+      "expected_has_user_speech": true,
+      "language": "ko",
+      "notes": "Generated from data/scenarios.json user_utterance"
+    },
+    {
+      "scenario_id": "commerce_ambiguous_002",
+      "audio_path": "fixtures/commerce_ambiguous_002.wav",
+      "audio_kind": "tts_user_utterance",
+      "transcript_source": "precomputed",
+      "expected_transcript": "음... 그게 맞나?",
+      "expected_has_user_speech": true,
+      "language": "ko",
+      "notes": "Generated from data/scenarios.json user_utterance"
+    }
+  ]
+}
