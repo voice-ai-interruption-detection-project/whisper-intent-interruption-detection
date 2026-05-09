@@ -18,7 +18,7 @@ from interruption_detection.scenarios import load_scenarios
 def main() -> int:
     """scenario bank에서 Audio File Test용 TTS fixture와 manifest를 생성한다."""
     parser = argparse.ArgumentParser(
-        description="Generate audio fixtures from scenarios."
+        description="시나리오 기준 Audio File Test fixture와 manifest를 생성한다."
     )
     parser.add_argument("--dataset", default="data/scenarios.json")
     parser.add_argument("--output-dir", default="data/audio/fixtures")

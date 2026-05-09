@@ -21,6 +21,7 @@
 | Architecture guide | `src/` 구조가 생기고 runner / policy / adapter / evaluator 경계가 드러날 때 | `.claude/rules/architecture.md` |
 | Verification matrix | 작업 종류별 확인 명령이 반복될 때 | `.claude/rules/workflow.md`의 검증 표 |
 | Harness scanner | 구조 위반이 리뷰에서 반복될 때 | repo-local agent 또는 작은 script |
+| Placeholder/mock 반환 scanner | `TO_DO:` 없이 껍데기 구현이 남거나 mock 반환이 실제 구현처럼 보이는 일이 반복될 때 | `rg` 기반 scanner, lint helper, 또는 review checklist |
 | Result overwrite guard | run artifact를 자동 생성하기 시작할 때 | runner 테스트 또는 파일 존재 체크 |
 | Fixture/data write guard | 기준 데이터와 결과 데이터가 섞일 위험이 보일 때 | hook, test, 또는 agent scan |
 | Commit/PR template | PR 설명에서 run id, dataset, 검증 명령이 자주 빠질 때 | PR template 또는 workflow 규칙 보강 |
@@ -47,3 +48,5 @@
 ### Sensor
 
 Guide는 행동 전 방향을 잡고, Sensor는 행동 후 자동으로 잡는다. 처음부터 많은 hook을 두지 말고, 비용이 큰 실수부터 작고 투명한 장치로 만든다.
+
+Placeholder scanner를 만들게 되면 `TO_DO:`, `pass`, `return None`, `NotImplementedError`, `mock`/`fake` 반환을 한 번에 훑되, 테스트 double과 production 경로를 구분하는 쪽을 우선한다.
