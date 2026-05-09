@@ -8,7 +8,9 @@ from interruption_detection.models import (
     RunnerInput,
     UserToneHint,
 )
+from interruption_detection.policies.baseline import BaselinePolicy
 from interruption_detection.policies import get_policy, list_policies
+from interruption_detection.policies.policy_v1 import PolicyV1
 
 
 def make_input(
@@ -37,49 +39,44 @@ def test_unknown_policy_fails() -> None:
         get_policy("missing")
 
 
-def test_baseline_uses_speech_presence_only() -> None:
-    policy = get_policy("baseline")
+def test_baseline_uses_llm_action_judgment(fake_llm_client) -> None:
+    policy = BaselinePolicy(llm_client=fake_llm_client)
 
-    assert (
-        policy.predict(
-            make_input(EventType.NO_SPEECH, has_user_speech=False)
-        ).actual_action
-        == ActionLabel.CONTINUE
+    decision = policy.predict(make_input(EventType.NO_SPEECH, has_user_speech=False))
+
+    assert decision.actual_action == ActionLabel.CONTINUE
+    assert decision.signals["mode"] == "llm_text_action_judgment"
+    assert fake_llm_client.requests
+    assert "expected_action" not in fake_llm_client.requests[-1].user_prompt
+    assert "event_type" not in fake_llm_client.requests[-1].user_prompt
+
+
+def test_policy_v1_uses_rich_llm_prompt(fake_llm_client) -> None:
+    policy = PolicyV1(llm_client=fake_llm_client)
+
+    decision = policy.predict(
+        RunnerInput(
+            ai_current_intent="shipping_inquiry",
+            ai_utterance="Shipping is in progress.",
+            user_utterance="How much is shipping?",
+            event_type=EventType.SAME_INTENT_QUESTION,
+            expected_user_intent="shipping_inquiry",
+            user_tone_hint=UserToneHint.NEUTRAL,
+            has_user_speech=True,
+        )
     )
-    assert (
-        policy.predict(make_input(EventType.BACKCHANNEL)).actual_action
-        == ActionLabel.STOP_AND_SWITCH
-    )
+
+    assert decision.actual_action == ActionLabel.RESPOND_AND_CONTINUE
+    request = fake_llm_client.requests[-1]
+    assert "Action label definitions" in request.developer_prompt
+    assert "Examples:" in request.developer_prompt
+    assert "user_tone_hint" in request.user_prompt
+    assert "expected_user_intent" not in request.user_prompt
 
 
-@pytest.mark.parametrize(
-    ("event_type", "expected"),
-    [
-        (EventType.NO_SPEECH, ActionLabel.CONTINUE),
-        (EventType.NOISE, ActionLabel.CONTINUE),
-        (EventType.BACKCHANNEL, ActionLabel.BRIEF_ACK),
-        (EventType.SAME_INTENT_QUESTION, ActionLabel.RESPOND_AND_CONTINUE),
-        (EventType.INTENT_SHIFT, ActionLabel.STOP_AND_SWITCH),
-        (EventType.AMBIGUOUS, ActionLabel.ASK_CLARIFYING),
-    ],
-)
-def test_policy_v1_event_mapping(event_type: EventType, expected: ActionLabel) -> None:
-    policy = get_policy("policy_v1")
-
-    assert policy.predict(make_input(event_type)).actual_action == expected
-
-
-def test_policy_v1_complaint_urgent_routes_to_handoff() -> None:
-    policy = get_policy("policy_v1")
-
-    decision = policy.predict(make_input(EventType.COMPLAINT, tone=UserToneHint.URGENT))
-
-    assert decision.actual_action == ActionLabel.HANDOFF
-    assert "urgent" in decision.reason
-
-
-def test_policy_snapshot_contains_mapping() -> None:
+def test_policy_snapshot_contains_llm_metadata() -> None:
     snapshot = get_policy("policy_v1").snapshot()
 
     assert snapshot["name"] == "policy_v1"
-    assert "rule_mapping" in snapshot
+    assert snapshot["mode"] == "llm_text_action_judgment"
+    assert snapshot["llm"]["provider"] == "fake"
