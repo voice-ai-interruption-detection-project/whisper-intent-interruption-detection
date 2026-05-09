@@ -110,6 +110,40 @@
             </section>
           </div>
 
+          <section class="panel text-input-panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Text input</p>
+                <h3>Direct transcript judgment</h3>
+              </div>
+              <button class="secondary-button" type="button" id="predictTextButton">
+                Inspect text input
+              </button>
+            </div>
+            <div class="text-form-grid">
+              <label>
+                <span>Current intent</span>
+                <input id="textCurrentIntent" type="text" />
+              </label>
+              <label>
+                <span>Tone hint</span>
+                <select id="textToneHint"></select>
+              </label>
+              <label class="wide-field">
+                <span>AI utterance</span>
+                <textarea id="textAiUtterance" rows="3"></textarea>
+              </label>
+              <label class="wide-field">
+                <span>User transcript</span>
+                <textarea id="textUserUtterance" rows="3"></textarea>
+              </label>
+              <label class="checkbox-field">
+                <input id="textHasUserSpeech" type="checkbox" checked />
+                <span>User speech detected</span>
+              </label>
+            </div>
+          </section>
+
           <section class="panel comparison-panel">
             <div class="panel-header">
               <div>

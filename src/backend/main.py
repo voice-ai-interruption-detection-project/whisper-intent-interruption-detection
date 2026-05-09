@@ -5,7 +5,7 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from interruption_detection.evaluation.artifacts import (
     list_run_artifacts,
@@ -43,10 +43,21 @@ class PolicyRequest(BaseModel):
     policy: str = "baseline"
 
 
-class PredictRequest(RunnerInput):
+class PredictRequest(BaseModel):
     """자유 입력 예측 요청에 정책 이름을 덧붙인 모델."""
 
     policy: str = "baseline"
+    scenario_id: str | None = None
+    domain: str | None = None
+    level: int | None = Field(default=None, ge=1)
+    ai_current_intent: str
+    ai_utterance: str
+    user_utterance: str
+    event_type: EventType = EventType.AMBIGUOUS
+    expected_user_intent: str | None = None
+    user_tone_hint: UserToneHint = UserToneHint.NEUTRAL
+    has_user_speech: bool
+    notes: str | None = None
 
 
 class RunRequest(BaseModel):
@@ -131,7 +142,7 @@ def predict(body: PredictRequest) -> dict[str, object]:
         decision = run_input(RunnerInput.model_validate(payload), body.policy)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    return {"decision": decision.model_dump(mode="json")}
+    return {"expected_action": None, "decision": decision.model_dump(mode="json")}
 
 
 @app.post("/runs")

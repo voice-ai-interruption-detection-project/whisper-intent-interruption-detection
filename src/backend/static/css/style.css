@@ -34,7 +34,9 @@ body {
 }
 
 button,
-select {
+select,
+input,
+textarea {
   font: inherit;
 }
 
@@ -187,7 +189,9 @@ body[data-active-view="playground"] .side-section[data-context="runs"] {
   font-weight: 700;
 }
 
-select {
+select,
+input,
+textarea {
   width: 100%;
   min-height: 42px;
   padding: 0 12px;
@@ -195,6 +199,12 @@ select {
   border-radius: 7px;
   background: var(--surface-2);
   color: var(--text);
+}
+
+textarea {
+  min-height: 92px;
+  padding: 10px 12px;
+  resize: vertical;
 }
 
 .policy-snapshot {
@@ -550,6 +560,47 @@ select {
   line-height: 1.55;
 }
 
+.text-input-panel {
+  display: grid;
+  gap: 18px;
+}
+
+.text-input-panel .panel-header {
+  align-items: center;
+}
+
+.text-form-grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(180px, 240px);
+  gap: 14px;
+}
+
+.text-form-grid label {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.text-form-grid .wide-field {
+  grid-column: 1 / -1;
+}
+
+.checkbox-field {
+  display: flex !important;
+  align-items: center;
+  grid-column: 1 / -1;
+  gap: 10px !important;
+}
+
+.checkbox-field input {
+  width: 18px;
+  min-height: 18px;
+  padding: 0;
+}
+
 .result-panel h3#actualAction {
   color: var(--blue);
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -809,7 +860,8 @@ td {
   }
 
   .tabs,
-  .utterance-grid {
+  .utterance-grid,
+  .text-form-grid {
     display: grid;
     grid-template-columns: 1fr;
   }

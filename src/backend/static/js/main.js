@@ -31,6 +31,12 @@ const elements = {
   aiUtterance: document.querySelector("#aiUtterance"),
   userUtterance: document.querySelector("#userUtterance"),
   predictButton: document.querySelector("#predictButton"),
+  predictTextButton: document.querySelector("#predictTextButton"),
+  textCurrentIntent: document.querySelector("#textCurrentIntent"),
+  textToneHint: document.querySelector("#textToneHint"),
+  textAiUtterance: document.querySelector("#textAiUtterance"),
+  textUserUtterance: document.querySelector("#textUserUtterance"),
+  textHasUserSpeech: document.querySelector("#textHasUserSpeech"),
   compareButton: document.querySelector("#compareButton"),
   actualAction: document.querySelector("#actualAction"),
   matchChip: document.querySelector("#matchChip"),
@@ -56,6 +62,7 @@ elements.policySelect.addEventListener("change", () => {
 elements.eventFilter.addEventListener("change", renderScenarioList);
 elements.refreshRunsButton.addEventListener("click", refreshRuns);
 elements.predictButton.addEventListener("click", predictSelected);
+elements.predictTextButton.addEventListener("click", predictTextInput);
 elements.compareButton.addEventListener("click", comparePolicies);
 elements.runFocusButton.addEventListener("click", runFocusPolicy);
 elements.runAllPoliciesButton.addEventListener("click", runAllPolicies);
@@ -109,16 +116,19 @@ function renderControls() {
     option("", "All events"),
     ...state.schema.event_types.map((eventType) => option(eventType, eventType))
   );
+  elements.textToneHint.replaceChildren(
+    ...state.schema.user_tone_hints.map((tone) => option(tone, tone))
+  );
   renderPolicySnapshot();
   renderDatasetStats();
 }
 
-// 선택된 정책의 스냅샷 규칙을 사이드바에 표시한다.
+// 선택된 정책의 스냅샷을 사이드바에 표시한다.
 function renderPolicySnapshot() {
   const policy = focusPolicy();
   if (!policy) return;
   const snapshot = policy.snapshot || {};
-  const entries = Object.entries(snapshot.rule_mapping || snapshot.rule || {});
+  const entries = Object.entries(snapshot.rule_mapping || snapshot.rule || snapshot.llm || snapshot);
   elements.policySnapshot.replaceChildren(
     ...entries.slice(0, 7).map(([key, value]) => {
       const row = document.createElement("div");
@@ -192,6 +202,7 @@ function renderSelectedScenario() {
     ["tone", scenario.user_tone_hint],
     ["level", String(scenario.level)],
   ]);
+  fillTextInputsFromScenario(scenario);
 }
 
 // 선택된 시나리오를 현재 선택 정책으로 실행한다.
@@ -205,6 +216,29 @@ async function predictSelected() {
     renderFocusResult(result);
   } finally {
     setBusy(elements.predictButton, false);
+  }
+}
+
+// 직접 입력한 텍스트 transcript를 현재 선택 정책으로 실행한다.
+async function predictTextInput() {
+  setBusy(elements.predictTextButton, true);
+  try {
+    const result = await fetchJson("/predict", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        policy: elements.policySelect.value,
+        ai_current_intent: elements.textCurrentIntent.value,
+        ai_utterance: elements.textAiUtterance.value,
+        user_utterance: elements.textUserUtterance.value,
+        user_tone_hint: elements.textToneHint.value,
+        has_user_speech: elements.textHasUserSpeech.checked,
+      }),
+    });
+    state.focusResult = result;
+    renderFocusResult(result);
+  } finally {
+    setBusy(elements.predictTextButton, false);
   }
 }
 
@@ -236,18 +270,28 @@ async function predictScenario(scenarioId, policyName) {
 // 선택된 정책의 단일 판단 결과를 결과 패널에 표시한다.
 function renderFocusResult(result) {
   const decision = result.decision;
-  const isMatch = result.expected_action === decision.actual_action;
+  const hasExpected = result.expected_action !== undefined && result.expected_action !== null;
+  const isMatch = hasExpected && result.expected_action === decision.actual_action;
   elements.actualAction.textContent = decision.actual_action;
-  elements.matchChip.textContent = isMatch ? "match" : "mismatch";
-  elements.matchChip.dataset.state = isMatch ? "match" : "mismatch";
+  elements.matchChip.textContent = hasExpected ? (isMatch ? "match" : "mismatch") : "unscored";
+  elements.matchChip.dataset.state = hasExpected ? (isMatch ? "match" : "mismatch") : "";
   elements.reason.textContent = decision.reason;
   renderDefinitionList(elements.decisionMeta, [
     ["policy", decision.policy_name],
-    ["expected", result.expected_action],
+    ["expected", hasExpected ? result.expected_action : "n/a"],
     ["actual", decision.actual_action],
     ["latency", `${decision.latency_ms} ms`],
   ]);
   elements.signals.textContent = JSON.stringify(decision.signals, null, 2);
+}
+
+// 선택한 scenario를 자유 입력 폼의 시작값으로 복사한다.
+function fillTextInputsFromScenario(scenario) {
+  elements.textCurrentIntent.value = scenario.ai_current_intent;
+  elements.textAiUtterance.value = scenario.ai_utterance;
+  elements.textUserUtterance.value = scenario.user_utterance;
+  elements.textToneHint.value = scenario.user_tone_hint;
+  elements.textHasUserSpeech.checked = scenario.has_user_speech;
 }
 
 // 여러 정책의 판단 결과를 카드 형태로 비교 표시한다.
