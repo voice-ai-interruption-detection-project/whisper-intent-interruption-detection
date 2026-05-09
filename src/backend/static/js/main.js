@@ -32,11 +32,15 @@ const elements = {
   userUtterance: document.querySelector("#userUtterance"),
   predictButton: document.querySelector("#predictButton"),
   predictTextButton: document.querySelector("#predictTextButton"),
+  predictAudioButton: document.querySelector("#predictAudioButton"),
   textCurrentIntent: document.querySelector("#textCurrentIntent"),
   textToneHint: document.querySelector("#textToneHint"),
   textAiUtterance: document.querySelector("#textAiUtterance"),
   textUserUtterance: document.querySelector("#textUserUtterance"),
   textHasUserSpeech: document.querySelector("#textHasUserSpeech"),
+  audioFileInput: document.querySelector("#audioFileInput"),
+  audioTranscriber: document.querySelector("#audioTranscriber"),
+  audioTranscript: document.querySelector("#audioTranscript"),
   compareButton: document.querySelector("#compareButton"),
   actualAction: document.querySelector("#actualAction"),
   matchChip: document.querySelector("#matchChip"),
@@ -47,6 +51,11 @@ const elements = {
   comparisonGrid: document.querySelector("#comparisonGrid"),
   runFocusButton: document.querySelector("#runFocusButton"),
   runAllPoliciesButton: document.querySelector("#runAllPoliciesButton"),
+  runInputMode: document.querySelector("#runInputMode"),
+  runInputSummary: document.querySelector("#runInputSummary"),
+  audioRunManifest: document.querySelector("#audioRunManifest"),
+  audioBenchTranscriber: document.querySelector("#audioBenchTranscriber"),
+  audioBenchWhisperModel: document.querySelector("#audioBenchWhisperModel"),
   runCardGrid: document.querySelector("#runCardGrid"),
   runTableTitle: document.querySelector("#runTableTitle"),
   runArtifactPath: document.querySelector("#runArtifactPath"),
@@ -63,9 +72,14 @@ elements.eventFilter.addEventListener("change", renderScenarioList);
 elements.refreshRunsButton.addEventListener("click", refreshRuns);
 elements.predictButton.addEventListener("click", predictSelected);
 elements.predictTextButton.addEventListener("click", predictTextInput);
+elements.predictAudioButton.addEventListener("click", predictAudioInput);
 elements.compareButton.addEventListener("click", comparePolicies);
 elements.runFocusButton.addEventListener("click", runFocusPolicy);
 elements.runAllPoliciesButton.addEventListener("click", runAllPolicies);
+elements.runInputMode.addEventListener("change", renderRunInputControls);
+elements.audioBenchTranscriber.addEventListener("change", renderRunInputControls);
+elements.audioRunManifest.addEventListener("input", renderRunInputControls);
+elements.audioBenchWhisperModel.addEventListener("input", renderRunInputControls);
 elements.tabButtons.forEach((button) => {
   button.addEventListener("click", () => setActiveTab(button.dataset.tab));
 });
@@ -92,6 +106,7 @@ async function bootstrap() {
   renderSelectedScenario();
   renderRunCards();
   renderRecentRuns();
+  renderRunInputControls();
   setActiveTab("playground");
 }
 
@@ -242,6 +257,30 @@ async function predictTextInput() {
   }
 }
 
+// 업로드한 오디오 파일을 현재 선택 시나리오 context와 합쳐 실행한다.
+async function predictAudioInput() {
+  const scenario = selectedScenario();
+  const file = elements.audioFileInput.files[0];
+  if (!scenario || !file) return;
+  setBusy(elements.predictAudioButton, true);
+  try {
+    const form = new FormData();
+    form.append("file", file);
+    form.append("scenario_id", scenario.scenario_id);
+    form.append("policy", elements.policySelect.value);
+    form.append("transcriber", elements.audioTranscriber.value);
+    form.append("transcript", elements.audioTranscript.value);
+    const result = await fetchJson("/audio/predict", {
+      method: "POST",
+      body: form,
+    });
+    state.focusResult = result;
+    renderFocusResult(result);
+  } finally {
+    setBusy(elements.predictAudioButton, false);
+  }
+}
+
 // 선택된 시나리오를 등록된 모든 정책으로 실행해 결과를 비교한다.
 async function comparePolicies() {
   const scenario = selectedScenario();
@@ -292,6 +331,7 @@ function fillTextInputsFromScenario(scenario) {
   elements.textUserUtterance.value = scenario.user_utterance;
   elements.textToneHint.value = scenario.user_tone_hint;
   elements.textHasUserSpeech.checked = scenario.has_user_speech;
+  elements.audioTranscript.value = scenario.user_utterance;
 }
 
 // 여러 정책의 판단 결과를 카드 형태로 비교 표시한다.
@@ -374,10 +414,22 @@ async function runAllPolicies() {
 // 실행 생성 API를 호출한 뒤 목록과 상세 화면을 최신 상태로 맞춘다.
 async function createRun(policyName) {
   // 실행 산출물은 백엔드가 만들고, UI는 새로고침해서 보여주기만 한다.
+  const body = {
+    policy: policyName,
+    input_mode: elements.runInputMode.value,
+  };
+  if (body.input_mode === "audio_file") {
+    body.audio_manifest = elements.audioRunManifest.value;
+    body.audio_transcriber = elements.audioBenchTranscriber.value;
+    const whisperModel = elements.audioBenchWhisperModel.value.trim();
+    if (body.audio_transcriber === "whisper" && whisperModel) {
+      body.whisper_model = whisperModel;
+    }
+  }
   const result = await fetchJson("/runs", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ policy: policyName }),
+    body: JSON.stringify(body),
   });
   await refreshRuns();
   state.selectedRunId = result.run_id;
@@ -423,6 +475,10 @@ function renderRunCards() {
       policy.textContent = run.policy_version;
       const badges = document.createElement("div");
       badges.className = "run-badges";
+      const mode = document.createElement("span");
+      mode.className = "chip";
+      mode.textContent = run.mode || "text";
+      badges.append(mode);
       if (run.policy_version === selectedPolicyName) {
         const focus = document.createElement("span");
         focus.className = "chip";
@@ -430,13 +486,16 @@ function renderRunCards() {
         focus.textContent = "focus policy";
         badges.append(focus);
       }
+      const target = document.createElement("span");
+      target.className = "run-failures";
+      target.textContent = runTargetSummary(run);
       const metric = document.createElement("span");
       metric.className = "metric";
       metric.textContent = `${percent(run.action_accuracy)} action accuracy`;
       const failures = document.createElement("span");
       failures.className = "run-failures";
       failures.textContent = summarizeFailures(run.failures);
-      card.append(runId, policy, badges, metric, failures);
+      card.append(runId, policy, badges, target, metric, failures);
       return card;
     })
   );
@@ -529,6 +588,18 @@ function clearResults() {
   elements.comparisonGrid.replaceChildren();
 }
 
+// Test Bench의 입력 모드에 따라 audio 옵션 표시와 요약을 갱신한다.
+function renderRunInputControls() {
+  const isAudio = elements.runInputMode.value === "audio_file";
+  document.querySelectorAll(".audio-run-field").forEach((field) => {
+    field.hidden = !isAudio;
+  });
+  elements.audioBenchWhisperModel.disabled = elements.audioBenchTranscriber.value !== "whisper";
+  elements.runInputSummary.textContent = isAudio
+    ? `${elements.audioBenchTranscriber.value} / ${elements.audioRunManifest.value}`
+    : "Text scenario set";
+}
+
 // 현재 선택된 시나리오 식별자에 해당하는 시나리오 객체를 찾는다.
 function selectedScenario() {
   return state.scenarios.find((scenario) => {
@@ -607,6 +678,15 @@ function summarizeFailures(failures = {}) {
   const pairs = Object.entries(failures).filter(([, value]) => value > 0);
   if (!pairs.length) return "no primary failures";
   return pairs.map(([key, value]) => `${key} ${value}`).join(" / ");
+}
+
+// run card에서 text/audio target을 짧게 표시한다.
+function runTargetSummary(run) {
+  if (run.mode === "audio_file") {
+    const transcriber = run.input_adapter_snapshot?.transcriber?.provider || "audio";
+    return `${run.target || "audio manifest"} / ${transcriber}`;
+  }
+  return run.dataset || run.target || "text dataset";
 }
 
 // 날짜 접두어를 줄여 사이드바에서 실행 식별자를 읽기 쉽게 만든다.

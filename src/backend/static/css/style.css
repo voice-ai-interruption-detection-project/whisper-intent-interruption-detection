@@ -207,6 +207,10 @@ textarea {
   resize: vertical;
 }
 
+input[type="file"] {
+  padding: 9px 12px;
+}
+
 .policy-snapshot {
   display: grid;
   gap: 7px;
@@ -560,12 +564,16 @@ textarea {
   line-height: 1.55;
 }
 
-.text-input-panel {
+.text-input-panel,
+.audio-input-panel,
+.run-input-panel {
   display: grid;
   gap: 18px;
 }
 
-.text-input-panel .panel-header {
+.text-input-panel .panel-header,
+.audio-input-panel .panel-header,
+.run-input-panel .panel-header {
   align-items: center;
 }
 
