@@ -5,7 +5,7 @@ description = "Interruption Detection Test Bench - Backend"
 authors = [
     {name = "deepsea"}
 ]
-requires-python = "^3.11"
+requires-python = ">=3.11,<4.0"
 dependencies = [
     "fastapi (>=0.136.1,<0.137.0)",
     "uvicorn (>=0.46.0,<0.47.0)",
@@ -27,7 +27,10 @@ dependencies = [
 
 
 [tool.poetry]
-packages = [{include = "backend", from = "src"}]
+packages = [
+    {include = "backend", from = "src"},
+    {include = "interruption_detection", from = "src"},
+]
 
 
 [build-system]
@@ -44,3 +47,6 @@ dev = [
     "ruff (>=0.4.4,<0.5.0)",
     "mypy (>=2.0.0,<3.0.0)"
 ]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]

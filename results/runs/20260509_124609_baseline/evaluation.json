@@ -1,0 +1,66 @@
+{
+  "total": 30,
+  "correct": 15,
+  "action_accuracy": 0.5,
+  "failures": {
+    "false_stop": 12,
+    "missed_switch": 0,
+    "action_confusion": 1,
+    "ambiguous_intent": 2,
+    "STT_uncertainty": 0
+  },
+  "confusion_matrix": {
+    "continue": {
+      "continue": 8,
+      "brief_ack": 0,
+      "respond_and_continue": 0,
+      "stop_and_switch": 4,
+      "ask_clarifying": 0,
+      "handoff": 0
+    },
+    "brief_ack": {
+      "continue": 0,
+      "brief_ack": 0,
+      "respond_and_continue": 0,
+      "stop_and_switch": 2,
+      "ask_clarifying": 0,
+      "handoff": 0
+    },
+    "respond_and_continue": {
+      "continue": 0,
+      "brief_ack": 0,
+      "respond_and_continue": 0,
+      "stop_and_switch": 6,
+      "ask_clarifying": 0,
+      "handoff": 0
+    },
+    "stop_and_switch": {
+      "continue": 0,
+      "brief_ack": 0,
+      "respond_and_continue": 0,
+      "stop_and_switch": 7,
+      "ask_clarifying": 0,
+      "handoff": 0
+    },
+    "ask_clarifying": {
+      "continue": 0,
+      "brief_ack": 0,
+      "respond_and_continue": 0,
+      "stop_and_switch": 2,
+      "ask_clarifying": 0,
+      "handoff": 0
+    },
+    "handoff": {
+      "continue": 0,
+      "brief_ack": 0,
+      "respond_and_continue": 0,
+      "stop_and_switch": 1,
+      "ask_clarifying": 0,
+      "handoff": 0
+    }
+  },
+  "latency_ms": {
+    "total": 0.051,
+    "average": 0.002
+  }
+}

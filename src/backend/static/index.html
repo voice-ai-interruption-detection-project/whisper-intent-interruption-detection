@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Whisper Intent Workbench</title>
+    <link rel="stylesheet" href="/static/css/style.css" />
+  </head>
+  <body>
+    <aside class="app-sidebar" aria-label="Workbench controls">
+      <div class="brand-block">
+        <p class="eyebrow">Whisper Intent</p>
+        <h1>Work Bench</h1>
+        <div class="status-pill" id="healthStatus">checking</div>
+      </div>
+
+      <section class="side-section" data-context="policy">
+        <h2>Policy</h2>
+        <label class="field-label" for="policySelect">Focus policy</label>
+        <select id="policySelect"></select>
+        <div class="policy-snapshot" id="policySnapshot"></div>
+      </section>
+
+      <section class="side-section" data-context="scenario">
+        <h2>Scenario filters</h2>
+        <label class="field-label" for="eventFilter">Event type</label>
+        <select id="eventFilter"></select>
+        <div class="dataset-stats" id="datasetStats"></div>
+      </section>
+
+      <section class="side-section side-fill" data-context="scenario">
+        <div class="side-heading-row">
+          <h2>Scenarios</h2>
+          <span id="scenarioCount"></span>
+        </div>
+        <div class="scenario-list" id="scenarioList"></div>
+      </section>
+
+      <section class="side-section" data-context="runs">
+        <div class="side-heading-row">
+          <h2>Recent runs</h2>
+          <button class="ghost-button" type="button" id="refreshRunsButton">Refresh</button>
+        </div>
+        <div class="recent-runs" id="recentRuns"></div>
+      </section>
+    </aside>
+
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="top-title">
+          <span>Whisper Intent</span>
+          <strong>/ Work Bench</strong>
+        </div>
+        <nav class="tabs" aria-label="Workbench tabs">
+          <button class="tab-button" type="button" data-tab="playground">Playground</button>
+          <button class="tab-button" type="button" data-tab="report">Test Bench Report</button>
+        </nav>
+      </header>
+
+      <main class="content">
+        <section class="view" id="playgroundView">
+          <div class="page-heading">
+            <div>
+              <p class="eyebrow">Playground</p>
+              <h2>Scenario replay</h2>
+            </div>
+            <div class="action-row">
+              <button class="secondary-button" type="button" id="predictButton">
+                Inspect selected policy
+              </button>
+              <button type="button" id="compareButton">Compare all policies</button>
+            </div>
+          </div>
+
+          <div class="playground-grid">
+            <section class="panel scenario-panel">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Selected scenario</p>
+                  <h3 id="scenarioTitle">Select a scenario</h3>
+                </div>
+                <span class="chip" id="expectedChip">expected</span>
+              </div>
+              <dl class="meta-grid" id="scenarioMeta"></dl>
+              <div class="utterance-grid">
+                <article class="utterance-card">
+                  <h4>AI utterance</h4>
+                  <p id="aiUtterance">No scenario selected.</p>
+                </article>
+                <article class="utterance-card">
+                  <h4>User signal</h4>
+                  <p id="userUtterance">No scenario selected.</p>
+                </article>
+              </div>
+            </section>
+
+            <section class="panel result-panel">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Focus result</p>
+                  <h3 id="actualAction">No inspection</h3>
+                </div>
+                <span class="chip" id="matchChip">pending</span>
+              </div>
+              <p class="decision-reason" id="reason">
+                Inspect the selected policy to debug reason, signals, and latency.
+              </p>
+              <dl class="meta-grid compact" id="decisionMeta"></dl>
+              <pre id="signals">{}</pre>
+            </section>
+          </div>
+
+          <section class="panel comparison-panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Policy comparison</p>
+                <h3>Same scenario, every registered policy</h3>
+              </div>
+              <span class="muted" id="comparisonStatus">No comparison yet</span>
+            </div>
+            <div class="comparison-grid" id="comparisonGrid"></div>
+          </section>
+        </section>
+
+        <section class="view" id="reportView" hidden>
+          <div class="page-heading">
+            <div>
+              <p class="eyebrow">Test Bench Report</p>
+              <h2>Run artifacts</h2>
+            </div>
+            <div class="action-row">
+              <button class="secondary-button" type="button" id="runFocusButton">
+                Run selected policy
+              </button>
+              <button type="button" id="runAllPoliciesButton">Run all policies</button>
+            </div>
+          </div>
+
+          <section class="run-card-grid" id="runCardGrid"></section>
+
+          <section class="panel report-panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Scenario x policy</p>
+                <h3 id="runTableTitle">Select or create a run</h3>
+              </div>
+              <span class="muted" id="runArtifactPath"></span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>id</th>
+                    <th>event</th>
+                    <th>expected</th>
+                    <th>actual</th>
+                    <th>primary failure</th>
+                    <th>latency</th>
+                  </tr>
+                </thead>
+                <tbody id="decisionLogRows"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="panel report-panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">run_meta.json</p>
+                <h3>Selected run metadata</h3>
+              </div>
+            </div>
+            <pre id="runMeta">{}</pre>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+  </body>
+</html>

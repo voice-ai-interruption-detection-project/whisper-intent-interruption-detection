@@ -1,0 +1,40 @@
+{
+  "run_id": "20260509_124609_baseline",
+  "timestamp": "2026-05-09T12:46:09.352202+09:00",
+  "source": "cli",
+  "mode": "baseline",
+  "target": "data/scenarios.json",
+  "changed": [
+    "policy:baseline"
+  ],
+  "dataset": "data/scenarios.json",
+  "policy_version": "baseline",
+  "policy_snapshot": {
+    "name": "baseline",
+    "version": "day2",
+    "rule": {
+      "has_user_speech=false": "continue",
+      "has_user_speech=true": "stop_and_switch"
+    }
+  },
+  "criteria_snapshot": {
+    "action_labels": [
+      "continue",
+      "brief_ack",
+      "respond_and_continue",
+      "stop_and_switch",
+      "ask_clarifying",
+      "handoff"
+    ],
+    "primary_failures": [
+      "false_stop",
+      "missed_switch",
+      "action_confusion",
+      "ambiguous_intent",
+      "STT_uncertainty"
+    ],
+    "comparison": "expected_action_vs_actual_action"
+  },
+  "latency_ms": 0.051,
+  "command": "python src/runner.py --policy baseline --dataset data/scenarios.json --write-results"
+}
