@@ -18,7 +18,9 @@ from interruption_detection.scenarios import get_scenario_by_id, load_scenarios
 
 def main() -> int:
     """명령행 인자를 해석해 단일 재생, 전체 재생, 결과 저장 모드를 실행한다."""
-    parser = argparse.ArgumentParser(description="Run interruption detection policies.")
+    parser = argparse.ArgumentParser(
+        description="interruption detection policy를 실행한다."
+    )
     parser.add_argument("--policy", default="baseline")
     parser.add_argument("--dataset", default="data/scenarios.json")
     parser.add_argument("--scenario-id")

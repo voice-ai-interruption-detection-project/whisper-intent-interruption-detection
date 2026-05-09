@@ -43,6 +43,7 @@ def test_audio_transcribe_with_precomputed_transcript(
     assert response.status_code == 200
     body = response.json()
     assert body["transcript"]["text"] == "환불받고 싶어요."
+    assert body["transcript"]["source"] == "precomputed"
     assert body["audio_signal"]["exists"] is True
 
 
@@ -62,6 +63,7 @@ def test_audio_transcribe_allows_empty_precomputed_transcript(
     body = response.json()
     assert body["transcript"]["text"] == ""
     assert body["transcript"]["has_user_speech"] is False
+    assert body["transcript"]["source"] == "precomputed"
 
 
 def test_audio_predict_uses_runner(client: TestClient, tmp_path) -> None:
@@ -84,6 +86,9 @@ def test_audio_predict_uses_runner(client: TestClient, tmp_path) -> None:
     assert body["expected_action"] == "stop_and_switch"
     assert body["decision"]["actual_action"] == "stop_and_switch"
     assert body["decision"]["signals"]["input_mode"] == "audio_file"
+    audio = body["decision"]["signals"]["audio"]
+    assert audio["transcript_source"] == "precomputed"
+    assert audio["transcriber"]["provider"] == "precomputed_manifest"
 
 
 def write_wav(path: Path) -> None:
