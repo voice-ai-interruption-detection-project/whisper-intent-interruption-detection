@@ -6,9 +6,12 @@ from typing import Any, Protocol
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
+from dotenv import load_dotenv
 from pydantic import Field
 
 from interruption_detection.models import ActionLabel, StrictModel
+
+load_dotenv()
 
 
 class LLMError(ValueError):

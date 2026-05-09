@@ -46,7 +46,9 @@ AI speaking
 | `src/interruption_detection/policies/` | `baseline`, `policy_v1`이 텍스트 LLM 판단 정책으로 전환됨 | Day 2 하드코딩 placeholder에서 실제 LLM action judge로 이동했다 |
 | `src/interruption_detection/llm.py` | OpenAI Responses API용 structured output client가 있음 | `OPENAI_API_KEY`가 있을 때 실제 LLM 판단을 호출한다 |
 | `src/interruption_detection/evaluation/` | Test Bench batch eval과 run artifact 생성이 있음 | `results/runs/{run_id}/` 계약으로 평가 결과를 남긴다 |
-| `src/backend/main.py`, `src/backend/static/` | FastAPI API와 Playground/Test Bench UI가 있음 | scenario replay와 자유 텍스트 입력이 같은 runner를 호출한다 |
+| `src/interruption_detection/audio/` | Audio File Test manifest, precomputed/Whisper STT adapter, audio signal 요약이 있음 | 오디오 입력도 같은 runner input으로 합류한다 |
+| `src/backend/main.py`, `src/backend/static/` | FastAPI API와 Playground/Test Bench UI가 있음 | scenario replay, 자유 텍스트 입력, audio upload, text/audio batch run이 같은 runner/evaluator 경계를 호출한다 |
+| `scripts/generate_audio_fixtures.py` | scenario의 `user_utterance`로 TTS fixture와 audio manifest를 생성함 | 대표 오디오 파일을 재현 가능한 입력으로 만든다 |
 | `results/runs/` | Day 2 hardcoded placeholder 기준 run artifact가 있음 | LLM 전환 후 수치는 새 run artifact를 만들어 다시 인용해야 한다 |
 
 MVP 구현은 현재 브랜치의 파일과 현재 기준 문서를 기준으로 새로 진행한다. 다른 브랜치의 실험 scaffold나 run artifact는 현재 구현 계획의 입력으로 보지 않는다.
