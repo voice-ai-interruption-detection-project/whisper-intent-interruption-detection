@@ -12,7 +12,7 @@ from interruption_detection.audio.manifest import (
     audio_path_for_item,
     load_audio_manifest,
 )
-from interruption_detection.audio.stt import PrecomputedTranscriber
+from interruption_detection.audio.stt import AudioTranscript, PrecomputedTranscriber
 from interruption_detection.evaluation.audio_evaluator import evaluate_audio_manifest
 from interruption_detection.models import ActionLabel
 from interruption_detection.scenarios import get_scenario_by_id
@@ -59,7 +59,36 @@ def test_run_audio_item_uses_existing_policy_runner(tmp_path) -> None:
     assert decision.actual_action == ActionLabel.STOP_AND_SWITCH
     assert decision.signals["input_mode"] == "audio_file"
     assert decision.signals["audio"]["transcript_source"] == "precomputed"
+    assert decision.signals["audio"]["reference_transcript"] == (
+        "아 그게 아니라 환불받고 싶어요."
+    )
+    assert decision.signals["audio"]["transcript_matches_reference"] is True
+    assert decision.signals["audio"]["transcript_edit_distance"] == 0
+    assert decision.signals["audio"]["transcript_similarity"] == 1.0
     assert "stt_ms" in decision.stage_latencies_ms
+
+
+def test_run_audio_item_marks_stt_transcript_mismatch(tmp_path) -> None:
+    audio_path = tmp_path / "fixtures" / "refund.wav"
+    write_wav(audio_path)
+    manifest_path = write_manifest(tmp_path, audio_path)
+    item = load_audio_manifest(manifest_path).items[0]
+    scenario = get_scenario_by_id("data/scenarios.json", item.scenario_id)
+
+    decision = run_audio_item(
+        scenario=scenario,
+        item=item,
+        audio_path=audio_path,
+        policy_name="policy_v1",
+        transcriber=MismatchTranscriber(),
+    )
+
+    audio = decision.signals["audio"]
+    assert audio["transcript"] == "아 환불이요."
+    assert audio["reference_transcript"] == "아 그게 아니라 환불받고 싶어요."
+    assert audio["transcript_matches_reference"] is False
+    assert audio["transcript_edit_distance"] > 0
+    assert 0 < audio["transcript_similarity"] < 1
 
 
 def test_evaluate_audio_manifest_writes_run_artifact(tmp_path) -> None:
@@ -124,3 +153,20 @@ def write_wav(path: Path) -> None:
         handle.setsampwidth(2)
         handle.setframerate(sample_rate)
         handle.writeframes(b"".join(frames))
+
+
+class MismatchTranscriber:
+    name = "whisper"
+
+    def transcribe(self, audio_path: str | Path, item) -> AudioTranscript:
+        return AudioTranscript(
+            text="아 환불이요.",
+            has_user_speech=True,
+            source=self.name,
+            language=item.language,
+            stage_latencies_ms={"stt_ms": 1.0},
+            metadata={"audio_path": str(audio_path), "audio_kind": item.audio_kind},
+        )
+
+    def snapshot(self) -> dict[str, object]:
+        return {"provider": "fake_whisper"}
