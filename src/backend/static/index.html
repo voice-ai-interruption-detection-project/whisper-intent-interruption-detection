@@ -110,6 +110,69 @@
             </section>
           </div>
 
+          <section class="panel text-input-panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Text input</p>
+                <h3>Direct transcript judgment</h3>
+              </div>
+              <button class="secondary-button" type="button" id="predictTextButton">
+                Inspect text input
+              </button>
+            </div>
+            <div class="text-form-grid">
+              <label>
+                <span>Current intent</span>
+                <input id="textCurrentIntent" type="text" />
+              </label>
+              <label>
+                <span>Tone hint</span>
+                <select id="textToneHint"></select>
+              </label>
+              <label class="wide-field">
+                <span>AI utterance</span>
+                <textarea id="textAiUtterance" rows="3"></textarea>
+              </label>
+              <label class="wide-field">
+                <span>User transcript</span>
+                <textarea id="textUserUtterance" rows="3"></textarea>
+              </label>
+              <label class="checkbox-field">
+                <input id="textHasUserSpeech" type="checkbox" checked />
+                <span>User speech detected</span>
+              </label>
+            </div>
+          </section>
+
+          <section class="panel audio-input-panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Audio input</p>
+                <h3>File replay judgment</h3>
+              </div>
+              <button class="secondary-button" type="button" id="predictAudioButton">
+                Inspect audio input
+              </button>
+            </div>
+            <div class="text-form-grid">
+              <label>
+                <span>Audio file</span>
+                <input id="audioFileInput" type="file" accept="audio/*" />
+              </label>
+              <label>
+                <span>Transcript mode</span>
+                <select id="audioTranscriber">
+                  <option value="precomputed">precomputed</option>
+                  <option value="whisper">whisper</option>
+                </select>
+              </label>
+              <label class="wide-field">
+                <span>Precomputed transcript</span>
+                <textarea id="audioTranscript" rows="3"></textarea>
+              </label>
+            </div>
+          </section>
+
           <section class="panel comparison-panel">
             <div class="panel-header">
               <div>
@@ -135,6 +198,40 @@
               <button type="button" id="runAllPoliciesButton">Run all policies</button>
             </div>
           </div>
+
+          <section class="panel run-input-panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Input mode</p>
+                <h3>Batch source</h3>
+              </div>
+              <span class="muted" id="runInputSummary">Text scenario set</span>
+            </div>
+            <div class="text-form-grid">
+              <label>
+                <span>Run input</span>
+                <select id="runInputMode">
+                  <option value="text">text scenarios</option>
+                  <option value="audio_file">audio files</option>
+                </select>
+              </label>
+              <label class="audio-run-field">
+                <span>Audio transcript</span>
+                <select id="audioBenchTranscriber">
+                  <option value="precomputed">precomputed</option>
+                  <option value="whisper">whisper</option>
+                </select>
+              </label>
+              <label class="wide-field audio-run-field">
+                <span>Audio manifest</span>
+                <input id="audioRunManifest" type="text" value="data/audio/manifest.json" />
+              </label>
+              <label class="audio-run-field">
+                <span>Whisper model</span>
+                <input id="audioBenchWhisperModel" type="text" value="base" />
+              </label>
+            </div>
+          </section>
 
           <section class="run-card-grid" id="runCardGrid"></section>
 

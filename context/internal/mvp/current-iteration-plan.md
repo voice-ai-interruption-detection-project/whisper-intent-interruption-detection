@@ -61,14 +61,34 @@ Day N은 달력 날짜가 아니라 MVP 작업 iteration이다. 완료된 일은
 | `GET /runs` | 저장된 run artifact 목록을 UI에 제공 |
 | UI live check on `http://127.0.0.1:8000` | HTML, `/runs`, scenario predict 응답 확인 |
 
-## Day 3+ - candidate slots
+## Day 3 - in progress on 2026-05-09
 
-아래는 확정 계획이 아니라 Day 2 결과를 보고 조정할 후보 슬롯이다.
+### 작업 중인 방향
+
+- Day 2의 `baseline`, `policy_v1` 하드코딩 placeholder를 텍스트 기반 LLM action judge로 전환한다.
+- 오디오 입력은 원래 이번 단계에서 제외했지만, 텍스트 기반 LLM action judge와 Playground 직접 입력이 예상보다 빨리 닫혀 대표 Audio File Test를 같은 iteration 안에서 input adapter로 당겨 구현한다.
+- `expected_action`, `event_type`, `expected_user_intent`는 LLM prompt에 넣지 않는다. LLM은 AI intent, AI 발화, 고객 transcript, speech signal, 정책별 추가 prompt 기준으로 `actual_action`을 선택한다.
+- Playground는 scenario replay뿐 아니라 자유 텍스트 입력도 같은 `/predict`와 runner 경로로 판단하게 한다.
+- Test Bench는 같은 evaluator를 유지하고, LLM policy run artifact를 새로 생성해 Day 2 placeholder run과 구분한다.
+
+### 현재 구현 메모
+
+- `src/interruption_detection/llm.py`에 OpenAI Responses API structured output client를 둔다.
+- `baseline`은 최소 텍스트 context만 쓰는 LLM 기준선이다.
+- `policy_v1`은 action label 정의, few-shot 예시, tone hint를 더한 LLM 정책이다.
+- Audio File Test는 `data/scenarios.json`을 수정하지 않고 별도 manifest와 TTS fixture 파일을 input adapter로 읽는다.
+- 실제 Whisper STT와 precomputed transcript adapter를 분리해, STT 품질과 runner 합류 경계를 따로 검증한다.
+- Test Bench Report는 input mode를 선택해 text scenario set과 audio manifest batch를 같은 `/runs`와 artifact 계약으로 실행한다.
+- 테스트는 실제 API를 호출하지 않고 fake LLM client로 runner/API/evaluator 경계를 검증한다.
+
+## Day 4+ - candidate slots
+
+아래는 확정 계획이 아니라 Day 3 결과를 보고 조정할 후보 슬롯이다.
 
 | 후보 | 열리는 조건 |
 | --- | --- |
 | Policy v2 (`policy_v2`) | `policy_v1` run에서 intent shift의 missed switch가 다음 병목으로 확인될 때 |
-| 대표 Audio File Test | transcript/signal adapter가 같은 runner input으로 합류할 수 있을 때 |
+| 대표 Audio File Test 확장 | 대표 케이스 수를 늘리거나 Whisper STT 결과를 수치 비교에 포함할 때 |
 | Policy v3 (`policy_v3`) | complaint, ambiguous, tone/severity hint 기준을 decision으로 고정한 뒤 |
 
 ## 작성 체크

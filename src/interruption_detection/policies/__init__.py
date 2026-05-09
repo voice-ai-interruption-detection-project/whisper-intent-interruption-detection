@@ -1,15 +1,23 @@
 from __future__ import annotations
 
+from interruption_detection.llm import LLMActionClient
 from interruption_detection.policies.base import Policy
 from interruption_detection.policies.baseline import BaselinePolicy
 from interruption_detection.policies.policy_v1 import PolicyV1
 
 
+def build_policy_registry(
+    llm_client: LLMActionClient | None = None,
+) -> dict[str, Policy]:
+    """같은 LLM client 설정으로 기본 정책 등록소를 만든다."""
+    return {
+        "baseline": BaselinePolicy(llm_client=llm_client),
+        "policy_v1": PolicyV1(llm_client=llm_client),
+    }
+
+
 # 모든 진입점이 같은 정책 이름과 스냅샷을 쓰도록 단일 등록소를 둔다.
-_POLICIES: dict[str, Policy] = {
-    "baseline": BaselinePolicy(),
-    "policy_v1": PolicyV1(),
-}
+_POLICIES: dict[str, Policy] = build_policy_registry()
 
 
 def get_policy(name: str) -> Policy:
@@ -31,3 +39,15 @@ def list_policies() -> list[dict[str, object]]:
         }
         for policy in _POLICIES.values()
     ]
+
+
+def replace_policy_registry_for_testing(policies: dict[str, Policy]) -> None:
+    """테스트에서 실제 LLM 호출 없이 정책 등록소를 교체한다."""
+    global _POLICIES
+    _POLICIES = policies
+
+
+def reset_policy_registry() -> None:
+    """테스트가 교체한 정책 등록소를 기본 설정으로 되돌린다."""
+    global _POLICIES
+    _POLICIES = build_policy_registry()

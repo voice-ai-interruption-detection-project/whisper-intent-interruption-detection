@@ -42,11 +42,14 @@ AI speaking
 | `data/scenario_stats.json` | event/action/level/intent 분포 있음 | scenario set snapshot 확인용 |
 | `src/backend/PACKAGES.md` | backend dependency와 하네스 경계 설명 있음 | FastAPI/API 작업 시 책임 경계 가이드 |
 | `pyproject.toml` | FastAPI, Whisper, sentence-transformers, VAD, audio/data/test 의존성 있음 | 구현 후보 dependency는 준비됨 |
-| `src/runner.py` | 아직 없음 | 모든 surface가 공유할 policy 실행 entry로 새로 만들어야 함 |
-| `src/policies/` | 아직 active code 없음 | baseline, policy version 구현 위치 후보 |
-| `src/evaluator.py` 또는 `src/evaluation/` | 아직 없음 | Test Bench batch eval과 run artifact 생성 필요 |
-| `src/backend/main.py` | 아직 없음 | API 표면은 runner가 생긴 뒤 adapter로 연결 |
-| `results/runs/` | 현재 브랜치에는 없음 | 수치 인용 전 새 run artifact 생성 필요 |
+| `src/runner.py`, `src/interruption_detection/runner.py` | CLI와 공통 policy 실행 entry가 있음 | Text Replay, Backend, Test Bench가 같은 runner를 통과한다 |
+| `src/interruption_detection/policies/` | `baseline`, `policy_v1`이 텍스트 LLM 판단 정책으로 전환됨 | Day 2 하드코딩 placeholder에서 실제 LLM action judge로 이동했다 |
+| `src/interruption_detection/llm.py` | OpenAI Responses API용 structured output client가 있음 | `OPENAI_API_KEY`가 있을 때 실제 LLM 판단을 호출한다 |
+| `src/interruption_detection/evaluation/` | Test Bench batch eval과 run artifact 생성이 있음 | `results/runs/{run_id}/` 계약으로 평가 결과를 남긴다 |
+| `src/interruption_detection/audio/` | Audio File Test manifest, precomputed/Whisper STT adapter, audio signal 요약이 있음 | 오디오 입력도 같은 runner input으로 합류한다 |
+| `src/backend/main.py`, `src/backend/static/` | FastAPI API와 Playground/Test Bench UI가 있음 | scenario replay, 자유 텍스트 입력, audio upload, text/audio batch run이 같은 runner/evaluator 경계를 호출한다 |
+| `scripts/generate_audio_fixtures.py` | scenario의 `user_utterance`로 TTS fixture와 audio manifest를 생성함 | 대표 오디오 파일을 재현 가능한 입력으로 만든다 |
+| `results/runs/` | Day 2 hardcoded placeholder 기준 run artifact가 있음 | LLM 전환 후 수치는 새 run artifact를 만들어 다시 인용해야 한다 |
 
 MVP 구현은 현재 브랜치의 파일과 현재 기준 문서를 기준으로 새로 진행한다. 다른 브랜치의 실험 scaffold나 run artifact는 현재 구현 계획의 입력으로 보지 않는다.
 
@@ -57,8 +60,8 @@ MVP 구현은 현재 브랜치의 파일과 현재 기준 문서를 기준으로
 | Scenario Bank | `data/scenarios.json` 30개를 기준 원본으로 로드한다 |
 | Text Replay | scenario를 선택하거나 텍스트 입력을 넣어 policy 판단을 확인한다 |
 | AI Action Policy Runner | Text, Audio, CLI, Backend가 공유할 단일 runner entry를 둔다 |
-| Baseline | VAD-only 또는 speech signal only 기준선을 둔다 |
-| Policy v1 | backchannel/noise에서 false stop을 줄이는 정책을 둔다 |
+| Baseline | transcript와 speech signal을 최소 입력으로 쓰는 LLM action 판단 기준선을 둔다 |
+| Policy v1 | action label 정의, 예시, tone hint를 포함한 LLM 정책으로 false stop을 줄이는지 본다 |
 | Test Bench | scenario set에 policy를 batch 실행하고 `results/runs/{run_id}/` artifact를 남긴다 |
 | Error Analysis | failure를 primary 5종 기준으로 분류하고 다음 수정 후보를 남긴다 |
 | 대표 Audio File Test | mock/precomputed transcript라도 같은 runner 흐름에 합류시킨다 |
@@ -90,8 +93,8 @@ Playground 화면에서 본 수치는 외부 인용 출처로 쓰지 않는다. 
 
 | 표시 라벨 | 코드 식별자 | MVP에서의 목표 |
 | --- | --- | --- |
-| Baseline | `baseline` | 고객 음성/발화 신호만 보는 기준선의 한계를 확인한다 |
-| Policy v1 | `policy_v1` | backchannel/noise에서 false stop을 줄인다 |
+| Baseline | `baseline` | 최소 텍스트 LLM 기준선. AI intent, AI 발화, 고객 transcript, speech signal만 보고 action label을 고른다 |
+| Policy v1 | `policy_v1` | action label 정의, 예시, tone hint를 더한 텍스트 LLM 정책으로 backchannel/noise 판단을 개선한다 |
 | Policy v2 | `policy_v2` | intent shift에서 missed switch를 줄인다 |
 | Policy v3 | `policy_v3` | complaint, ambiguous, scenario metadata 수준의 tone/severity hint까지 포함해 action label을 고른다 |
 

@@ -23,12 +23,18 @@ def list_run_artifacts(
             continue
         meta = _read_json(meta_path)
         evaluation = _read_json(evaluation_path)
+        input_adapter = meta.get("input_adapter_snapshot")
         runs.append(
             {
                 "run_id": run_dir.name,
                 "timestamp": meta.get("timestamp"),
+                "mode": meta.get("mode"),
+                "target": meta.get("target"),
                 "policy_version": meta.get("policy_version"),
                 "dataset": meta.get("dataset"),
+                "input_adapter_snapshot": (
+                    input_adapter if isinstance(input_adapter, dict) else None
+                ),
                 "action_accuracy": evaluation.get("action_accuracy"),
                 "total": evaluation.get("total"),
                 "failures": evaluation.get("failures", {}),

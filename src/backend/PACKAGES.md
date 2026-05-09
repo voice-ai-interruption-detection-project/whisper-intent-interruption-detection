@@ -48,13 +48,16 @@ REST API 표면을 만든다.
 
 Backend가 `evaluation.json`이나 `decision_logs.jsonl`을 직접 산출하는 구조로 만들지 않는다. 평가 결과가 필요하면 Test Bench run artifact를 읽거나, 별도 eval runner를 호출하는 방향을 먼저 검토한다.
 
-아직 endpoint는 구현 계약이 아니라 후보로 본다.
+`POST /runs`는 `input_mode`로 text scenario batch와 audio manifest batch를 선택한다. 두 경로 모두 evaluator가 `results/runs/{run_id}/` 계약을 만들고, Backend는 요청 모델을 검증한 뒤 evaluator를 호출한다.
+
+현재 구현된 endpoint와 후보는 아래처럼 본다.
 
 ```text
 GET  /scenarios
 POST /scenarios/{scenario_id}/predict
 POST /predict
 POST /audio/transcribe
+POST /audio/predict
 GET  /runs/{run_id}
 ```
 
@@ -187,6 +190,26 @@ model = whisper.load_model("base")
 result = model.transcribe("audio.wav", language="ko")
 transcript = result["text"]
 ```
+
+### OpenAI Speech API
+
+`scripts/generate_audio_fixtures.py`에서 scenario의 `user_utterance`를 대표 오디오 fixture로 만들 때 쓴다. SDK 의존성을 추가하지 않고 HTTP API를 직접 호출한다.
+
+- 기본 모델: `OPENAI_TTS_MODEL=gpt-4o-mini-tts`
+- 기본 voice: `OPENAI_TTS_VOICE=coral`
+- 기본 출력: WAV
+
+TTS fixture는 입력 자료이며, 생성된 manifest에도 `actual_action`이나 metric을 넣지 않는다. 실제 정책 실행 결과는 `results/runs/{run_id}/`로만 남긴다.
+
+### macOS `say`
+
+OpenAI key 없이 로컬 개발용 TTS fixture를 만들 때 쓴다.
+
+```bash
+poetry run python scripts/generate_audio_fixtures.py --provider say --all-speech
+```
+
+기본 voice는 `Yuna`이며, `--voice` 또는 `LOCAL_TTS_VOICE`로 바꿀 수 있다. 이 경로는 개발 fixture용이고, 외부 공유 수치의 근거는 여전히 run artifact다.
 
 ### webrtcvad (`>=2.0.10,<3.0.0`)
 
