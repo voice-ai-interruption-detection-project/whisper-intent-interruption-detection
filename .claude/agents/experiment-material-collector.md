@@ -13,7 +13,7 @@ tools: Read, Grep, Glob, Bash
 prompt에서 지정된 실험 단위에 대해 다음을 모은다.
 
 - **Scenario bank slice**: 어떤 시나리오가 범위에 들어오는지, 각 시나리오의 `expected_action`, `event_type`, `current_intent`. 출처: `data/scenarios.json`.
-- **연관된 policy version**: 현재 `src/policies/{name}.py`의 생성자 default와 매핑 테이블 + `results/runs/{run_id}/run_meta.json`의 `policy_snapshot`. 둘이 다르면 drift로 표기.
+- **연관된 policy version**: 현재 `src/interruption_detection/policies/{name}.py`의 생성자 default와 매핑 테이블 + `results/runs/{run_id}/run_meta.json`의 `policy_snapshot`. 둘이 다르면 drift로 표기.
 - **Run artifact**: 범위 안 policy의 최근 run들. `evaluation.json` 요약, `run_meta.json`(source, dataset_id, latency_ms), `error_analysis.md` 머리말을 가져온다.
 - **Decision log 발췌**: `results/runs/{run_id}/decision_logs.jsonl`에서 실패 케이스 위주로 샘플링.
 - **기준·결정 맥락**: `context/internal/`의 제품 맥락·용어·정책·평가 기준 자료와 `context/decisions/`의 사안별 결정 맥락을 우선 확인한다. `context/archive/`는 historical evidence가 필요할 때만 확인한다.
@@ -52,4 +52,4 @@ prompt에서 지정된 실험 단위에 대해 다음을 모은다.
 - Read-only. 파일 수정 금지.
 - 새 실험을 직접 돌리지 않는다. 빠진 metric이 있으면 "Gaps"에 나열한다.
 - "어느 policy가 더 낫다"는 결론을 적지 않는다. 모든 수치는 자기 `run_id`와 `source`를 동반한다.
-- `run_meta.json`의 `policy_snapshot`이 현재 `src/policies/{name}.py`와 다르면 "Gaps"에 snapshot drift로 적는다.
+- `run_meta.json`의 `policy_snapshot`이 현재 `src/interruption_detection/policies/{name}.py`와 다르면 "Gaps"에 snapshot drift로 적는다.

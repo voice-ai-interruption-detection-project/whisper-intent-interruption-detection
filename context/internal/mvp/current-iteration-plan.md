@@ -1,10 +1,12 @@
 # Current MVP Iteration Plan
 
-이 문서는 현재 MVP의 Day별 작업 흐름을 정리한다.
+이 문서는 현재 MVP의 Step별 작업 흐름을 정리한다.
 
-Day N은 달력 날짜가 아니라 MVP 작업 iteration이다. 완료된 일은 실제 날짜와 commit을 함께 적고, 예정 작업은 planned로만 둔다.
+Step N은 달력 날짜가 아니라 MVP 작업 iteration이다. 완료된 일은 실제 날짜와 commit을 함께 적고, 예정 작업은 planned로만 둔다.
 
-## Day 1 - completed on 2026-05-08
+Step은 실행 경계가 아니라 작업 흐름을 설명하는 기록 단위다. 최신 사용자 지시를 우선하고, 필요하면 완료/진행 중인 Step을 넘나들어 작업한다.
+
+## Step 1 - completed on 2026-05-08
 
 ### 실제 완료
 
@@ -26,13 +28,13 @@ Day N은 달력 날짜가 아니라 MVP 작업 iteration이다. 완료된 일은
 | `4273baa` | `data/scenarios.json`, `data/scenario_stats.json` 추가 |
 | `4a47619` | scenario stats 분포 정정 |
 
-### Day 1 종료 시점에는 아직 완료라고 보지 않았던 것
+### Step 1 종료 시점에는 아직 완료라고 보지 않았던 것
 
-- `src/runner.py`, `src/evaluator.py` 또는 `src/evaluation/`, `src/policies/`는 현재 active code로 아직 없다.
+- `src/runner.py`, `src/interruption_detection/evaluation/`, `src/interruption_detection/policies/`는 현재 active code로 아직 없다.
 - `results/runs/{run_id}/` artifact는 현재 active branch 기준으로 아직 없다.
 - Workbench/Playground UI는 완성된 제품 표면으로 보지 않는다.
 
-## Day 2 - completed on 2026-05-09
+## Step 2 - completed on 2026-05-09
 
 ### 실제 완료
 
@@ -61,15 +63,15 @@ Day N은 달력 날짜가 아니라 MVP 작업 iteration이다. 완료된 일은
 | `GET /runs` | 저장된 run artifact 목록을 UI에 제공 |
 | UI live check on `http://127.0.0.1:8000` | HTML, `/runs`, scenario predict 응답 확인 |
 
-## Day 3 - in progress on 2026-05-09
+## Step 3 - in progress on 2026-05-09
 
 ### 작업 중인 방향
 
-- Day 2의 `baseline`, `policy_v1` 하드코딩 placeholder를 텍스트 기반 LLM action judge로 전환한다.
+- Step 2의 `baseline`, `policy_v1` 하드코딩 placeholder를 텍스트 기반 LLM action judge로 전환한다.
 - 오디오 입력은 원래 이번 단계에서 제외했지만, 텍스트 기반 LLM action judge와 Playground 직접 입력이 예상보다 빨리 닫혀 대표 Audio File Test를 같은 iteration 안에서 input adapter로 당겨 구현한다.
 - `expected_action`, `event_type`, `expected_user_intent`는 LLM prompt에 넣지 않는다. LLM은 AI intent, AI 발화, 고객 transcript, speech signal, 정책별 추가 prompt 기준으로 `actual_action`을 선택한다.
 - Playground는 scenario replay뿐 아니라 자유 텍스트 입력도 같은 `/predict`와 runner 경로로 판단하게 한다.
-- Test Bench는 같은 evaluator를 유지하고, LLM policy run artifact를 새로 생성해 Day 2 placeholder run과 구분한다.
+- Test Bench는 같은 evaluator를 유지하고, LLM policy run artifact를 새로 생성해 Step 2 placeholder run과 구분한다.
 
 ### 현재 구현 메모
 
@@ -81,9 +83,9 @@ Day N은 달력 날짜가 아니라 MVP 작업 iteration이다. 완료된 일은
 - Test Bench Report는 input mode를 선택해 text scenario set과 audio manifest batch를 같은 `/runs`와 artifact 계약으로 실행한다.
 - 테스트는 실제 API를 호출하지 않고 fake LLM client로 runner/API/evaluator 경계를 검증한다.
 
-## Day 4+ - candidate slots
+## Step 4+ - candidate slots
 
-아래는 확정 계획이 아니라 Day 3 결과를 보고 조정할 후보 슬롯이다.
+아래는 확정 계획이 아니라 Step 3 결과를 보고 조정할 후보 슬롯이다.
 
 | 후보 | 열리는 조건 |
 | --- | --- |

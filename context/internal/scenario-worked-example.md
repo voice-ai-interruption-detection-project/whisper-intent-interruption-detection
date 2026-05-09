@@ -120,7 +120,7 @@ AI가 배송 상태를 설명하고 있다. 고객이 "네, 알겠어요"라고 
 
 ### 왜 false stop이 생기나
 
-VAD-only baseline은 고객 발화가 있으면 의미를 보지 않고 개입으로 판단하기 쉽다.
+초기 VAD-only placeholder는 고객 발화가 있으면 의미를 보지 않고 개입으로 판단하기 쉽다.
 
 ```text
 has_user_speech = true
@@ -129,7 +129,7 @@ has_user_speech = true
 -> false_stop
 ```
 
-Policy v1의 목표는 이 케이스를 줄이는 것이다. 고객 발화가 있어도 `event_type = backchannel`이면 현재 설명을 계속하거나 짧게 인정하고 이어간다.
+현재 `policy_v1`의 목표는 이 케이스를 줄이는 것이다. 고객 발화가 있어도 transcript와 tone hint를 보고 단순 backchannel이면 현재 설명을 계속하거나 짧게 인정하고 이어간다.
 
 ### 평가 해석
 
