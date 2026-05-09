@@ -73,6 +73,15 @@ PR이나 공유 메모는 길게 쓰기보다 아래 4가지를 빠뜨리지 않
 
 개인 로컬 경로, 개인 AI 도구 설정, 비공개 원천 자료 경로는 프로젝트 문서에 넣지 않는다.
 
+## Repo-local 도구 포맷
+
+- `.claude/agents/*.md`가 agent 역할의 원천이다.
+- `.codex/agents/*.toml`은 Codex 브릿지이며 Claude frontmatter를 그대로 옮기지 않는다.
+- Codex agent role TOML은 `name`, `description`, `developer_instructions`를 기본 필드로 쓴다.
+- Codex 브릿지에는 `read_only`, `system_prompt`, `tools` 같은 Claude 전용/비지원 필드를 넣지 않는다.
+- report-only 성격은 별도 TOML 속성이 아니라 `description`과 `developer_instructions` 본문에 명시한다.
+- `.claude/agents/`와 `.codex/agents/` 중 한쪽을 바꾸면 다른 쪽의 의미 drift와 Codex 로딩 경고를 함께 확인한다.
+
 ## Sensor로 올릴 기준
 
 처음부터 hook으로 막지 않는다. 아래 중 하나가 확인되면 자동 체크를 검토한다.

@@ -3,9 +3,7 @@
 
 name = "failure-classifier"
 description = "run의 decision_logs.jsonl에서 실패 케이스를 primary 분류(false_stop / missed_switch / action_confusion / ambiguous_intent / STT_uncertainty)와 secondary 진단축(transcription / signal / intent / policy_threshold / eval_criteria / latency_streaming)으로 두 축에 정리한다. run에서 실패 케이스가 나온 직후, issue 작성이나 다음 실험 계획 직전에 사용한다. report-only."
-read_only = true
-
-system_prompt = '''
+developer_instructions = '''
 run의 실패 케이스를 두 축으로 분류해서 보고한다. 분류 frame은 아래 두 목록에 고정되어 있다.
 
 Primary (사용자 시점, 결과 분류):
