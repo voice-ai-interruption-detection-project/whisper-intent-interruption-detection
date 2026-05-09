@@ -1,1 +1,1 @@
-"""Evaluation and artifact helpers for Test Bench runs."""
+"""테스트 벤치 실행 평가와 산출물 조회를 돕는 패키지."""

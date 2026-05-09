@@ -27,18 +27,21 @@ def evaluate_dataset(
     changed: list[str] | None = None,
     run_id: str | None = None,
 ) -> dict[str, Any]:
+    """데이터셋 전체를 지정 정책으로 실행하고 실행 산출물을 생성한다."""
     dataset = Path(dataset_path)
     scenarios = load_scenarios(dataset)
     policy = get_policy(policy_name)
     timestamp = datetime.now().astimezone()
     run_id = run_id or f"{timestamp.strftime('%Y%m%d_%H%M%S')}_{policy_name}"
     run_dir = Path(output_root) / run_id
+    # 실행 산출물은 근거 자료이므로 이전 측정값을 덮어쓰지 않는다.
     if run_dir.exists():
         raise FileExistsError(f"run artifact already exists: {run_dir}")
     run_dir.mkdir(parents=True, exist_ok=False)
 
     logs: list[RunDecisionLog] = []
     for scenario in scenarios:
+        # 평가기는 공통 실행기를 재사용하고, 비교용 메타데이터만 추가한다.
         decision = run_scenario(scenario, policy_name)
         primary_failure = classify_failure(
             expected=scenario.expected_action,
@@ -95,6 +98,7 @@ def evaluate_dataset(
 
 
 def build_evaluation(logs: list[RunDecisionLog]) -> dict[str, Any]:
+    """판단 로그 목록에서 정확도, 실패 수, 혼동 행렬을 계산한다."""
     total = len(logs)
     correct = sum(1 for item in logs if item.expected_action == item.actual_action)
     failure_counts = Counter(
@@ -125,6 +129,7 @@ def build_evaluation(logs: list[RunDecisionLog]) -> dict[str, Any]:
 
 
 def build_confusion_matrix(logs: list[RunDecisionLog]) -> dict[str, dict[str, int]]:
+    """예상 행동과 실제 행동의 교차표를 만든다."""
     labels = [label.value for label in ActionLabel]
     matrix = {expected: {actual: 0 for actual in labels} for expected in labels}
     for item in logs:
@@ -138,6 +143,8 @@ def classify_failure(
     actual: ActionLabel,
     event_type: EventType,
 ) -> PrimaryFailure | None:
+    """예상/실제 행동 불일치를 1차 실패 유형으로 분류한다."""
+    # 1차 실패는 근본 원인이 아니라 불일치의 모양을 설명한다.
     if expected == actual:
         return None
     if event_type == EventType.AMBIGUOUS:
@@ -162,6 +169,7 @@ def classify_failure(
 
 
 def get_criteria_snapshot() -> dict[str, object]:
+    """이번 평가에 사용한 라벨과 비교 기준을 스냅샷으로 반환한다."""
     return {
         "action_labels": [label.value for label in ActionLabel],
         "primary_failures": [failure.value for failure in PrimaryFailure],
@@ -174,6 +182,7 @@ def build_error_analysis(
     logs: list[RunDecisionLog],
     evaluation: dict[str, Any],
 ) -> str:
+    """실패 케이스를 사람이 훑기 쉬운 마크다운 요약으로 만든다."""
     lines = [
         f"# Error Analysis - {run_id}",
         "",
@@ -203,6 +212,7 @@ def build_error_analysis(
 
 
 def _write_json(path: Path, data: dict[str, Any]) -> None:
+    """사전 데이터를 사람이 읽기 쉬운 JSON 파일로 저장한다."""
     path.write_text(
         json.dumps(data, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
@@ -210,6 +220,7 @@ def _write_json(path: Path, data: dict[str, Any]) -> None:
 
 
 def _write_jsonl(path: Path, logs: list[RunDecisionLog]) -> None:
+    """시나리오별 판단 로그를 JSONL 형식으로 저장한다."""
     with path.open("w", encoding="utf-8") as handle:
         for item in logs:
             handle.write(json.dumps(item.model_dump(mode="json"), ensure_ascii=False))

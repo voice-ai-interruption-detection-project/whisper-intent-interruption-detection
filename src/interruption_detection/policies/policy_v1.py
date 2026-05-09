@@ -10,9 +10,12 @@ from interruption_detection.models import (
 
 
 class PolicyV1:
+    """이벤트 유형 중심으로 행동을 고르는 Day 2 텍스트 재생 정책."""
+
     name = "policy_v1"
     description = "Event-type mapping policy for Day 2 text replay."
 
+    # 핵심 규칙은 이벤트 -> 행동 표로 두어 리뷰하기 쉽게 만든다.
     _mapping = {
         EventType.NO_SPEECH: ActionLabel.CONTINUE,
         EventType.NOISE: ActionLabel.CONTINUE,
@@ -23,6 +26,8 @@ class PolicyV1:
     }
 
     def predict(self, runner_input: RunnerInput) -> PolicyDecision:
+        """입력 이벤트 유형과 톤을 보고 실제 행동을 결정한다."""
+        # 불만 상황만 톤을 한 번 더 보고, 나머지 이벤트는 바로 매핑한다.
         if runner_input.event_type == EventType.COMPLAINT:
             action = self._complaint_action(runner_input)
         else:
@@ -41,6 +46,7 @@ class PolicyV1:
         )
 
     def snapshot(self) -> dict[str, object]:
+        """정책의 이벤트/행동 매핑을 실행 산출물용 스냅샷으로 반환한다."""
         mapping = {event.value: action.value for event, action in self._mapping.items()}
         mapping[EventType.COMPLAINT.value] = {
             "urgent": ActionLabel.HANDOFF.value,
@@ -53,11 +59,13 @@ class PolicyV1:
         }
 
     def _complaint_action(self, runner_input: RunnerInput) -> ActionLabel:
+        """불만 상황에서 긴급 톤이면 handoff, 아니면 전환으로 판단한다."""
         if runner_input.user_tone_hint == UserToneHint.URGENT:
             return ActionLabel.HANDOFF
         return ActionLabel.STOP_AND_SWITCH
 
     def _reason(self, runner_input: RunnerInput, action: ActionLabel) -> str:
+        """판단 결과를 판단 로그에 남길 짧은 이유 문장으로 만든다."""
         if runner_input.event_type == EventType.COMPLAINT:
             if action == ActionLabel.HANDOFF:
                 return "urgent complaint; route to handoff candidate"

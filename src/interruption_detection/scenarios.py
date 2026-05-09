@@ -10,10 +10,11 @@ from interruption_detection.models import Scenario
 
 
 class ScenarioLoadError(ValueError):
-    """Raised when a scenario dataset violates the active contract."""
+    """시나리오 데이터셋이 현재 계약을 어길 때 발생하는 오류."""
 
 
 def load_scenarios(path: str | Path) -> list[Scenario]:
+    """JSON 데이터셋을 읽고 시나리오 목록으로 검증해 반환한다."""
     dataset_path = Path(path)
     try:
         raw = json.loads(dataset_path.read_text(encoding="utf-8"))
@@ -30,6 +31,7 @@ def load_scenarios(path: str | Path) -> list[Scenario]:
     for index, item in enumerate(raw["scenarios"]):
         if not isinstance(item, dict):
             raise ScenarioLoadError(f"scenario at index {index} must be an object")
+        # 시나리오 파일은 기준 입력이고, 관측 결과는 실행 결과 아래에 둔다.
         _reject_result_fields(item, index)
         scenario_id = item.get("scenario_id")
         if not isinstance(scenario_id, str) or not scenario_id:
@@ -48,6 +50,7 @@ def load_scenarios(path: str | Path) -> list[Scenario]:
 
 
 def get_scenario_by_id(path: str | Path, scenario_id: str) -> Scenario:
+    """데이터셋에서 시나리오 식별자가 일치하는 항목 하나를 찾는다."""
     for scenario in load_scenarios(path):
         if scenario.scenario_id == scenario_id:
             return scenario
@@ -55,6 +58,7 @@ def get_scenario_by_id(path: str | Path, scenario_id: str) -> Scenario:
 
 
 def _reject_result_fields(item: dict[str, Any], index: int) -> None:
+    """기준 입력에 결과 전용 필드가 섞였는지 확인한다."""
     if "actual_action" in item:
         raise ScenarioLoadError(
             f"scenario at index {index} contains actual_action; results belong in runs"

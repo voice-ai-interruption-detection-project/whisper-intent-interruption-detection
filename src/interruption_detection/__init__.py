@@ -1,1 +1,1 @@
-"""Core package for the interruption detection workbench."""
+"""인터럽션 감지 Work Bench의 핵심 도메인 패키지."""

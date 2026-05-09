@@ -8,6 +8,7 @@ from typing import Any
 def list_run_artifacts(
     output_root: str | Path = "results/runs",
 ) -> list[dict[str, Any]]:
+    """실행 산출물 폴더들을 목록 화면에 필요한 요약 정보로 읽는다."""
     root = Path(output_root)
     if not root.exists():
         return []
@@ -40,6 +41,8 @@ def list_run_artifacts(
 def read_run_artifacts(
     run_id: str, output_root: str | Path = "results/runs"
 ) -> dict[str, Any]:
+    """특정 실행 식별자의 메타 정보, 평가 결과, 로그, 분석 파일을 읽는다."""
+    # 실행 식별자는 이름으로만 다루고, 경로 이동은 허용하지 않는다.
     if Path(run_id).name != run_id:
         raise ValueError("run_id must not contain path separators")
     run_dir = Path(output_root) / run_id
@@ -63,4 +66,5 @@ def read_run_artifacts(
 
 
 def _read_json(path: Path) -> dict[str, Any]:
+    """JSON 파일 하나를 dict로 읽는다."""
     return json.loads(path.read_text(encoding="utf-8"))

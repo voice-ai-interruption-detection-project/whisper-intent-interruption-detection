@@ -10,6 +10,7 @@ from interruption_detection.scenarios import get_scenario_by_id, load_scenarios
 
 
 def main() -> int:
+    """명령행 인자를 해석해 단일 재생, 전체 재생, 결과 저장 모드를 실행한다."""
     parser = argparse.ArgumentParser(description="Run interruption detection policies.")
     parser.add_argument("--policy", default="baseline")
     parser.add_argument("--dataset", default="data/scenarios.json")
@@ -18,6 +19,7 @@ def main() -> int:
     args = parser.parse_args()
 
     dataset = Path(args.dataset)
+    # 명령행은 결과 저장, 단일 시나리오 확인, 전체 재생 세 가지 모드를 가진다.
     if args.write_results:
         result = evaluate_dataset(
             dataset,
@@ -48,6 +50,7 @@ def main() -> int:
 
 
 def vars_to_args(args: argparse.Namespace) -> list[str]:
+    """run_meta에 남길 명령행 인자를 문자열 목록으로 복원한다."""
     output = ["--policy", args.policy, "--dataset", args.dataset]
     if args.scenario_id:
         output.extend(["--scenario-id", args.scenario_id])

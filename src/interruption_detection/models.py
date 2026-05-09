@@ -7,13 +7,16 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class StrEnum(str, Enum):
-    """String enum with values that serialize cleanly to JSON."""
+    """JSON으로 직렬화하기 쉬운 문자열 기반 열거형."""
 
     def __str__(self) -> str:
+        """열거형 값을 사람이 읽는 문자열로 반환한다."""
         return self.value
 
 
 class ActionLabel(StrEnum):
+    """정책이 최종적으로 선택할 수 있는 행동 라벨."""
+
     CONTINUE = "continue"
     BRIEF_ACK = "brief_ack"
     RESPOND_AND_CONTINUE = "respond_and_continue"
@@ -23,6 +26,8 @@ class ActionLabel(StrEnum):
 
 
 class EventType(StrEnum):
+    """시나리오에서 관찰된 사용자 신호의 유형."""
+
     NO_SPEECH = "no_speech"
     NOISE = "noise"
     BACKCHANNEL = "backchannel"
@@ -33,12 +38,16 @@ class EventType(StrEnum):
 
 
 class UserToneHint(StrEnum):
+    """정책 판단에 참고할 수 있는 사용자 톤 힌트."""
+
     NEUTRAL = "neutral"
     FRUSTRATED = "frustrated"
     URGENT = "urgent"
 
 
 class PrimaryFailure(StrEnum):
+    """예상 행동과 실제 행동이 어긋났을 때의 1차 실패 분류."""
+
     FALSE_STOP = "false_stop"
     MISSED_SWITCH = "missed_switch"
     ACTION_CONFUSION = "action_confusion"
@@ -47,10 +56,15 @@ class PrimaryFailure(StrEnum):
 
 
 class StrictModel(BaseModel):
+    """기준 입력/API 경계에서 모르는 필드를 빠르게 거부하는 기본 모델."""
+
+    # 기준 입력/API 필드가 계약에서 벗어나면 즉시 실패하게 둔다.
     model_config = ConfigDict(extra="forbid", use_enum_values=False)
 
 
 class Scenario(StrictModel):
+    """사람이 라벨링한 expected_action을 포함한 정적 데이터셋 행."""
+
     scenario_id: str
     level: int = Field(ge=1)
     domain: str
@@ -66,6 +80,7 @@ class Scenario(StrictModel):
 
     @model_validator(mode="after")
     def validate_speech_fields(self) -> "Scenario":
+        """사용자 발화가 없을 때 발화 텍스트도 비어 있는지 검증한다."""
         if not self.has_user_speech and self.user_utterance != "":
             raise ValueError(
                 "user_utterance must be empty when has_user_speech is false"
@@ -74,6 +89,8 @@ class Scenario(StrictModel):
 
 
 class RunnerInput(StrictModel):
+    """명령행, API, UI 재생, 평가기가 공통으로 쓰는 런타임 입력."""
+
     scenario_id: str | None = None
     domain: str | None = None
     level: int | None = Field(default=None, ge=1)
@@ -88,6 +105,7 @@ class RunnerInput(StrictModel):
 
     @classmethod
     def from_scenario(cls, scenario: Scenario) -> "RunnerInput":
+        """정적 시나리오를 정책 실행용 입력으로 변환한다."""
         return cls(
             scenario_id=scenario.scenario_id,
             domain=scenario.domain,
@@ -104,6 +122,8 @@ class RunnerInput(StrictModel):
 
 
 class PolicyDecision(StrictModel):
+    """예상 행동과 비교하기 전의 정책 단일 판단 결과."""
+
     policy_name: str
     actual_action: ActionLabel
     reason: str
@@ -113,6 +133,8 @@ class PolicyDecision(StrictModel):
 
 
 class RunDecisionLog(StrictModel):
+    """테스트 벤치 리포트에 저장되는 시나리오별 판단 로그."""
+
     scenario_id: str
     policy_name: str
     event_type: EventType
