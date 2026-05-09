@@ -1,18 +1,20 @@
-# Current MVP Brief
+# Current MVP
 
-이 문서는 현재 코드와 내부 기준 문서를 기준으로 MVP의 실행 범위를 짧게 맞추기 위한 작업용 brief다.
+이 문서는 현재 코드와 내부 기준 문서를 기준으로, 지금 닫으려는 MVP의 실행 범위를 맞추기 위한 작업용 문서다.
 
-MVP 기준은 계속 바뀔 수 있으므로 이 문서는 `context/internal/`에 둔다. 공개 문서나 확정 PRD가 아니라, 구현자가 "지금 무엇을 만들고 무엇을 만들지 않는지" 빠르게 확인하는 내부 기준이다.
+MVP 기준은 작업 중 계속 다듬어질 수 있다. 이 문서는 공개 문서나 확정 PRD가 아니라, 구현자가 "지금 무엇을 만들고 무엇을 만들지 않는지" 빠르게 확인하는 현재 기준이다.
 
 세부 용어와 평가 계약은 이 문서가 다시 정의하지 않고 아래 active 자료를 우선한다.
 
 | 기준 | 먼저 볼 문서 |
 | --- | --- |
-| 제품 문제, 범위, 비목표 | [Product Context](product-context.md) |
-| 용어 층위와 읽는 순서 | [Project Language Map](project-language-map.md) |
-| schema key와 enum value | [Reference](reference/README.md) |
-| expected/actual, metric, run artifact | [Evaluation and Results Contract](evaluation-and-results-contract.md) |
-| 한 scenario의 끝까지 흐름 | [Scenario Worked Example](scenario-worked-example.md) |
+| MVP 문서 허브와 읽는 순서 | [MVP Execution Hub](README.md) |
+| 제품 문제, 범위, 비목표 | [Product Context](../product-context.md) |
+| 용어 층위와 읽는 순서 | [Project Language Map](../project-language-map.md) |
+| schema key와 enum value | [Reference](../reference/README.md) |
+| expected/actual, metric, run artifact | [Evaluation and Results Contract](../evaluation-and-results-contract.md) |
+| 한 scenario의 끝까지 흐름 | [Scenario Worked Example](../scenario-worked-example.md) |
+| Day별 완료/예정 작업 | [Current MVP Iteration Plan](current-iteration-plan.md) |
 
 ## 한 줄 MVP
 
@@ -46,7 +48,7 @@ AI speaking
 | `src/backend/main.py` | 아직 없음 | API 표면은 runner가 생긴 뒤 adapter로 연결 |
 | `results/runs/` | 현재 브랜치에는 없음 | 수치 인용 전 새 run artifact 생성 필요 |
 
-과거 `feat/baseline-policy-eval` 브랜치의 runner/evaluator/policy/workbench scaffold는 참고할 수 있지만, 현재 active code로 보지 않는다. 살릴 경우 현재 기준 문서의 용어와 run artifact 계약에 맞춰 다시 가져온다.
+MVP 구현은 현재 브랜치의 파일과 현재 기준 문서를 기준으로 새로 진행한다. 다른 브랜치의 실험 scaffold나 run artifact는 현재 구현 계획의 입력으로 보지 않는다.
 
 ## MVP에 포함하는 것
 
@@ -97,6 +99,8 @@ policy version은 "더 좋은 이름"이 아니라 어떤 신호를 추가했을
 
 ## 구현 순서
 
+Day별 완료/예정 작업과 과거 혼선 방지 기준은 [Current MVP Iteration Plan](current-iteration-plan.md)을 본다. 아래 순서는 현재 MVP를 닫기 위한 구현 흐름이며, 완료 여부 표시는 아니다.
+
 1. `data/scenarios.json` loader와 schema validation을 만든다.
 2. action label, event type, policy input/output 타입을 정의한다.
 3. `src/runner.py`를 만들고 모든 surface가 이 entry를 통과하게 한다.
@@ -138,4 +142,5 @@ MVP가 닫혔다고 보려면 아래를 확인한다.
 
 - action label, policy version, 평가 기준이 바뀌면 `context/decisions/`에 먼저 결정 맥락을 남긴다.
 - 코드가 실제로 추가되면 "현재 repo 상태" 표를 갱신한다.
+- 새 MVP나 2주차 MVP처럼 범위가 크게 바뀌면 이 문서에 덧붙여 섞지 말고, [MVP Execution Hub](README.md)의 문서 상태 규칙에 따라 새 문서/decision/archive 경계를 먼저 잡는다.
 - 공개 문서로 옮길 문장은 이 문서에서 바로 복사하지 말고 `docs/` 문맥에 맞춰 다시 다듬는다.

@@ -26,7 +26,8 @@
 
 | 문서 | 역할 |
 | --- | --- |
-| [Current MVP Brief](current-mvp.md) | 현재 코드 상태와 내부 기준에 맞춘 살아있는 MVP 실행 범위 |
+| [MVP Execution Hub](mvp/README.md) | 현재 MVP의 실행 기준, Day별 계획, 새 MVP 후보와 과거 혼선 방지 가이드 |
+| [Current MVP](mvp/current.md) | 현재 코드 상태와 내부 기준에 맞춘 살아있는 MVP 실행 범위 |
 | [Product Context](product-context.md) | 제품 문제, 현재 범위, 사용자, 비목표, 남은 결정 후보를 다시 잡기 위한 현재 기준 |
 | [Project Language Map](project-language-map.md) | scenario, input mode, event type, action label, policy version의 층위 정리 |
 | [Reference](reference/README.md) | schema key와 enum value를 빠르게 확인하는 하위 참조 문서 묶음 |
