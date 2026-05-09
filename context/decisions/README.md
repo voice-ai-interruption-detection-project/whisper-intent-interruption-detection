@@ -50,6 +50,7 @@ tags: []
 
 | 날짜 | 제목 | status | 관련 PR / run |
 | --- | --- | --- | --- |
+| 2026-05-09 | LLM Action Policy Baseline | active |  |
 | 2026-05-09 | Context Directory Boundary | active |  |
 | 2026-05-09 | Product Planning Archive Boundary | active |  |
 

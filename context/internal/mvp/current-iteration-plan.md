@@ -61,9 +61,26 @@ Day N은 달력 날짜가 아니라 MVP 작업 iteration이다. 완료된 일은
 | `GET /runs` | 저장된 run artifact 목록을 UI에 제공 |
 | UI live check on `http://127.0.0.1:8000` | HTML, `/runs`, scenario predict 응답 확인 |
 
-## Day 3+ - candidate slots
+## Day 3 - in progress on 2026-05-09
 
-아래는 확정 계획이 아니라 Day 2 결과를 보고 조정할 후보 슬롯이다.
+### 작업 중인 방향
+
+- Day 2의 `baseline`, `policy_v1` 하드코딩 placeholder를 텍스트 기반 LLM action judge로 전환한다.
+- 오디오 입력은 이번 단계에서 제외하고, transcript가 이미 들어온 Text Replay를 기준으로 구현한다.
+- `expected_action`, `event_type`, `expected_user_intent`는 LLM prompt에 넣지 않는다. LLM은 AI intent, AI 발화, 고객 transcript, speech signal, 정책별 추가 prompt 기준으로 `actual_action`을 선택한다.
+- Playground는 scenario replay뿐 아니라 자유 텍스트 입력도 같은 `/predict`와 runner 경로로 판단하게 한다.
+- Test Bench는 같은 evaluator를 유지하고, LLM policy run artifact를 새로 생성해 Day 2 placeholder run과 구분한다.
+
+### 현재 구현 메모
+
+- `src/interruption_detection/llm.py`에 OpenAI Responses API structured output client를 둔다.
+- `baseline`은 최소 텍스트 context만 쓰는 LLM 기준선이다.
+- `policy_v1`은 action label 정의, few-shot 예시, tone hint를 더한 LLM 정책이다.
+- 테스트는 실제 API를 호출하지 않고 fake LLM client로 runner/API/evaluator 경계를 검증한다.
+
+## Day 4+ - candidate slots
+
+아래는 확정 계획이 아니라 Day 3 결과를 보고 조정할 후보 슬롯이다.
 
 | 후보 | 열리는 조건 |
 | --- | --- |
