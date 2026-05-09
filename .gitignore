@@ -11,3 +11,6 @@ venv/
 
 # mkdocs build output
 site/
+
+# local/generated doc scratch
+/doc/
