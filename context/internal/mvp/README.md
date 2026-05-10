@@ -4,6 +4,8 @@
 
 이 폴더의 기준은 "지금 active인 MVP"다. 과거 `context/archive/product-planning/`의 초기 MVP 기획 문서는 방향을 만든 evidence로만 보고, 여기서는 현재 action label, scenario schema, run artifact 계약에 맞춘 MVP 범위와 Step별 작업 흐름만 정리한다.
 
+다만 제품 의도 복원이나 문서 왜곡 점검을 할 때는 현재 MVP 문서도 검토 대상이 될 수 있다. 그때는 archive와 회의 원문, `context/decisions/`를 함께 확인해 현재 실행 기준이 원래 의도를 과하게 좁히지 않았는지 본다.
+
 MVP 문서는 앞으로도 바뀔 수 있다. 그래서 이 폴더는 한 번 확정한 PRD 보관소가 아니라, 현재 실행 기준을 작게 유지하고 새 기준이 생길 때 혼선을 줄이기 위한 작업 허브로 둔다.
 
 ## 읽는 순서

@@ -1,6 +1,6 @@
 ---
 name: harness-structure-reviewer
-description: 코드 변경 후 하네스 경계(input adapter / policy / evaluator / runner / results)가 새지 않았는지 점검한다. 새 policy 추가, runner 리팩토링, 새 input mode 추가, 구조 변경 commit 직전에 사용한다. context/internal/의 제품 맥락·용어·정책·평가 기준 자료, context/decisions/와 active rule 동기화, context/archive/ 격리 여부까지 boundary로 본다. 발견된 boundary leak을 file:line 인용과 함께 반환한다. report-only.
+description: 코드 변경 후 하네스 경계(input adapter / policy / evaluator / runner / results)가 새지 않았는지 점검한다. 새 policy 추가, runner 리팩토링, 새 입력 경로(input adapter/input_mode) 추가, 구조 변경 commit 직전에 사용한다. context/internal/의 제품 맥락·용어·정책·평가 기준 자료, context/decisions/와 active rule 동기화, context/archive/ 격리 여부까지 boundary로 본다. 발견된 boundary leak을 file:line 인용과 함께 반환한다. report-only.
 tools: Read, Grep, Glob, Bash
 ---
 

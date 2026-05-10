@@ -22,7 +22,7 @@ schema key   value
 | `level` | `1`, `3`, `5` | 판단 난이도 | 사람 | event type의 우선순위 |
 | `domain` | `commerce` | 업무 도메인 | 사람 | intent 자체 |
 | `ai_current_intent` | `shipping_inquiry` | AI가 이어가던 업무 의도 | 사람 | 고객의 새 의도 |
-| `ai_utterance` | `현재 상품은 배송 중이며...` | AI가 말하던 문장 | 사람 | input mode |
+| `ai_utterance` | `현재 상품은 배송 중이며...` | AI가 말하던 문장 | 사람 | 입력 경로 |
 | `user_utterance` | `환불받고 싶은데요` | 고객이 끼어든 발화 | 사람 또는 transcript | event type |
 | `has_user_speech` | `true`, `false` | 음성/발화 신호 여부 | 사람 또는 신호 처리 | 의미 있는 의도 여부 |
 | `user_tone_hint` | `neutral`, `frustrated`, `urgent` | 톤 힌트 | 사람 또는 추론 | complaint label 자체 |
