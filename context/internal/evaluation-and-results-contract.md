@@ -63,7 +63,7 @@ results/runs/{run_id}/
 
 ## Failure Taxonomy
 
-공유 문서와 리포트에서 쓰는 primary failure는 아래 5종으로 고정한다.
+현재 평가 계약에서 쓰는 primary failure는 아래 5종이다. 공유 문서와 리포트에는 이 이름과 의미를 기준으로 쓴다.
 
 | primary | 의미 | 예시 |
 | --- | --- | --- |
@@ -73,7 +73,7 @@ results/runs/{run_id}/
 | `ambiguous_intent` | 입력 자체에서 intent가 불명확 | 고객 발화가 모호해 기준 action도 흔들림 |
 | `STT_uncertainty` | transcript 노이즈가 판단 오류를 유발 | 오디오/STT 결과가 불확실 |
 
-디버깅용 secondary 축은 `transcription`, `signal`, `intent`, `policy_threshold`, `eval_criteria`, `latency_streaming`을 쓴다.
+디버깅이 필요할 때는 secondary 축으로 `transcription`, `signal`, `intent`, `policy_threshold`, `eval_criteria`, `latency_streaming`을 쓴다.
 
 Primary와 secondary를 같은 평면에 섞지 않는다.
 

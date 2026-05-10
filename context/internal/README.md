@@ -11,7 +11,7 @@
 - 처음부터 현재 기준 어휘로 작성한다.
 - 제품 의도와 테스트/개발 편의 용어를 분리해 쓴다.
 - action label은 `respond_and_continue` 같은 현재 라벨을 쓴다.
-- 실패 분류는 primary 5종(`false_stop`, `missed_switch`, `action_confusion`, `ambiguous_intent`, `STT_uncertainty`)을 기준으로 한다.
+- 현재 평가 계약의 실패 분류는 primary 5종(`false_stop`, `missed_switch`, `action_confusion`, `ambiguous_intent`, `STT_uncertainty`)을 기준으로 한다.
 - 결과 산출물은 `results/runs/{run_id}/` 계약을 기준으로 한다.
 - 과거 자료를 그대로 복사하지 말고, 필요한 내용만 현재 기준으로 재정리한다.
 
@@ -29,7 +29,7 @@
 | --- | --- |
 | [MVP Execution Hub](mvp/README.md) | 현재 MVP의 실행 기준, Step별 계획, 새 MVP 후보와 과거 혼선 방지 가이드 |
 | [Current MVP](mvp/current.md) | 현재 코드 상태와 내부 기준에 맞춘 살아있는 MVP 실행 범위 |
-| [Product Context](product-context.md) | 제품 문제, 현재 범위, 사용자, 비목표, 남은 결정 후보를 다시 잡기 위한 현재 기준 |
+| [Product Context](product-context.md) | 제품 문제, 현재 범위, 사용자, 후순위 범위를 다시 잡기 위한 현재 기준 |
 | [Project Language Map](project-language-map.md) | 판단 케이스, 입력 경로, event type, action label, policy version의 층위 정리 |
 | [Reference](reference/README.md) | schema key와 enum value를 빠르게 확인하는 하위 참조 문서 묶음 |
 | [Schema Keys](reference/schema-keys.md) | scenario 원본 key와 run result key의 역할 구분 |
