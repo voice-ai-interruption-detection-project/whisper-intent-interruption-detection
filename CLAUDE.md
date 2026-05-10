@@ -4,7 +4,7 @@
 
 음성 AI 상담에서 고객의 끼어들기와 의도 전환에 더 자연스럽게 반응하는 경험을 실험하고 구현하는 팀 사이드 프로젝트다.
 
-현재 MVP의 초점은 AI가 말하는 중 들어온 고객 발화를 보고 다음 행동을 고르는 판단 구조를 Text Replay와 대표 Audio File Test 같은 입력 경로로 검증하는 데 있다. Whisper/STT/audio adapter는 이 판단 구조를 음성 입력 쪽으로 연결하기 위한 구현 요소다.
+현재 MVP의 초점은 AI가 말하는 중 들어온 고객 발화를 보고 다음 행동을 고르는 판단 구조를 텍스트 입력(Text Replay)과 대표 오디오 파일 입력(Audio File Test) 같은 입력 경로로 검증하는 데 있다. Whisper/STT/audio adapter는 이 판단 구조를 음성 입력 쪽으로 연결하기 위한 구현 요소다.
 
 ## 협업 원칙
 
@@ -18,7 +18,7 @@
 | 작업                                                                 | 먼저 보는 가드 / 도구                                                                                                |
 | -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
 | Playground 코드 변경 (입력 처리, UI, runner 호출)                    | [.claude/rules/coding.md](.claude/rules/coding.md), [.claude/rules/workflow.md](.claude/rules/workflow.md)           |
-| Test Bench 작업 (scenario/policy 변경, run artifact 생성, 수치 인용) | [.claude/rules/experiments.md](.claude/rules/experiments.md), [.claude/rules/workflow.md](.claude/rules/workflow.md) |
+| 배치 평가(Test Bench) 작업 (판단 케이스/policy 변경, run artifact 생성, 수치 인용) | [.claude/rules/experiments.md](.claude/rules/experiments.md), [.claude/rules/workflow.md](.claude/rules/workflow.md) |
 | 내부 기준 자료·용어·정책 초안 정리                                   | [context/internal/](context/internal/), [context/decisions/](context/decisions/), [.claude/rules/workflow.md](.claude/rules/workflow.md) |
 | 결정·고민·AI 대화 맥락 기록                                         | `record-decision` skill, [context/decisions/](context/decisions/)                                                    |
 | commit / PR / 공유 메모 작성                                         | [.claude/rules/workflow.md](.claude/rules/workflow.md)                                                               |
@@ -31,8 +31,8 @@
 | 영역                 | 역할                          | 기준 / 주의                                                                                         |
 | -------------------- | ----------------------------- | --------------------------------------------------------------------------------------------------- |
 | `docs/`              | mkdocs로 외부 배포되는 공유/공개 문서 | 공개 문장으로 다듬은 내용만 둔다. 내부 기준과 어긋나면 follow-up에서 정리한다.                     |
-| `data/`              | 기준 원본                      | scenario와 expected_action만 둔다. actual_action, metric, decision log는 넣지 않는다.              |
-| `results/`           | Test Bench run artifact        | 외부 인용 수치의 출처다. `results/runs/{run_id}/` 계약을 따른다.                                    |
+| `data/`              | 기준 원본                      | 판단 케이스(`scenario`)와 expected_action만 둔다. actual_action, metric, decision log는 넣지 않는다.              |
+| `results/`           | 배치 평가(Test Bench) run artifact | 외부 인용 수치의 출처다. `results/runs/{run_id}/` 계약을 따른다.                                    |
 | `context/`           | 내부 기준·결정·archive·임시 메모 | 루트 노이즈를 줄이기 위해 운영 맥락 문서는 이 아래에 둔다. 자세한 역할은 [context/README.md](context/README.md)를 본다. |
 | `context/internal/`  | 내부 기준 자료를 맞추는 작업 자료층 | 제품 맥락, 용어 정리, 정책 초안, 평가 기준, 설계 메모를 현재 어휘로 정리한다. 제품 맥락은 `context/internal/product-context.md`에 둔다. |
 | `context/decisions/` | 결정·고민·AI 대화 맥락 보관소 | 라벨·정책·평가 기준이 바뀌거나 탐색 중일 때 사안별 폴더로 남긴다.                                  |

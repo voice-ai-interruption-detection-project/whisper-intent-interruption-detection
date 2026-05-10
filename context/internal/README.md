@@ -32,10 +32,10 @@
 | [Product Context](product-context.md) | 제품 문제, 현재 범위, 사용자, 후순위 범위를 다시 잡기 위한 현재 기준 |
 | [Project Language Map](project-language-map.md) | 판단 케이스, 입력 경로, event type, action label, policy version의 층위 정리 |
 | [Reference](reference/README.md) | schema key와 enum value를 빠르게 확인하는 하위 참조 문서 묶음 |
-| [Schema Keys](reference/schema-keys.md) | scenario 원본 key와 run result key의 역할 구분 |
+| [Schema Keys](reference/schema-keys.md) | 판단 케이스(`scenario`) 원본 key와 run result key의 역할 구분 |
 | [Event Types](reference/event-types.md) | `event_type` 7종의 개념, 대표 신호, 경계 기준 |
 | [Action Labels](reference/action-labels.md) | action label 6종의 의미와 expected/actual 역할 구분 |
-| [Scenario Worked Example](scenario-worked-example.md) | 한 scenario가 schema key/value, policy 판단, evaluation으로 이어지는 예시 |
+| [Scenario Worked Example](scenario-worked-example.md) | 한 판단 케이스(`scenario`)가 schema key/value, policy 판단, evaluation으로 이어지는 예시 |
 | [Evaluation and Results Contract](evaluation-and-results-contract.md) | metric, failure taxonomy, `results/runs/{run_id}/` 계약, 수치 인용 기준 |
 
 ## 읽기 우선순위

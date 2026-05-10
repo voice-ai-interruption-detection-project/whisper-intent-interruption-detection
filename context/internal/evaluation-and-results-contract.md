@@ -9,7 +9,7 @@
 | 영역 | 담는 것 | 담지 않는 것 |
 | --- | --- | --- |
 | `data/scenarios.json` | 기준 원본, expected action, 라벨링 근거 | actual action, metric, decision log |
-| `results/runs/{run_id}/` | policy 실행 결과, metric, decision log, run metadata | 기준 scenario 원본 수정본 |
+| `results/runs/{run_id}/` | policy 실행 결과, metric, decision log, run metadata | 기준 판단 케이스 원본 수정본 |
 | `context/internal/` | 평가 기준 초안, 용어, 계약 설명 | 외부 인용 가능한 확정 수치 |
 | `docs/` | 공개/공유용으로 다듬은 설명 | 출처 없는 수치, 실험 전 단정 |
 
@@ -24,7 +24,7 @@
 
 `action_accuracy`는 두 값이 같은 action label인지 비교한 비율이다. 값 집합은 같아야 하고, 저장 위치와 생성 시점은 달라야 한다.
 
-한 scenario가 `expected_action`과 `actual_action` 비교로 이어지는 구체 예시는 [Scenario Worked Example](scenario-worked-example.md)을 본다.
+한 판단 케이스(`scenario`)가 `expected_action`과 `actual_action` 비교로 이어지는 구체 예시는 [Scenario Worked Example](scenario-worked-example.md)을 본다.
 
 ## Run Artifact 최소 계약
 
@@ -44,7 +44,7 @@ results/runs/{run_id}/
 | --- | --- |
 | `run_meta.json` | 실행 조건. `run_id`, `timestamp`, `source`, `mode`, `target`, `changed`, `dataset`, `policy_version`, `policy_snapshot`, `criteria_snapshot`, `latency_ms`, `command`를 포함한다 |
 | `evaluation.json` | 전체 metric, confusion matrix, failure summary, latency |
-| `decision_logs.jsonl` | scenario별 signals, reason, expected_action, actual_action |
+| `decision_logs.jsonl` | 판단 케이스별 signals, reason, expected_action, actual_action |
 | `error_analysis.md` | 실패 케이스 해석과 다음 실험 후보 |
 
 같은 `run_id` 폴더를 덮어쓰지 않는다.
@@ -82,7 +82,7 @@ Primary와 secondary를 같은 평면에 섞지 않는다.
 공유 문서, PR, 발표 자료에 수치를 쓸 때는 아래를 같이 남긴다.
 
 - `run_id`
-- dataset 또는 scenario snapshot
+- dataset 또는 판단 케이스 snapshot
 - policy version
 - criteria snapshot
 - 실행 날짜
@@ -102,7 +102,7 @@ Primary와 secondary를 같은 평면에 섞지 않는다.
 
 Before/After 비교는 아래 조건이 같아야 한다.
 
-- 같은 scenario set 또는 dataset snapshot
+- 같은 판단 케이스 set 또는 dataset snapshot
 - 같은 criteria snapshot
 - 비교하려는 변경 외 다른 policy 설정이 동일
 - 각 run의 `changed` 필드가 비교 의도와 일치

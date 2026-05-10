@@ -9,7 +9,7 @@
 - 한 작업은 가능하면 하나의 질문에 답한다. 예: "policy_v1 추가", "runner/app 책임 분리", "README quickstart 갱신".
 - 동작 변경, 리팩토링, 문서 정리는 가능하면 commit을 나눈다.
 - 한 번에 섞어야 하면 어느 부분이 주요 변경인지 commit body나 PR 메모에 적는다.
-- 수치나 성능을 말하는 작업은 Playground 화면이 아니라 Test Bench run artifact를 기준으로 남긴다.
+- 수치나 성능을 말하는 작업은 Playground 화면이 아니라 배치 평가(Test Bench) run artifact를 기준으로 남긴다.
 
 ## Commit Convention
 
@@ -73,7 +73,7 @@ PR이나 공유 메모는 길게 쓰기보다 아래 4가지를 빠뜨리지 않
 
 - 설치/실행 명령
 - Python 버전, 의존성, 외부 서비스, 환경 변수
-- data/scenario 형식
+- data/scenarios 판단 케이스 형식
 - run artifact 필수 필드
 - action label, policy version, 평가 기준
 - 팀원이 같은 repo만 보고 재현해야 하는 절차

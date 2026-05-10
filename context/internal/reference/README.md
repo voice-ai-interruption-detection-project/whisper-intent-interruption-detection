@@ -6,7 +6,7 @@
 
 ## 문서
 
-- [Schema Keys](schema-keys.md): scenario 원본 key와 run result key의 역할 구분
+- [Schema Keys](schema-keys.md): 판단 케이스(`scenario`) 원본 key와 run result key의 역할 구분
 - [Event Types](event-types.md): `event_type` 7종의 개념, 대표 신호, 경계 기준
 - [Action Labels](action-labels.md): action label 6종의 의미와 expected/actual 역할 구분
 
