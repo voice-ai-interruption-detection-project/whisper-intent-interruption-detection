@@ -47,7 +47,7 @@
 | 제품 방향이나 MVP 범위 확인 | [Product Context](product-context.md), [Current MVP](mvp/current.md) | [Project Language Map](project-language-map.md), [decisions](../decisions/) |
 | 코드/실험 작업 | [Current MVP](mvp/current.md), [Evaluation and Results Contract](evaluation-and-results-contract.md), `.claude/rules/` | [Reference](reference/README.md), [Scenario Worked Example](scenario-worked-example.md) |
 | 용어 혼선 해소 | [Project Language Map](project-language-map.md) | [Reference](reference/README.md), [Scenario Worked Example](scenario-worked-example.md) |
-| 제품 의도 복원 / 문서 감사 | 회의 원문, [decisions](../decisions/), [archive](../archive/) | 현재 `internal` 문서 전체 |
+| 제품 의도 복원 / 문서 감사 | 회의 원문, [decisions](../decisions/), 검토 대상 문서 | [archive](../archive/)는 예전 의도 확인이 꼭 필요할 때만 |
 
 ## docs로 반영할 때
 
