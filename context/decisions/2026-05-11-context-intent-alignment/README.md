@@ -26,6 +26,7 @@ tags: [docs, product-context, terminology, harness, ai-collaboration]
 - `context/internal/scenario-worked-example.md`
 - `.claude/rules/`, `.claude/agents/`
 - `.codex/agents/`
+- `context-language-balancer` repo-local agent
 - 일부 코드 주석과 docstring
 
 `docs/` 공개 문서는 이번 정리 범위에서 제외했다.
@@ -50,11 +51,13 @@ tags: [docs, product-context, terminology, harness, ai-collaboration]
 - 좋아진 것: 입력 방식은 제품 개념이 아니라 "입력 경로 / input adapter" 층위로 낮아졌다.
 - 좋아진 것: 문서 감사나 원래 의도 복원 작업에서는 `internal`도 검토 대상이 될 수 있다는 예외가 생겼다.
 - 좋아진 것: `Workbench`는 제품 컨셉으로 앞세우지 않고, `Playground`와 `Test Bench`를 실제 표면 이름으로 구분한다.
+- 좋아진 것: 같은 문서/용어 균형 점검을 반복하지 않도록 `context-language-balancer` agent를 추가했다.
 - 나빠진 것: 일부 문서에서 한국어 설명과 코드 식별자가 병기되어 문장이 조금 길어졌다.
-- 감수한 부분: `input_mode`, `expected_action`, `actual_action` 같은 필드명은 코드/API/run artifact 계약이므로 rename하지 않는다.
+- 감수한 부분: `input_mode`, `expected_action`, `actual_action` 같은 필드명은 바로 rename하지 않는다. 단, 영구 고정이 아니라 계약 민감도가 높은 변경으로 본다.
 
 ## 후속 점검
 
 - [ ] UI 화면 워딩도 같은 기준을 따른다. 첫 노출은 쉽게 쓰되, 코드/API 계약이나 실험 표면명은 필요할 때 병기한다.
+- [ ] 문서/용어 변경 후 필요하면 `context-language-balancer`로 제품 의도·용어 층위·계약 민감도 균형을 점검한다.
 - [ ] 공개 `docs/`를 정리할 때는 이번 decision을 기준으로 삼되, 외부 독자용 문장으로 다시 다듬는다.
 - [ ] action label 축소, event type 축소, `expected_action`/`actual_action` rename 같은 schema 변경은 별도 decision 없이는 적용하지 않는다.

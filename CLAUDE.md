@@ -56,6 +56,7 @@
 | ------------------------------- | -------------------------------------------------------------------------------- |
 | `experiment-material-collector` | 새 실험 시작, 두 run 비교, Before/After 리포트 작성, 실험 슬라이스 onboarding 전 |
 | `harness-structure-reviewer`    | 새 policy 추가, runner 리팩토링, 새 입력 경로(input adapter/input_mode) 추가, 구조 변경 commit 직전 |
+| `context-language-balancer`     | context/internal, README, CLAUDE.md, UI wording에서 제품 의도·용어 층위·계약 민감도 균형 점검 시 |
 | `result-evidence-checker`       | README/report/presentation에 수치 인용 직전, 외부 공유 PR 머지 직전              |
 | `failure-classifier`            | run 실패 케이스가 생긴 직후, issue 작성·다음 실험 계획 직전                      |
 | `decision-record-advisor`       | 라벨·정책·평가 기준, 문서 경계 변경처럼 decisions 기록 여부가 애매할 때 |

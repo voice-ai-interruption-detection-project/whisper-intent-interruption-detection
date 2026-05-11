@@ -49,6 +49,8 @@
 | `0d624f3` docs(context): 하네스 용어의 제품 맥락 압박 완화 | rules, agents, mvp/current, product-context, language map의 하네스 용어 조정 | input mode와 Test Bench가 제품 본체처럼 보이는 압박을 낮춘다 |
 | `a318f81` docs(context): 쉬운 용어 우선으로 내부 표현 정리 | internal 문서와 agent/rule 표현 전반을 한국어 설명 우선으로 정리 | "무조건 영어 용어"가 아니라 팀원이 바로 이해할 수 있는 설명을 먼저 둔다 |
 | `9e4476b` docs(code): 행동 판단 맥락에 맞게 주석 표현 정리 | 코드 주석/docstring에서 Workbench/detection 중심 표현을 행동 판단 맥락으로 조정 | 코드 계약은 유지하되 사람이 읽는 주석의 프레이밍을 맞춘다 |
+| `10cc5e8` docs(context): Mic Trial과 Test Bench 표현 기준 정리 | `Mic Trial`은 같은 입력 경로 계열로, `Test Bench`는 실제 surface 이름으로 정리 | "후순위"와 "쉬운 말"이 용어 자체의 격하로 읽히지 않게 보정한다 |
+| 이번 후속 커밋: context-language-balancer agent 추가 | `.claude/agents/context-language-balancer.md`, `.codex/agents/context-language-balancer.toml`, `CLAUDE.md` 색인 | 같은 점검을 매번 수동으로 반복하지 않도록 문서/용어 균형 reviewer를 둔다 |
 
 ## 적용한 기준
 
@@ -84,6 +86,26 @@
 
 이 기준은 이후 UI 워딩에도 이어진다. 예를 들어 `Workbench`는 제거/격하하지만, `Playground`, `Test Bench`, Text Replay, Audio File Test는 실제 표면/입력 경로 이름으로 병기한다.
 
+## 후속 하네스화: context-language-balancer
+
+이 브랜치 작업 후 사용자는 같은 종류의 단어/문서 점검을 계속 직접 하는 것이 비효율적이라고 보았다.
+
+새 agent는 "문서를 더 친절하게 만드는 agent"가 아니다. 또 "현재 구현 계약을 무조건 보존하는 agent"도 아니다. 역할은 표현별 층위를 판정하는 것이다.
+
+판정 축:
+
+- 제품 의도: 음성 AI 상담의 끼어들기/의도 전환 순간에서 AI 행동 판단이라는 중심 질문을 유지하는가.
+- 용어 층위: 제품 개념, 입력 경로, UI surface, schema/API key, run artifact가 섞이지 않았는가.
+- 구현 계약 민감도: 단순 wording 변경인지, schema/API/run artifact/test 계약 변경인지 구분하는가.
+- 가독성과 기준성: 쉬워졌지만 기준이 흐려지지 않고, 정확하지만 방어적이지 않은가.
+- repo 공유 경계 quick check: 로컬 절대경로와 비공개 원문 위치가 공유 repo 문서에 직접 들어가지 않았는가.
+
+중요한 조정:
+
+- "구현 계약 보존"이 아니라 "구현 계약 민감도 판단"으로 쓴다. 계약성 용어라고 영구 고정하지 않고, 바꾸려면 영향 범위, migration, 테스트, decision 필요성을 함께 제시한다.
+- repo-local agent 안에는 프로젝트 밖 개인 도구 이름이나 비공개 자료 관리 책임을 넣지 않는다.
+- `harness-structure-reviewer`가 코드/하네스 경계를 본다면, `context-language-balancer`는 문서/용어/제품 맥락 경계를 본다.
+
 ## 연결된 파일
 
 - `context/internal/product-context.md`
@@ -97,4 +119,6 @@
 - `.claude/rules/`
 - `.claude/agents/`
 - `.codex/agents/`
+- `.claude/agents/context-language-balancer.md`
+- `.codex/agents/context-language-balancer.toml`
 - `src/backend/static/` follow-up UI wording 작업

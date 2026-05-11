@@ -331,6 +331,8 @@ d466dbd docs(context): 제품 의도와 하네스 읽기 기준 정리
 a318f81 docs(context): 쉬운 용어 우선으로 내부 표현 정리
 9e4476b docs(code): 행동 판단 맥락에 맞게 주석 표현 정리
 1ae6b7b docs(decision): context intent alignment 결정 기록
+abf4493 docs(decision): context alignment raw 맥락 보강
+10cc5e8 docs(context): Mic Trial과 Test Bench 표현 기준 정리
 ```
 
 커밋별 의미:
@@ -342,6 +344,8 @@ a318f81 docs(context): 쉬운 용어 우선으로 내부 표현 정리
 | `a318f81` | 내부 문서 전반에서 쉬운 한국어 설명을 먼저 두고 코드 식별자는 필요한 자리에 병기 |
 | `9e4476b` | 코드 주석/docstring에서 Workbench/detection 중심 프레이밍을 행동 판단 맥락으로 조정 |
 | `1ae6b7b` | 위 작업의 대화 맥락과 적용/보류 기준을 decision으로 기록 |
+| `abf4493` | decision raw를 풍부하게 보강하되, 공유 문서 경계에 맞게 직접 회사명/개인 경로성 표현은 낮춤 |
+| `10cc5e8` | Mic Trial은 같은 입력 경로 계열로, Test Bench는 실제 surface 이름으로 유지하도록 용어 기준 보정 |
 
 ## 11. 이 decision을 남기게 된 이유
 
@@ -372,3 +376,29 @@ a318f81 docs(context): 쉬운 용어 우선으로 내부 표현 정리
 - schema/API/evaluation 계약 변경은 별도 decision과 테스트 계획이 필요하다.
 - UI 워딩을 다시 만질 때는 쉬운 말과 코드값 병기의 균형을 잡아야 한다.
 - 원래 의도 복원 작업에서는 현재 `context/internal/`도 정답이 아니라 검토 대상이 될 수 있다.
+
+## 13. context-language-balancer agent 추가 맥락
+
+사용자는 이번 브랜치 작업에서 문서 단어와 맥락을 계속 직접 점검해야 했고, 이 패턴을 agent로 추출할 수 있겠다고 말했다.
+
+초기 아이디어:
+
+- 단순 개발 지식만 있는 reviewer는 기술 용어를 너무 앞세울 수 있다.
+- 반대로 "가독성"만 보는 reviewer는 문서를 과하게 친절하게 만들고 기준을 흐릴 수 있다.
+- 필요한 것은 제품을 보는 태도와 개발 하네스 이해를 함께 가진 문서/용어 균형 reviewer다.
+
+정리한 agent 역할:
+
+- 이름은 `context-language-balancer`로 둔다.
+- report-only agent다. 파일을 직접 수정하지 않는다.
+- 문서를 더 쉽게 만드는 것이 목적이 아니고, 현재 용어를 무조건 보존하는 것도 목적이 아니다.
+- 각 표현이 제품 개념, 입력 경로, UI surface, schema/API 계약, run artifact 중 어느 층위인지 판정한다.
+- "구현 계약 보존"이라는 표현은 agent가 현재 식별자를 무조건 고정하게 만들 수 있어, "구현 계약 민감도 판단"으로 바꿨다.
+- 공유 문서 경계는 얇은 quick check로만 둔다. 로컬 절대경로와 비공개 원문 위치가 직접 들어갔는지만 본다.
+- repo-local agent 안에는 프로젝트 밖 개인 도구 이름이나 비공개 자료 관리 책임을 넣지 않는다.
+
+추가한 파일:
+
+- `.claude/agents/context-language-balancer.md`
+- `.codex/agents/context-language-balancer.toml`
+- `CLAUDE.md` Repo-local tools 색인
