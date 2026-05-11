@@ -120,12 +120,15 @@ class OpenAIResponsesLLMClient:
             },
             "max_output_tokens": 700,
         }
+
         raw = self._post_json("/v1/responses", payload)
         output_text = _extract_output_text(raw)
+
         try:
             parsed = json.loads(output_text)
         except json.JSONDecodeError as exc:
             raise LLMError("LLM response was not valid JSON") from exc
+
         return LLMActionJudgment.model_validate(parsed)
 
     def snapshot(self) -> dict[str, object]:
@@ -149,6 +152,7 @@ class OpenAIResponsesLLMClient:
             },
             method="POST",
         )
+
         try:
             with urlopen(request, timeout=self.timeout_s) as response:
                 return json.loads(response.read().decode("utf-8"))
@@ -164,16 +168,21 @@ class OpenAIResponsesLLMClient:
 def _extract_output_text(response: dict[str, Any]) -> str:
     """Responses API HTTP 응답에서 텍스트 payload를 최대한 보수적으로 꺼낸다."""
     output_text = response.get("output_text")
+
     if isinstance(output_text, str) and output_text.strip():
         return output_text
 
     for item in response.get("output", []):
         if not isinstance(item, dict) or item.get("type") != "message":
             continue
+
         for content in item.get("content", []):
             if not isinstance(content, dict):
                 continue
+
             text = content.get("text")
+
             if isinstance(text, str) and text.strip():
                 return text
+
     raise LLMError("OpenAI Responses API response did not contain output text")

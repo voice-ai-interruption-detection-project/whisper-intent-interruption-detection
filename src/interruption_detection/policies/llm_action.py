@@ -111,6 +111,7 @@ class LLMActionPolicy:
             },
         )
         started = perf_counter()
+
         judgment = self._llm_client.judge_action(request)
         llm_ms = round((perf_counter() - started) * 1000, 3)
 
@@ -150,6 +151,7 @@ class LLMActionPolicy:
 
     def _developer_prompt(self) -> str:
         allowed = ", ".join(label.value for label in ActionLabel)
+
         parts = [
             "You are the AI Action Policy for a Korean commerce support assistant.",
             "Your job is to choose exactly one action label for the assistant's next behavior.",
@@ -158,17 +160,20 @@ class LLMActionPolicy:
             "Do not infer from hidden expected answers, event_type labels, or evaluation labels.",
             "Return a concise reason in English or Korean.",
         ]
+
         if self.include_label_definitions:
             definitions = "\n".join(
                 f"- {label.value}: {text}"
                 for label, text in ACTION_LABEL_DEFINITIONS.items()
             )
             parts.append(f"Action label definitions:\n{definitions}")
+
         if self.include_few_shots:
             parts.append(
                 "Examples:\n"
                 + json.dumps(FEW_SHOT_EXAMPLES, ensure_ascii=False, indent=2)
             )
+
         return "\n\n".join(parts)
 
     def _user_prompt(self, runner_input: RunnerInput) -> str:
@@ -178,8 +183,10 @@ class LLMActionPolicy:
             "user_utterance": runner_input.user_utterance,
             "has_user_speech": runner_input.has_user_speech,
         }
+
         if self.include_tone_hint:
             context["user_tone_hint"] = runner_input.user_tone_hint.value
+
         return (
             "Classify the assistant's next action for this single interruption moment.\n"
             "Input context JSON:\n"
@@ -193,8 +200,10 @@ class LLMActionPolicy:
             "user_utterance",
             "has_user_speech",
         ]
+
         if self.include_tone_hint:
             fields.append("user_tone_hint")
+
         return fields
 
     def _client_snapshot(self) -> dict[str, object]:

@@ -132,12 +132,15 @@ def write_manifest(
         "expected_has_user_speech": True,
         "language": "ko",
     }
+
     if extra:
         item.update(extra)
+
     manifest_path.write_text(
         json.dumps({"version": "audio_fixture_v1", "items": [item]}),
         encoding="utf-8",
     )
+
     return manifest_path
 
 
@@ -145,9 +148,11 @@ def write_wav(path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     sample_rate = 16000
     frames = []
+
     for index in range(sample_rate // 10):
         value = 1200 if index % 2 == 0 else -1200
         frames.append(value.to_bytes(2, "little", signed=True))
+
     with wave.open(str(path), "wb") as handle:
         handle.setnchannels(1)
         handle.setsampwidth(2)

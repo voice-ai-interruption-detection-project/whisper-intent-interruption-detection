@@ -26,6 +26,7 @@ def get_policy(name: str) -> Policy:
         return _POLICIES[name]
     except KeyError as exc:
         available = ", ".join(sorted(_POLICIES))
+
         raise ValueError(f"unknown policy '{name}'. available: {available}") from exc
 
 
@@ -44,10 +45,12 @@ def list_policies() -> list[dict[str, object]]:
 def replace_policy_registry_for_testing(policies: dict[str, Policy]) -> None:
     """테스트에서 실제 LLM 호출 없이 정책 등록소를 교체한다."""
     global _POLICIES
+
     _POLICIES = policies
 
 
 def reset_policy_registry() -> None:
     """테스트가 교체한 정책 등록소를 기본 설정으로 되돌린다."""
     global _POLICIES
+
     _POLICIES = build_policy_registry()

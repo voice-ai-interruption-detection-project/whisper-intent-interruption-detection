@@ -156,6 +156,7 @@ def write_audio_manifest(root: Path, audio_path: Path) -> Path:
         ),
         encoding="utf-8",
     )
+
     return manifest_path
 
 
@@ -163,9 +164,11 @@ def write_wav(path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     sample_rate = 16000
     frames = []
+
     for index in range(sample_rate // 10):
         value = 1200 if index % 2 == 0 else -1200
         frames.append(value.to_bytes(2, "little", signed=True))
+
     with wave.open(str(path), "wb") as handle:
         handle.setnchannels(1)
         handle.setsampwidth(2)

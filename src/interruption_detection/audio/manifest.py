@@ -32,6 +32,7 @@ class AudioManifestItem(StrictModel):
             raise ValueError(
                 "expected_transcript is required when transcript_source is precomputed"
             )
+
         return self
 
 
@@ -57,14 +58,18 @@ def load_audio_manifest(path: str | Path) -> AudioManifest:
     for index, item in enumerate(raw["items"]):
         if not isinstance(item, dict):
             raise AudioManifestError(f"audio item at index {index} must be an object")
+
         _reject_result_fields(item, index)
         scenario_id = item.get("scenario_id")
+
         if not isinstance(scenario_id, str) or not scenario_id:
             raise AudioManifestError(
                 f"audio item at index {index} has invalid scenario_id"
             )
+
         if scenario_id in seen:
             raise AudioManifestError(f"duplicate audio scenario_id: {scenario_id}")
+
         seen.add(scenario_id)
 
     try:
@@ -80,6 +85,7 @@ def audio_path_for_item(item: AudioManifestItem, manifest_path: str | Path) -> P
     raw_path = Path(item.audio_path)
     if raw_path.is_absolute():
         return raw_path
+
     return Path(manifest_path).parent / raw_path
 
 
@@ -94,6 +100,7 @@ def _reject_result_fields(item: dict[str, object], index: int) -> None:
         "policy_name",
     }
     leaked = sorted(forbidden.intersection(item))
+
     if leaked:
         fields = ", ".join(leaked)
         raise AudioManifestError(

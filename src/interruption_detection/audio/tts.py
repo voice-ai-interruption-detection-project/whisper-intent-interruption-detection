@@ -65,12 +65,14 @@ class OpenAITTSClient:
             raise TTSError(
                 "OPENAI_API_KEY is required for OpenAI TTS fixture generation"
             )
+
         payload: dict[str, Any] = {
             "model": self.model,
             "voice": request.voice,
             "input": request.text,
             "response_format": request.response_format,
         }
+
         if request.instructions:
             payload["instructions"] = request.instructions
 
@@ -84,8 +86,10 @@ class OpenAITTSClient:
             },
             method="POST",
         )
+
         output = Path(request.output_path)
         output.parent.mkdir(parents=True, exist_ok=True)
+
         try:
             with urlopen(http_request, timeout=self.timeout_s) as response:
                 output.write_bytes(response.read())
@@ -94,6 +98,7 @@ class OpenAITTSClient:
             raise TTSError(f"OpenAI TTS API error: {exc.code} {detail}") from exc
         except URLError as exc:
             raise TTSError(f"OpenAI TTS API request failed: {exc.reason}") from exc
+
         return output
 
     def snapshot(self) -> dict[str, object]:
@@ -115,12 +120,15 @@ class SilenceTTSClient:
     def synthesize(self, request: TTSRequest) -> Path:
         output = Path(request.output_path)
         output.parent.mkdir(parents=True, exist_ok=True)
+
         frame_count = int(self.sample_rate * (self.duration_ms / 1000))
+
         with wave.open(str(output), "wb") as handle:
             handle.setnchannels(1)
             handle.setsampwidth(2)
             handle.setframerate(self.sample_rate)
             handle.writeframes(b"\x00\x00" * frame_count)
+
         return output
 
     def snapshot(self) -> dict[str, object]:
@@ -146,6 +154,7 @@ class SayTTSClient:
     def synthesize(self, request: TTSRequest) -> Path:
         output = Path(request.output_path)
         output.parent.mkdir(parents=True, exist_ok=True)
+
         command = [
             "say",
             "-v",
@@ -156,6 +165,7 @@ class SayTTSClient:
             f"--data-format=LEI16@{self.sample_rate}",
             request.text,
         ]
+
         try:
             subprocess.run(command, check=True, capture_output=True, text=True)
         except FileNotFoundError as exc:
@@ -163,6 +173,7 @@ class SayTTSClient:
         except subprocess.CalledProcessError as exc:
             detail = exc.stderr.strip() or exc.stdout.strip()
             raise TTSError(f"macOS say command failed: {detail}") from exc
+
         return output
 
     def snapshot(self) -> dict[str, object]:

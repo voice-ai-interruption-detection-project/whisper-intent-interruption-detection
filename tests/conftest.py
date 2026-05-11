@@ -29,6 +29,7 @@ class KeywordFakeLLMClient:
 
         if not has_speech or not user_utterance.strip():
             return _judgment(ActionLabel.CONTINUE, "No user speech to classify.")
+
         if any(term in user_utterance for term in ["refund", "환불", "반품"]):
             return _judgment(
                 ActionLabel.STOP_AND_SWITCH,
@@ -36,6 +37,7 @@ class KeywordFakeLLMClient:
                 "refund_or_return",
                 True,
             )
+
         if any(term in user_utterance for term in ["agent", "human", "사람"]):
             return _judgment(
                 ActionLabel.HANDOFF,
@@ -43,6 +45,7 @@ class KeywordFakeLLMClient:
                 "agent_connection",
                 True,
             )
+
         if any(term in user_utterance for term in ["shipping", "배송", "추적번호"]):
             is_shift = "shipping" not in current_intent
             action = (
@@ -53,8 +56,10 @@ class KeywordFakeLLMClient:
             return _judgment(
                 action, "User transcript is about shipping.", "shipping", is_shift
             )
+
         if user_utterance in {"ok", "네.", "네", "알겠어요.", "알겠어요"}:
             return _judgment(ActionLabel.CONTINUE, "Short acknowledgement.")
+
         return _judgment(ActionLabel.ASK_CLARIFYING, "User transcript is ambiguous.")
 
     def snapshot(self) -> dict[str, object]:
@@ -73,6 +78,7 @@ def fake_llm_client() -> KeywordFakeLLMClient:
 @pytest.fixture(autouse=True)
 def fake_policy_registry(fake_llm_client: KeywordFakeLLMClient):
     replace_policy_registry_for_testing(build_policy_registry(fake_llm_client))
+
     try:
         yield
     finally:
@@ -81,6 +87,7 @@ def fake_policy_registry(fake_llm_client: KeywordFakeLLMClient):
 
 def _extract_context(user_prompt: str) -> dict[str, Any]:
     _, _, raw_json = user_prompt.partition("Input context JSON:")
+
     return json.loads(raw_json.strip())
 
 

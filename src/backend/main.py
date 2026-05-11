@@ -125,6 +125,7 @@ def scenarios(request: Request) -> dict[str, object]:
 def scenario_detail(scenario_id: str, request: Request) -> dict[str, object]:
     """판단 케이스(Scenario) 식별자로 상세 정보를 반환한다."""
     scenario = _get_scenario(request, scenario_id)
+
     return scenario.model_dump(mode="json")
 
 
@@ -138,10 +139,12 @@ def predict_scenario(
     # 엔드포인트는 얇게 유지한다: 기준 입력을 읽고 공통 실행기를 호출한다.
     policy_name = body.policy if body else "baseline"
     scenario = _get_scenario(request, scenario_id)
+
     try:
         decision = run_scenario(scenario, policy_name)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
     return {
         "scenario_id": scenario.scenario_id,
         "expected_action": scenario.expected_action.value,
@@ -153,10 +156,12 @@ def predict_scenario(
 def predict(body: PredictRequest) -> dict[str, object]:
     """판단 케이스(Scenario) 파일 없이 전달된 입력을 바로 정책에 태운다."""
     payload = body.model_dump(exclude={"policy"})
+
     try:
         decision = run_input(RunnerInput.model_validate(payload), body.policy)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
     return {"expected_action": None, "decision": decision.model_dump(mode="json")}
 
 
@@ -170,6 +175,7 @@ async def transcribe_audio(
     """업로드한 오디오 파일을 transcript adapter로 변환한다."""
     with tempfile.TemporaryDirectory() as temp_dir:
         audio_path = await _save_upload(file, Path(temp_dir))
+
         item = _audio_item_from_upload(
             scenario_id="uploaded_audio",
             audio_path=audio_path,
@@ -177,11 +183,13 @@ async def transcribe_audio(
             transcriber=transcriber,
             language=language,
         )
+
         try:
             stt = build_transcriber(transcriber)
             result = stt.transcribe(audio_path, item)
         except AudioProcessingError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
+
         return {
             "transcript": result.model_dump(mode="json"),
             "audio_signal": analyze_audio_file(audio_path).model_dump(mode="json"),
@@ -200,8 +208,10 @@ async def predict_audio(
 ) -> dict[str, object]:
     """판단 케이스(Scenario) context와 업로드 오디오를 합쳐 같은 runner 경로로 판단한다."""
     scenario = _get_scenario(request, scenario_id)
+
     with tempfile.TemporaryDirectory() as temp_dir:
         audio_path = await _save_upload(file, Path(temp_dir))
+
         item = _audio_item_from_upload(
             scenario_id=scenario_id,
             audio_path=audio_path,
@@ -209,6 +219,7 @@ async def predict_audio(
             transcriber=transcriber,
             language=language,
         )
+
         try:
             stt = build_transcriber(transcriber)
             decision = run_audio_item(
@@ -220,6 +231,7 @@ async def predict_audio(
             )
         except (AudioProcessingError, ValueError) as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
+
         return {
             "scenario_id": scenario.scenario_id,
             "expected_action": scenario.expected_action.value,
@@ -232,6 +244,7 @@ def create_run(body: RunRequest, request: Request) -> dict[str, object]:
     """데이터셋 전체 평가를 실행하고 새 run artifact를 만든다."""
     # 일괄 지표와 파일 생성 책임은 API 계층이 아니라 평가기에 있다.
     dataset = Path(body.dataset) if body.dataset else _dataset_path(request)
+
     try:
         if body.input_mode == "audio_file":
             manifest = (
@@ -268,6 +281,7 @@ def create_run(body: RunRequest, request: Request) -> dict[str, object]:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except FileExistsError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
+
     return result
 
 
@@ -324,9 +338,12 @@ async def _save_upload(file: UploadFile, directory: Path) -> Path:
     suffix = Path(file.filename or "upload.wav").suffix or ".wav"
     path = directory / f"upload{suffix}"
     content = await file.read()
+
     if not content:
         raise HTTPException(status_code=400, detail="audio upload is empty")
+
     path.write_bytes(content)
+
     return path
 
 
@@ -344,9 +361,11 @@ def _audio_item_from_upload(
             status_code=400,
             detail="unknown transcriber. available: precomputed, whisper",
         )
+
     normalized_transcript = (
         "" if transcriber == "precomputed" and transcript is None else transcript
     )
+
     return AudioManifestItem(
         scenario_id=scenario_id,
         audio_path=str(audio_path),

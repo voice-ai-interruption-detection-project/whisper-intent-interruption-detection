@@ -43,18 +43,23 @@ def evaluate_audio_manifest(
     manifest = load_audio_manifest(manifest_path)
     policy = get_policy(policy_name)
     prepared_items = []
+
     for item in manifest.items:
         scenario = _scenario_for_audio_item(scenarios, item)
         audio_path = audio_path_for_item(item, manifest_path)
+
         if not audio_path.exists():
             raise AudioProcessingError(f"audio file not found: {audio_path}")
+
         prepared_items.append((scenario, item, audio_path))
 
     timestamp = datetime.now().astimezone()
     run_id = run_id or f"{timestamp.strftime('%Y%m%d_%H%M%S')}_{policy_name}_audio"
     run_dir = Path(output_root) / run_id
+
     if run_dir.exists():
         raise FileExistsError(f"run artifact already exists: {run_dir}")
+
     run_dir.mkdir(parents=True, exist_ok=False)
 
     logs: list[RunDecisionLog] = []
@@ -66,11 +71,13 @@ def evaluate_audio_manifest(
             policy_name=policy_name,
             transcriber=transcriber,
         )
+
         primary_failure = classify_failure(
             expected=scenario.expected_action,
             actual=decision.actual_action,
             event_type=scenario.event_type,
         )
+
         logs.append(
             RunDecisionLog(
                 scenario_id=scenario.scenario_id,
@@ -88,6 +95,7 @@ def evaluate_audio_manifest(
 
     evaluation = build_evaluation(logs)
     total_latency = round(sum(item.latency_ms for item in logs), 3)
+
     meta = {
         "run_id": run_id,
         "timestamp": timestamp.isoformat(),

@@ -180,15 +180,19 @@ function renderControls() {
 function renderPolicySnapshot() {
   const policy = focusPolicy();
   if (!policy) return;
+
   const snapshot = policy.snapshot || {};
   const entries = Object.entries(snapshot.rule_mapping || snapshot.rule || snapshot.llm || snapshot);
+
   elements.policySnapshot.replaceChildren(
     ...entries.slice(0, 7).map(([key, value]) => {
       const row = document.createElement("div");
       const label = document.createElement("span");
       label.textContent = key;
+
       const action = document.createElement("strong");
       action.textContent = formatSnapshotValue(value);
+
       row.append(label, action);
       return row;
     })
@@ -198,6 +202,7 @@ function renderPolicySnapshot() {
 // 데이터셋의 판단 케이스(Scenario), 고객 신호, 행동 라벨 규모를 요약한다.
 function renderDatasetStats() {
   const eventCounts = countBy(state.scenarios, "event_type");
+
   elements.datasetStats.replaceChildren(
     statBlock("cases", String(state.scenarios.length)),
     statBlock("event_types", String(Object.keys(eventCounts).length)),
@@ -211,6 +216,7 @@ function renderScenarioList() {
   const visible = state.scenarios.filter((scenario) => {
     return !eventFilter || scenario.event_type === eventFilter;
   });
+
   elements.scenarioCount.textContent = `${visible.length}/${state.scenarios.length}`;
   elements.scenarioList.replaceChildren(
     ...visible.map((scenario) => {
@@ -228,14 +234,17 @@ function renderScenarioList() {
       const title = document.createElement("span");
       title.className = "scenario-id";
       title.textContent = scenario.scenario_id;
+
       const meta = document.createElement("span");
       meta.className = "scenario-meta";
       meta.textContent = `${formatEventType(scenario.event_type)} / ${formatActionLabel(
         scenario.expected_action
       )}`;
+
       const utterance = document.createElement("span");
       utterance.className = "scenario-utterance";
       utterance.textContent = scenario.user_utterance || "고객 발화 없음";
+
       item.append(title, meta, utterance);
       return item;
     })
@@ -246,10 +255,12 @@ function renderScenarioList() {
 function renderSelectedScenario() {
   const scenario = selectedScenario();
   if (!scenario) return;
+
   elements.scenarioTitle.textContent = scenario.scenario_id;
   elements.expectedChip.textContent = `expected ${scenario.expected_action}`;
   elements.aiUtterance.textContent = scenario.ai_utterance;
   elements.userUtterance.textContent = scenario.user_utterance || "고객 발화 없음";
+
   renderDefinitionList(elements.scenarioMeta, [
     ["고객 신호(event_type)", formatEventType(scenario.event_type)],
     ["현재 AI 의도", scenario.ai_current_intent],
@@ -264,9 +275,12 @@ function renderSelectedScenario() {
 async function predictSelected() {
   const scenario = selectedScenario();
   if (!scenario) return;
+
   setBusy(elements.predictButton, true);
+
   try {
     const result = await predictScenario(scenario.scenario_id, elements.policySelect.value);
+
     state.focusResult = result;
     renderFocusResult(result);
   } finally {
@@ -277,6 +291,7 @@ async function predictSelected() {
 // 직접 입력한 Text Replay transcript를 현재 policy로 실행한다.
 async function predictTextInput() {
   setBusy(elements.predictTextButton, true);
+
   try {
     const result = await fetchJson("/predict", {
       method: "POST",
@@ -290,6 +305,7 @@ async function predictTextInput() {
         has_user_speech: elements.textHasUserSpeech.checked,
       }),
     });
+
     state.focusResult = result;
     renderFocusResult(result);
   } finally {
@@ -302,18 +318,23 @@ async function predictAudioInput() {
   const scenario = selectedScenario();
   const file = elements.audioFileInput.files[0];
   if (!scenario || !file) return;
+
   setBusy(elements.predictAudioButton, true);
+
   try {
     const form = new FormData();
+
     form.append("file", file);
     form.append("scenario_id", scenario.scenario_id);
     form.append("policy", elements.policySelect.value);
     form.append("transcriber", elements.audioTranscriber.value);
     form.append("transcript", elements.audioTranscript.value);
+
     const result = await fetchJson("/audio/predict", {
       method: "POST",
       body: form,
     });
+
     state.focusResult = result;
     renderFocusResult(result);
   } finally {
@@ -325,12 +346,15 @@ async function predictAudioInput() {
 async function comparePolicies() {
   const scenario = selectedScenario();
   if (!scenario) return;
+
   setBusy(elements.compareButton, true);
   elements.comparisonStatus.textContent = "실행 중";
+
   try {
     state.comparisonResults = await Promise.all(
       state.policies.map((policy) => predictScenario(scenario.scenario_id, policy.name))
     );
+
     renderComparison();
   } finally {
     setBusy(elements.compareButton, false);
@@ -351,16 +375,19 @@ function renderFocusResult(result) {
   const decision = result.decision;
   const hasExpected = result.expected_action !== undefined && result.expected_action !== null;
   const isMatch = hasExpected && result.expected_action === decision.actual_action;
+
   elements.actualAction.textContent = formatActionLabel(decision.actual_action);
   elements.matchChip.textContent = hasExpected ? (isMatch ? "match" : "mismatch") : "unscored";
   elements.matchChip.dataset.state = hasExpected ? (isMatch ? "match" : "mismatch") : "";
   elements.reason.textContent = decision.reason;
+
   renderDefinitionList(elements.decisionMeta, [
     ["policy", decision.policy_name],
     ["expected_action", hasExpected ? result.expected_action : "n/a"],
     ["actual_action", decision.actual_action],
     ["latency", `${decision.latency_ms} ms`],
   ]);
+
   elements.signals.textContent = JSON.stringify(decision.signals, null, 2);
 }
 
@@ -380,6 +407,7 @@ function renderComparison() {
   const matches = state.comparisonResults.filter((result) => {
     return result.expected_action === result.decision.actual_action;
   }).length;
+
   elements.comparisonStatus.textContent = `${matches}/${state.comparisonResults.length} match`;
   elements.comparisonGrid.replaceChildren(
     ...state.comparisonResults.map((result) => {
@@ -392,10 +420,13 @@ function renderComparison() {
 
       const header = document.createElement("div");
       header.className = "compare-header";
+
       const policy = document.createElement("h4");
       policy.textContent = decision.policy_name;
+
       const badges = document.createElement("div");
       badges.className = "compare-badges";
+
       if (decision.policy_name === selectedPolicyName) {
         const selected = document.createElement("span");
         selected.className = "chip";
@@ -403,22 +434,27 @@ function renderComparison() {
         selected.textContent = "selected";
         badges.append(selected);
       }
+
       const badge = document.createElement("span");
       badge.className = "chip";
       badge.dataset.state = isMatch ? "match" : "mismatch";
       badge.textContent = isMatch ? "match" : "mismatch";
+
       badges.append(badge);
       header.append(policy, badges);
 
       const action = document.createElement("p");
       action.className = "compare-action";
       action.textContent = formatActionLabel(decision.actual_action);
+
       const expected = document.createElement("p");
       expected.className = "compare-expected";
       expected.textContent = `expected ${result.expected_action}`;
+
       const reason = document.createElement("p");
       reason.className = "compare-reason";
       reason.textContent = decision.reason;
+
       const latency = document.createElement("p");
       latency.className = "compare-latency";
       latency.textContent = `${decision.latency_ms} ms`;
@@ -432,6 +468,7 @@ function renderComparison() {
 // Test Bench에서 현재 선택 policy의 run artifact를 생성한다.
 async function runFocusPolicy() {
   setBusy(elements.runFocusButton, true);
+
   try {
     await createRun(elements.policySelect.value);
   } finally {
@@ -442,6 +479,7 @@ async function runFocusPolicy() {
 // Test Bench에서 등록된 모든 policy의 run artifact를 순서대로 생성한다.
 async function runAllPolicies() {
   setBusy(elements.runAllPoliciesButton, true);
+
   try {
     for (const policy of state.policies) {
       await createRun(policy.name);
@@ -458,21 +496,28 @@ async function createRun(policyName) {
     policy: policyName,
     input_mode: elements.runInputMode.value,
   };
+
   if (body.input_mode === "audio_file") {
     body.audio_manifest = elements.audioRunManifest.value;
     body.audio_transcriber = elements.audioBenchTranscriber.value;
+
     const whisperModel = elements.audioBenchWhisperModel.value.trim();
+
     if (body.audio_transcriber === "whisper" && whisperModel) {
       body.whisper_model = whisperModel;
     }
   }
+
   const result = await fetchJson("/runs", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
+
   await refreshRuns();
+
   state.selectedRunId = result.run_id;
+
   await renderSelectedRun(result.run_id);
   setActiveTab("report");
 }
@@ -481,9 +526,11 @@ async function createRun(policyName) {
 async function refreshRuns() {
   const result = await fetchJson("/runs");
   state.runs = result.runs;
+
   if (!state.selectedRunId) {
     state.selectedRunId = state.runs[0]?.run_id || null;
   }
+
   renderRunCards();
   renderRecentRuns();
 }
@@ -494,7 +541,9 @@ function renderRunCards() {
     elements.runCardGrid.replaceChildren(emptyState("아직 run artifact가 없습니다"));
     return;
   }
+
   const selectedPolicyName = elements.policySelect.value;
+
   elements.runCardGrid.replaceChildren(
     ...state.runs.map((run) => {
       const card = document.createElement("button");
@@ -511,14 +560,19 @@ function renderRunCards() {
       const runId = document.createElement("span");
       runId.className = "run-id";
       runId.textContent = run.run_id;
+
       const policy = document.createElement("strong");
       policy.textContent = run.policy_version;
+
       const badges = document.createElement("div");
       badges.className = "run-badges";
+
       const mode = document.createElement("span");
       mode.className = "chip";
       mode.textContent = run.mode || "text";
+
       badges.append(mode);
+
       if (run.policy_version === selectedPolicyName) {
         const focus = document.createElement("span");
         focus.className = "chip";
@@ -526,15 +580,19 @@ function renderRunCards() {
         focus.textContent = "focus policy";
         badges.append(focus);
       }
+
       const target = document.createElement("span");
       target.className = "run-failures";
       target.textContent = runTargetSummary(run);
+
       const metric = document.createElement("span");
       metric.className = "metric";
       metric.textContent = `${percent(run.action_accuracy)} action_accuracy`;
+
       const failures = document.createElement("span");
       failures.className = "run-failures";
       failures.textContent = summarizeFailures(run.failures);
+
       card.append(runId, policy, badges, target, metric, failures);
       return card;
     })
@@ -548,6 +606,7 @@ function renderRecentRuns() {
     elements.recentRuns.replaceChildren(emptyState("run 없음"));
     return;
   }
+
   elements.recentRuns.replaceChildren(
     ...recent.map((run) => {
       const item = document.createElement("button");
@@ -559,10 +618,13 @@ function renderRecentRuns() {
         renderRunCards();
         await renderSelectedRun(run.run_id);
       });
+
       const name = document.createElement("span");
       name.textContent = compactRunId(run.run_id);
+
       const metric = document.createElement("strong");
       metric.textContent = percent(run.action_accuracy);
+
       item.append(name, metric);
       return item;
     })
@@ -572,10 +634,13 @@ function renderRecentRuns() {
 // 선택된 run artifact의 메타데이터와 판단 로그 표를 그린다.
 async function renderSelectedRun(runId) {
   if (!runId) return;
+
   const artifacts = await fetchJson(`/runs/${runId}`);
+
   elements.runTableTitle.textContent = `${runId} 판단 로그`;
   elements.runArtifactPath.textContent = artifacts.run_dir;
   elements.runMeta.textContent = JSON.stringify(artifacts.run_meta, null, 2);
+
   elements.decisionLogRows.replaceChildren(
     ...artifacts.decision_logs.map((log) => {
       const row = document.createElement("tr");
@@ -590,11 +655,14 @@ async function renderSelectedRun(runId) {
       cells.forEach((value, index) => {
         const cell = document.createElement("td");
         cell.textContent = value;
+
         if (index === 3) {
           cell.className = log.expected_action === log.actual_action ? "ok-text" : "bad-text";
         }
+
         row.append(cell);
       });
+
       return row;
     })
   );
@@ -609,6 +677,7 @@ function setActiveTab(tab) {
   elements.tabButtons.forEach((button) => {
     button.dataset.active = button.dataset.tab === tab;
   });
+
   if (tab === "report" && state.selectedRunId) {
     renderSelectedRun(state.selectedRunId);
   }
@@ -618,6 +687,7 @@ function setActiveTab(tab) {
 function clearResults() {
   state.focusResult = null;
   state.comparisonResults = [];
+
   elements.actualAction.textContent = "결과 대기";
   elements.matchChip.textContent = "ready";
   elements.matchChip.dataset.state = "";
@@ -631,9 +701,11 @@ function clearResults() {
 // Test Bench의 input_mode에 따라 audio 옵션 표시와 입력 요약을 갱신한다.
 function renderRunInputControls() {
   const isAudio = elements.runInputMode.value === "audio_file";
+
   document.querySelectorAll(".audio-run-field").forEach((field) => {
     field.hidden = !isAudio;
   });
+
   elements.audioBenchWhisperModel.disabled = elements.audioBenchTranscriber.value !== "whisper";
   elements.runInputSummary.textContent = isAudio
     ? `Audio File Test / ${elements.audioBenchTranscriber.value} / ${elements.audioRunManifest.value}`
@@ -660,8 +732,10 @@ function renderDefinitionList(target, items) {
     ...items.flatMap(([label, value]) => {
       const term = document.createElement("dt");
       term.textContent = label;
+
       const detail = document.createElement("dd");
       detail.textContent = value;
+
       return [term, detail];
     })
   );
@@ -672,8 +746,10 @@ function statBlock(label, value) {
   const block = document.createElement("div");
   const number = document.createElement("strong");
   number.textContent = value;
+
   const text = document.createElement("span");
   text.textContent = label;
+
   block.append(number, text);
   return block;
 }
@@ -705,11 +781,13 @@ function countBy(items, key) {
 // 정책 스냅샷 값이 문자열/객체 어느 쪽이어도 한 줄로 표시한다.
 function formatSnapshotValue(value) {
   if (typeof value === "string") return value;
+
   if (value && typeof value === "object") {
     return Object.entries(value)
       .map(([key, action]) => `${key}:${action}`)
       .join(" ");
   }
+
   return String(value);
 }
 
@@ -717,6 +795,7 @@ function formatSnapshotValue(value) {
 function summarizeFailures(failures = {}) {
   const pairs = Object.entries(failures).filter(([, value]) => value > 0);
   if (!pairs.length) return "no primary failures";
+
   return pairs.map(([key, value]) => `${key} ${value}`).join(" / ");
 }
 
@@ -726,6 +805,7 @@ function runTargetSummary(run) {
     const transcriber = run.input_adapter_snapshot?.transcriber?.provider || "audio";
     return `${run.target || "audio manifest"} / ${transcriber}`;
   }
+
   return run.dataset || run.target || "text dataset";
 }
 
@@ -737,12 +817,15 @@ function compactRunId(runId) {
 // 0~1 비율 값을 정수 퍼센트 문자열로 바꾼다.
 function percent(value) {
   if (value === undefined || value === null) return "n/a";
+
   return `${Math.round(Number(value) * 100)}%`;
 }
 
 function formatCodeLabel(value, labels) {
   if (value === undefined || value === null || value === "") return "";
+
   const label = labels[value];
+
   return label ? `${label} (${value})` : value;
 }
 
@@ -779,5 +862,6 @@ async function fetchJson(url, options = {}) {
     const message = await response.text();
     throw new Error(message);
   }
+
   return response.json();
 }

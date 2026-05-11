@@ -16,6 +16,7 @@ class ScenarioLoadError(ValueError):
 def load_scenarios(path: str | Path) -> list[Scenario]:
     """JSON 데이터셋을 읽고 판단 케이스(Scenario) 목록으로 검증해 반환한다."""
     dataset_path = Path(path)
+
     try:
         raw = json.loads(dataset_path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
@@ -28,19 +29,25 @@ def load_scenarios(path: str | Path) -> list[Scenario]:
 
     seen: set[str] = set()
     scenarios: list[Scenario] = []
+
     for index, item in enumerate(raw["scenarios"]):
         if not isinstance(item, dict):
             raise ScenarioLoadError(f"scenario at index {index} must be an object")
+
         # 판단 케이스(Scenario) 파일은 기준 입력이고, 관측 결과는 run artifact 아래에 둔다.
         _reject_result_fields(item, index)
         scenario_id = item.get("scenario_id")
+
         if not isinstance(scenario_id, str) or not scenario_id:
             raise ScenarioLoadError(
                 f"scenario at index {index} has invalid scenario_id"
             )
+
         if scenario_id in seen:
             raise ScenarioLoadError(f"duplicate scenario_id: {scenario_id}")
+
         seen.add(scenario_id)
+
         try:
             scenarios.append(Scenario.model_validate(item))
         except ValidationError as exc:
@@ -54,6 +61,7 @@ def get_scenario_by_id(path: str | Path, scenario_id: str) -> Scenario:
     for scenario in load_scenarios(path):
         if scenario.scenario_id == scenario_id:
             return scenario
+
     raise ScenarioLoadError(f"scenario not found: {scenario_id}")
 
 
@@ -63,5 +71,6 @@ def _reject_result_fields(item: dict[str, Any], index: int) -> None:
         raise ScenarioLoadError(
             f"scenario at index {index} contains actual_action; results belong in runs"
         )
+
     if item.get("expected_action") == "pause":
         raise ScenarioLoadError("pause is not an active action label")

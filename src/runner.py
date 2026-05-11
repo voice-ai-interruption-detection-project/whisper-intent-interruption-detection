@@ -35,6 +35,7 @@ def main() -> int:
     args = parser.parse_args()
 
     dataset = Path(args.dataset)
+
     if args.audio_manifest:
         return run_audio_mode(args, dataset)
 
@@ -47,6 +48,7 @@ def main() -> int:
             command=" ".join(["python", "src/runner.py", *vars_to_args(args)]),
         )
         print(json.dumps(result, ensure_ascii=False, indent=2))
+
         return 0
 
     if args.scenario_id:
@@ -55,6 +57,7 @@ def main() -> int:
         print(
             json.dumps(decision.model_dump(mode="json"), ensure_ascii=False, indent=2)
         )
+
         return 0
 
     decisions = [
@@ -64,7 +67,9 @@ def main() -> int:
         }
         for scenario in load_scenarios(dataset)
     ]
+
     print(json.dumps(decisions, ensure_ascii=False, indent=2))
+
     return 0
 
 
@@ -75,6 +80,7 @@ def run_audio_mode(args: argparse.Namespace, dataset: Path) -> int:
         args.audio_transcriber,
         whisper_model=args.whisper_model,
     )
+
     if args.write_results:
         result = evaluate_audio_manifest(
             dataset,
@@ -85,6 +91,7 @@ def run_audio_mode(args: argparse.Namespace, dataset: Path) -> int:
             command=" ".join(["python", "src/runner.py", *vars_to_args(args)]),
         )
         print(json.dumps(result, ensure_ascii=False, indent=2))
+
         return 0
 
     manifest = load_audio_manifest(manifest_path)
@@ -93,10 +100,12 @@ def run_audio_mode(args: argparse.Namespace, dataset: Path) -> int:
         for item in manifest.items
         if args.scenario_id is None or item.scenario_id == args.scenario_id
     ]
+
     if args.scenario_id and not items:
         raise ValueError(f"scenario not found in audio manifest: {args.scenario_id}")
 
     decisions = []
+
     for item in items:
         scenario = get_scenario_by_id(dataset, item.scenario_id)
         decision = run_audio_item(
@@ -117,21 +126,27 @@ def run_audio_mode(args: argparse.Namespace, dataset: Path) -> int:
         print(json.dumps(decisions[0]["decision"], ensure_ascii=False, indent=2))
     else:
         print(json.dumps(decisions, ensure_ascii=False, indent=2))
+
     return 0
 
 
 def vars_to_args(args: argparse.Namespace) -> list[str]:
     """run_meta에 남길 명령행 인자를 문자열 목록으로 복원한다."""
     output = ["--policy", args.policy, "--dataset", args.dataset]
+
     if args.scenario_id:
         output.extend(["--scenario-id", args.scenario_id])
+
     if args.audio_manifest:
         output.extend(["--audio-manifest", args.audio_manifest])
         output.extend(["--audio-transcriber", args.audio_transcriber])
+
         if args.audio_transcriber == "whisper" and args.whisper_model:
             output.extend(["--whisper-model", args.whisper_model])
+
     if args.write_results:
         output.append("--write-results")
+
     return output
 
 
