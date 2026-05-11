@@ -11,6 +11,44 @@ const state = {
   comparisonResults: [],
 };
 
+const ACTION_LABELS = {
+  continue: "계속 말하기",
+  brief_ack: "짧게 인정",
+  respond_and_continue: "답하고 계속",
+  stop_and_switch: "멈추고 전환",
+  ask_clarifying: "확인 질문",
+  handoff: "상담사 연결 후보",
+};
+
+const EVENT_TYPE_LABELS = {
+  no_speech: "고객 발화 없음",
+  noise: "소음",
+  backchannel: "맞장구",
+  same_intent_question: "같은 주제 질문",
+  intent_shift: "의도 전환",
+  complaint: "불만/긴급",
+  ambiguous: "모호함",
+};
+
+const TONE_HINT_LABELS = {
+  neutral: "보통",
+  frustrated: "불만",
+  urgent: "긴급",
+};
+
+const PRIMARY_FAILURE_LABELS = {
+  false_stop: "불필요한 멈춤",
+  missed_switch: "전환 놓침",
+  action_confusion: "행동 혼동",
+  ambiguous_intent: "모호한 의도",
+  STT_uncertainty: "STT 불확실",
+};
+
+const INPUT_MODE_LABELS = {
+  text: "텍스트 판단 케이스(Scenario)",
+  audio_file: "오디오 파일",
+};
+
 // 화면에서 자주 접근하는 요소를 한 곳에 모아둔다.
 const elements = {
   healthStatus: document.querySelector("#healthStatus"),
@@ -84,7 +122,7 @@ elements.tabButtons.forEach((button) => {
   button.addEventListener("click", () => setActiveTab(button.dataset.tab));
 });
 
-// 첫 화면에 필요한 어휘, 정책, 시나리오, 실행 목록을 한 번에 준비한다.
+// 첫 화면에 필요한 어휘, 정책, 판단 케이스(Scenario), 실행 목록을 한 번에 준비한다.
 async function bootstrap() {
   await checkHealth();
   // 초기 데이터는 함께 가져와 첫 렌더링의 기준을 서로 맞춘다.
@@ -128,11 +166,11 @@ function renderControls() {
     ...state.policies.map((policy) => option(policy.name, policy.name))
   );
   elements.eventFilter.replaceChildren(
-    option("", "All events"),
-    ...state.schema.event_types.map((eventType) => option(eventType, eventType))
+    option("", "전체 고객 신호"),
+    ...state.schema.event_types.map((eventType) => option(eventType, formatEventType(eventType)))
   );
   elements.textToneHint.replaceChildren(
-    ...state.schema.user_tone_hints.map((tone) => option(tone, tone))
+    ...state.schema.user_tone_hints.map((tone) => option(tone, formatToneHint(tone)))
   );
   renderPolicySnapshot();
   renderDatasetStats();
@@ -157,17 +195,17 @@ function renderPolicySnapshot() {
   );
 }
 
-// 전체 시나리오 수와 이벤트/행동 종류 수를 작은 통계로 보여준다.
+// 전체 판단 케이스(Scenario) 수와 이벤트/행동 종류 수를 작은 통계로 보여준다.
 function renderDatasetStats() {
   const eventCounts = countBy(state.scenarios, "event_type");
   elements.datasetStats.replaceChildren(
-    statBlock("scenarios", String(state.scenarios.length)),
-    statBlock("events", String(Object.keys(eventCounts).length)),
-    statBlock("actions", String(state.schema.action_labels.length))
+    statBlock("판단 케이스(Scenario)", String(state.scenarios.length)),
+    statBlock("고객 신호", String(Object.keys(eventCounts).length)),
+    statBlock("행동 라벨", String(state.schema.action_labels.length))
   );
 }
 
-// 이벤트 필터를 반영해 시나리오 목록을 다시 그린다.
+// 이벤트 필터를 반영해 판단 케이스(Scenario) 목록을 다시 그린다.
 function renderScenarioList() {
   const eventFilter = elements.eventFilter.value;
   const visible = state.scenarios.filter((scenario) => {
@@ -192,35 +230,37 @@ function renderScenarioList() {
       title.textContent = scenario.scenario_id;
       const meta = document.createElement("span");
       meta.className = "scenario-meta";
-      meta.textContent = `${scenario.event_type} / ${scenario.expected_action}`;
+      meta.textContent = `${formatEventType(scenario.event_type)} / ${formatActionLabel(
+        scenario.expected_action
+      )}`;
       const utterance = document.createElement("span");
       utterance.className = "scenario-utterance";
-      utterance.textContent = scenario.user_utterance || "no user utterance";
+      utterance.textContent = scenario.user_utterance || "고객 발화 없음";
       item.append(title, meta, utterance);
       return item;
     })
   );
 }
 
-// 현재 선택된 시나리오의 입력 발화와 메타데이터를 표시한다.
+// 현재 선택된 판단 케이스(Scenario)의 입력 발화와 메타데이터를 표시한다.
 function renderSelectedScenario() {
   const scenario = selectedScenario();
   if (!scenario) return;
   elements.scenarioTitle.textContent = scenario.scenario_id;
-  elements.expectedChip.textContent = `expected ${scenario.expected_action}`;
+  elements.expectedChip.textContent = `기준 ${formatActionLabel(scenario.expected_action)}`;
   elements.aiUtterance.textContent = scenario.ai_utterance;
-  elements.userUtterance.textContent = scenario.user_utterance || "No user utterance";
+  elements.userUtterance.textContent = scenario.user_utterance || "고객 발화 없음";
   renderDefinitionList(elements.scenarioMeta, [
-    ["event", scenario.event_type],
-    ["current intent", scenario.ai_current_intent],
-    ["expected user intent", scenario.expected_user_intent || "none"],
-    ["tone", scenario.user_tone_hint],
-    ["level", String(scenario.level)],
+    ["고객 신호(event_type)", formatEventType(scenario.event_type)],
+    ["현재 AI 의도", scenario.ai_current_intent],
+    ["기준 고객 의도", scenario.expected_user_intent || "없음"],
+    ["톤", formatToneHint(scenario.user_tone_hint)],
+    ["난이도", String(scenario.level)],
   ]);
   fillTextInputsFromScenario(scenario);
 }
 
-// 선택된 시나리오를 현재 선택 정책으로 실행한다.
+// 선택된 판단 케이스(Scenario)를 현재 선택 정책으로 실행한다.
 async function predictSelected() {
   const scenario = selectedScenario();
   if (!scenario) return;
@@ -257,7 +297,7 @@ async function predictTextInput() {
   }
 }
 
-// 업로드한 오디오 파일을 현재 선택 시나리오 context와 합쳐 실행한다.
+// 업로드한 오디오 파일을 현재 선택 판단 케이스(Scenario) context와 합쳐 실행한다.
 async function predictAudioInput() {
   const scenario = selectedScenario();
   const file = elements.audioFileInput.files[0];
@@ -281,12 +321,12 @@ async function predictAudioInput() {
   }
 }
 
-// 선택된 시나리오를 등록된 모든 정책으로 실행해 결과를 비교한다.
+// 선택된 판단 케이스(Scenario)를 등록된 모든 정책으로 실행해 결과를 비교한다.
 async function comparePolicies() {
   const scenario = selectedScenario();
   if (!scenario) return;
   setBusy(elements.compareButton, true);
-  elements.comparisonStatus.textContent = "Running";
+  elements.comparisonStatus.textContent = "실행 중";
   try {
     state.comparisonResults = await Promise.all(
       state.policies.map((policy) => predictScenario(scenario.scenario_id, policy.name))
@@ -297,7 +337,7 @@ async function comparePolicies() {
   }
 }
 
-// 시나리오 재생 API를 호출한다.
+// 판단 케이스(Scenario) 재생 API를 호출한다.
 async function predictScenario(scenarioId, policyName) {
   return fetchJson(`/scenarios/${scenarioId}/predict`, {
     method: "POST",
@@ -311,14 +351,14 @@ function renderFocusResult(result) {
   const decision = result.decision;
   const hasExpected = result.expected_action !== undefined && result.expected_action !== null;
   const isMatch = hasExpected && result.expected_action === decision.actual_action;
-  elements.actualAction.textContent = decision.actual_action;
-  elements.matchChip.textContent = hasExpected ? (isMatch ? "match" : "mismatch") : "unscored";
+  elements.actualAction.textContent = formatActionLabel(decision.actual_action);
+  elements.matchChip.textContent = hasExpected ? (isMatch ? "일치" : "불일치") : "비교 없음";
   elements.matchChip.dataset.state = hasExpected ? (isMatch ? "match" : "mismatch") : "";
   elements.reason.textContent = decision.reason;
   renderDefinitionList(elements.decisionMeta, [
     ["policy", decision.policy_name],
-    ["expected", hasExpected ? result.expected_action : "n/a"],
-    ["actual", decision.actual_action],
+    ["기준 행동(expected_action)", hasExpected ? formatActionLabel(result.expected_action) : "n/a"],
+    ["판단 행동(actual_action)", formatActionLabel(decision.actual_action)],
     ["latency", `${decision.latency_ms} ms`],
   ]);
   elements.signals.textContent = JSON.stringify(decision.signals, null, 2);
@@ -340,7 +380,7 @@ function renderComparison() {
   const matches = state.comparisonResults.filter((result) => {
     return result.expected_action === result.decision.actual_action;
   }).length;
-  elements.comparisonStatus.textContent = `${matches}/${state.comparisonResults.length} match`;
+  elements.comparisonStatus.textContent = `${matches}/${state.comparisonResults.length} 일치`;
   elements.comparisonGrid.replaceChildren(
     ...state.comparisonResults.map((result) => {
       const decision = result.decision;
@@ -360,22 +400,22 @@ function renderComparison() {
         const selected = document.createElement("span");
         selected.className = "chip";
         selected.dataset.state = "selected";
-        selected.textContent = "selected";
+        selected.textContent = "현재 선택";
         badges.append(selected);
       }
       const badge = document.createElement("span");
       badge.className = "chip";
       badge.dataset.state = isMatch ? "match" : "mismatch";
-      badge.textContent = isMatch ? "match" : "mismatch";
+      badge.textContent = isMatch ? "일치" : "불일치";
       badges.append(badge);
       header.append(policy, badges);
 
       const action = document.createElement("p");
       action.className = "compare-action";
-      action.textContent = decision.actual_action;
+      action.textContent = formatActionLabel(decision.actual_action);
       const expected = document.createElement("p");
       expected.className = "compare-expected";
-      expected.textContent = `expected ${result.expected_action}`;
+      expected.textContent = `기준 ${formatActionLabel(result.expected_action)}`;
       const reason = document.createElement("p");
       reason.className = "compare-reason";
       reason.textContent = decision.reason;
@@ -451,7 +491,7 @@ async function refreshRuns() {
 // 리포트 상단의 실행 카드 목록을 렌더링한다.
 function renderRunCards() {
   if (!state.runs.length) {
-    elements.runCardGrid.replaceChildren(emptyState("No run artifacts yet"));
+    elements.runCardGrid.replaceChildren(emptyState("아직 run artifact가 없습니다"));
     return;
   }
   const selectedPolicyName = elements.policySelect.value;
@@ -477,13 +517,13 @@ function renderRunCards() {
       badges.className = "run-badges";
       const mode = document.createElement("span");
       mode.className = "chip";
-      mode.textContent = run.mode || "text";
+      mode.textContent = formatInputMode(run.mode || "text");
       badges.append(mode);
       if (run.policy_version === selectedPolicyName) {
         const focus = document.createElement("span");
         focus.className = "chip";
         focus.dataset.state = "selected";
-        focus.textContent = "focus policy";
+        focus.textContent = "비교 기준 정책";
         badges.append(focus);
       }
       const target = document.createElement("span");
@@ -491,7 +531,7 @@ function renderRunCards() {
       target.textContent = runTargetSummary(run);
       const metric = document.createElement("span");
       metric.className = "metric";
-      metric.textContent = `${percent(run.action_accuracy)} action accuracy`;
+      metric.textContent = `${percent(run.action_accuracy)} 행동 정확도`;
       const failures = document.createElement("span");
       failures.className = "run-failures";
       failures.textContent = summarizeFailures(run.failures);
@@ -505,7 +545,7 @@ function renderRunCards() {
 function renderRecentRuns() {
   const recent = state.runs.slice(0, 5);
   if (!recent.length) {
-    elements.recentRuns.replaceChildren(emptyState("No runs"));
+    elements.recentRuns.replaceChildren(emptyState("run 없음"));
     return;
   }
   elements.recentRuns.replaceChildren(
@@ -533,7 +573,7 @@ function renderRecentRuns() {
 async function renderSelectedRun(runId) {
   if (!runId) return;
   const artifacts = await fetchJson(`/runs/${runId}`);
-  elements.runTableTitle.textContent = `${runId} decision logs`;
+  elements.runTableTitle.textContent = `${runId} 판단 로그`;
   elements.runArtifactPath.textContent = artifacts.run_dir;
   elements.runMeta.textContent = JSON.stringify(artifacts.run_meta, null, 2);
   elements.decisionLogRows.replaceChildren(
@@ -541,10 +581,10 @@ async function renderSelectedRun(runId) {
       const row = document.createElement("tr");
       const cells = [
         log.scenario_id,
-        log.event_type,
-        log.expected_action,
-        log.actual_action,
-        log.primary_failure || "none",
+        formatEventType(log.event_type),
+        formatActionLabel(log.expected_action),
+        formatActionLabel(log.actual_action),
+        log.primary_failure ? formatPrimaryFailure(log.primary_failure) : "없음",
         `${log.latency_ms} ms`,
       ];
       cells.forEach((value, index) => {
@@ -574,17 +614,17 @@ function setActiveTab(tab) {
   }
 }
 
-// 시나리오나 정책이 바뀌었을 때 이전 판단 결과를 비운다.
+// 판단 케이스(Scenario)나 정책이 바뀌었을 때 이전 판단 결과를 비운다.
 function clearResults() {
   state.focusResult = null;
   state.comparisonResults = [];
-  elements.actualAction.textContent = "No inspection";
-  elements.matchChip.textContent = "pending";
+  elements.actualAction.textContent = "아직 실행 전";
+  elements.matchChip.textContent = "대기";
   elements.matchChip.dataset.state = "";
-  elements.reason.textContent = "Inspect the selected policy to debug reason, signals, and latency.";
+  elements.reason.textContent = "선택한 정책으로 판단하면 reason, signals, latency를 여기에서 확인합니다.";
   elements.decisionMeta.replaceChildren();
   elements.signals.textContent = "{}";
-  elements.comparisonStatus.textContent = "No comparison yet";
+  elements.comparisonStatus.textContent = "아직 비교 없음";
   elements.comparisonGrid.replaceChildren();
 }
 
@@ -596,11 +636,11 @@ function renderRunInputControls() {
   });
   elements.audioBenchWhisperModel.disabled = elements.audioBenchTranscriber.value !== "whisper";
   elements.runInputSummary.textContent = isAudio
-    ? `${elements.audioBenchTranscriber.value} / ${elements.audioRunManifest.value}`
-    : "Text scenario set";
+    ? `오디오 파일 / ${elements.audioBenchTranscriber.value} / ${elements.audioRunManifest.value}`
+    : "텍스트 판단 케이스(Scenario) 묶음";
 }
 
-// 현재 선택된 시나리오 식별자에 해당하는 시나리오 객체를 찾는다.
+// 현재 선택된 판단 케이스(Scenario) 식별자에 해당하는 객체를 찾는다.
 function selectedScenario() {
   return state.scenarios.find((scenario) => {
     return scenario.scenario_id === state.selectedScenarioId;
@@ -676,8 +716,8 @@ function formatSnapshotValue(value) {
 // 실패 집계를 리포트 카드에 들어갈 짧은 문장으로 압축한다.
 function summarizeFailures(failures = {}) {
   const pairs = Object.entries(failures).filter(([, value]) => value > 0);
-  if (!pairs.length) return "no primary failures";
-  return pairs.map(([key, value]) => `${key} ${value}`).join(" / ");
+  if (!pairs.length) return "primary failure 없음";
+  return pairs.map(([key, value]) => `${formatPrimaryFailure(key)} ${value}`).join(" / ");
 }
 
 // run card에서 text/audio target을 짧게 표시한다.
@@ -686,7 +726,7 @@ function runTargetSummary(run) {
     const transcriber = run.input_adapter_snapshot?.transcriber?.provider || "audio";
     return `${run.target || "audio manifest"} / ${transcriber}`;
   }
-  return run.dataset || run.target || "text dataset";
+  return run.dataset || run.target || "텍스트 dataset";
 }
 
 // 날짜 접두어를 줄여 사이드바에서 실행 식별자를 읽기 쉽게 만든다.
@@ -698,6 +738,32 @@ function compactRunId(runId) {
 function percent(value) {
   if (value === undefined || value === null) return "n/a";
   return `${Math.round(Number(value) * 100)}%`;
+}
+
+function formatCodeLabel(value, labels) {
+  if (value === undefined || value === null || value === "") return "";
+  const label = labels[value];
+  return label ? `${label} (${value})` : value;
+}
+
+function formatActionLabel(value) {
+  return formatCodeLabel(value, ACTION_LABELS);
+}
+
+function formatEventType(value) {
+  return formatCodeLabel(value, EVENT_TYPE_LABELS);
+}
+
+function formatToneHint(value) {
+  return formatCodeLabel(value, TONE_HINT_LABELS);
+}
+
+function formatPrimaryFailure(value) {
+  return formatCodeLabel(value, PRIMARY_FAILURE_LABELS);
+}
+
+function formatInputMode(value) {
+  return formatCodeLabel(value, INPUT_MODE_LABELS);
 }
 
 // 비동기 작업 중 버튼의 중복 클릭을 막는다.

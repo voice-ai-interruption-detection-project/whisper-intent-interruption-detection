@@ -44,12 +44,12 @@ OUTPUT_ROOT = Path("results/runs")
 STATIC_DIR = Path(__file__).parent / "static"
 
 # 테스트와 로컬 실험은 app.state로 데이터/출력 경로를 바꿀 수 있다.
-app = FastAPI(title="Interruption Detection Workbench")
+app = FastAPI(title="AI 행동 판단 Workbench API")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
 class PolicyRequest(BaseModel):
-    """시나리오 재생에서 사용할 정책 이름 요청."""
+    """판단 케이스(Scenario) 재생에서 사용할 정책 이름 요청."""
 
     policy: str = "baseline"
 
@@ -113,7 +113,7 @@ def policies() -> dict[str, object]:
 
 @app.get("/scenarios")
 def scenarios(request: Request) -> dict[str, object]:
-    """현재 데이터셋의 전체 시나리오 목록을 반환한다."""
+    """현재 데이터셋의 전체 판단 케이스(Scenario) 목록을 반환한다."""
     items = _load_scenarios(request)
     return {
         "count": len(items),
@@ -123,7 +123,7 @@ def scenarios(request: Request) -> dict[str, object]:
 
 @app.get("/scenarios/{scenario_id}")
 def scenario_detail(scenario_id: str, request: Request) -> dict[str, object]:
-    """시나리오 식별자로 상세 정보를 반환한다."""
+    """판단 케이스(Scenario) 식별자로 상세 정보를 반환한다."""
     scenario = _get_scenario(request, scenario_id)
     return scenario.model_dump(mode="json")
 
@@ -134,7 +134,7 @@ def predict_scenario(
     request: Request,
     body: PolicyRequest | None = None,
 ) -> dict[str, object]:
-    """선택한 시나리오 하나를 지정 정책으로 재생한다."""
+    """선택한 판단 케이스(Scenario) 하나를 지정 정책으로 재생한다."""
     # 엔드포인트는 얇게 유지한다: 기준 입력을 읽고 공통 실행기를 호출한다.
     policy_name = body.policy if body else "baseline"
     scenario = _get_scenario(request, scenario_id)
@@ -151,7 +151,7 @@ def predict_scenario(
 
 @app.post("/predict")
 def predict(body: PredictRequest) -> dict[str, object]:
-    """시나리오 파일 없이 전달된 입력을 바로 정책에 태운다."""
+    """판단 케이스(Scenario) 파일 없이 전달된 입력을 바로 정책에 태운다."""
     payload = body.model_dump(exclude={"policy"})
     try:
         decision = run_input(RunnerInput.model_validate(payload), body.policy)
@@ -198,7 +198,7 @@ async def predict_audio(
     transcriber: str = Form(default="precomputed"),
     language: str = Form(default="ko"),
 ) -> dict[str, object]:
-    """시나리오 context와 업로드 오디오를 합쳐 같은 runner 경로로 판단한다."""
+    """판단 케이스(Scenario) context와 업로드 오디오를 합쳐 같은 runner 경로로 판단한다."""
     scenario = _get_scenario(request, scenario_id)
     with tempfile.TemporaryDirectory() as temp_dir:
         audio_path = await _save_upload(file, Path(temp_dir))
@@ -312,7 +312,7 @@ def _load_scenarios(request: Request):
 
 
 def _get_scenario(request: Request, scenario_id: str):
-    """시나리오 조회 실패를 HTTP 404로 변환해 반환한다."""
+    """판단 케이스(Scenario) 조회 실패를 HTTP 404로 변환해 반환한다."""
     try:
         return get_scenario_by_id(_dataset_path(request), scenario_id)
     except ScenarioLoadError as exc:

@@ -13,8 +13,10 @@ def test_root_serves_static_ui() -> None:
     response = client.get("/")
 
     assert response.status_code == 200
-    assert "Whisper Intent Workbench" in response.text
-    assert "Test Bench Report" in response.text
+    assert "AI 행동 판단 Workbench" in response.text
+    assert "단일 판단 케이스(Scenario) 확인" in response.text
+    assert "선택한 판단 케이스(Scenario)" in response.text
+    assert "Test Bench" in response.text
     assert "/static/js/main.js" in response.text
 
 
