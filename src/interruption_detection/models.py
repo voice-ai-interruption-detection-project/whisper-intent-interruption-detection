@@ -26,7 +26,7 @@ class ActionLabel(StrEnum):
 
 
 class EventType(StrEnum):
-    """시나리오에서 관찰된 사용자 신호의 유형."""
+    """판단 케이스(Scenario)에 기록된 고객 신호의 유형."""
 
     NO_SPEECH = "no_speech"
     NOISE = "noise"
@@ -63,7 +63,7 @@ class StrictModel(BaseModel):
 
 
 class Scenario(StrictModel):
-    """사람이 라벨링한 expected_action을 포함한 정적 데이터셋 행."""
+    """사람이 라벨링한 expected_action을 포함한 판단 케이스(Scenario) 행."""
 
     scenario_id: str
     level: int = Field(ge=1)
@@ -105,7 +105,7 @@ class RunnerInput(StrictModel):
 
     @classmethod
     def from_scenario(cls, scenario: Scenario) -> "RunnerInput":
-        """정적 시나리오를 정책 실행용 입력으로 변환한다."""
+        """판단 케이스(Scenario)를 정책 실행용 입력으로 변환한다."""
         return cls(
             scenario_id=scenario.scenario_id,
             domain=scenario.domain,
@@ -133,7 +133,7 @@ class PolicyDecision(StrictModel):
 
 
 class RunDecisionLog(StrictModel):
-    """테스트 벤치 리포트에 저장되는 시나리오별 판단 로그."""
+    """Test Bench run artifact에 저장되는 판단 케이스(Scenario)별 판단 로그."""
 
     scenario_id: str
     policy_name: str

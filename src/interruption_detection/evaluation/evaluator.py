@@ -27,21 +27,21 @@ def evaluate_dataset(
     changed: list[str] | None = None,
     run_id: str | None = None,
 ) -> dict[str, Any]:
-    """데이터셋 전체를 지정 정책으로 실행하고 실행 산출물을 생성한다."""
+    """데이터셋 전체를 지정 정책으로 실행하고 run artifact를 생성한다."""
     dataset = Path(dataset_path)
     scenarios = load_scenarios(dataset)
     policy = get_policy(policy_name)
     timestamp = datetime.now().astimezone()
     run_id = run_id or f"{timestamp.strftime('%Y%m%d_%H%M%S')}_{policy_name}"
     run_dir = Path(output_root) / run_id
-    # 실행 산출물은 근거 자료이므로 이전 측정값을 덮어쓰지 않는다.
+    # run artifact는 근거 자료이므로 이전 측정값을 덮어쓰지 않는다.
     if run_dir.exists():
         raise FileExistsError(f"run artifact already exists: {run_dir}")
     run_dir.mkdir(parents=True, exist_ok=False)
 
     logs: list[RunDecisionLog] = []
     for scenario in scenarios:
-        # 평가기는 공통 실행기를 재사용하고, 비교용 메타데이터만 추가한다.
+        # 평가기는 공통 runner를 재사용하고, 비교용 메타데이터만 추가한다.
         decision = run_scenario(scenario, policy_name)
         primary_failure = classify_failure(
             expected=scenario.expected_action,
@@ -220,7 +220,7 @@ def _write_json(path: Path, data: dict[str, Any]) -> None:
 
 
 def _write_jsonl(path: Path, logs: list[RunDecisionLog]) -> None:
-    """시나리오별 판단 로그를 JSONL 형식으로 저장한다."""
+    """판단 케이스(Scenario)별 판단 로그를 JSONL 형식으로 저장한다."""
     with path.open("w", encoding="utf-8") as handle:
         for item in logs:
             handle.write(json.dumps(item.model_dump(mode="json"), ensure_ascii=False))

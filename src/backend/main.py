@@ -44,7 +44,7 @@ OUTPUT_ROOT = Path("results/runs")
 STATIC_DIR = Path(__file__).parent / "static"
 
 # 테스트와 로컬 실험은 app.state로 데이터/출력 경로를 바꿀 수 있다.
-app = FastAPI(title="AI 행동 판단 Workbench API")
+app = FastAPI(title="Whisper Intent Workbench API")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
@@ -72,7 +72,7 @@ class PredictRequest(BaseModel):
 
 
 class RunRequest(BaseModel):
-    """테스트 벤치 실행 생성을 위한 요청 모델."""
+    """Test Bench 실행 생성을 위한 요청 모델."""
 
     policy: str = "baseline"
     dataset: str | None = None
@@ -84,7 +84,7 @@ class RunRequest(BaseModel):
 
 @app.get("/")
 def index() -> FileResponse:
-    """정적 판단 실험 UI의 HTML 파일을 반환한다."""
+    """Whisper Intent Workbench HTML 파일을 반환한다."""
     return FileResponse(STATIC_DIR / "index.html")
 
 
@@ -229,7 +229,7 @@ async def predict_audio(
 
 @app.post("/runs")
 def create_run(body: RunRequest, request: Request) -> dict[str, object]:
-    """데이터셋 전체 평가를 실행하고 새 실행 산출물을 만든다."""
+    """데이터셋 전체 평가를 실행하고 새 run artifact를 만든다."""
     # 일괄 지표와 파일 생성 책임은 API 계층이 아니라 평가기에 있다.
     dataset = Path(body.dataset) if body.dataset else _dataset_path(request)
     try:
@@ -273,13 +273,13 @@ def create_run(body: RunRequest, request: Request) -> dict[str, object]:
 
 @app.get("/runs")
 def list_runs(request: Request) -> dict[str, object]:
-    """최근 실행 산출물 목록을 반환한다."""
+    """최근 run artifact 목록을 반환한다."""
     return {"runs": list_run_artifacts(output_root=_output_root(request))}
 
 
 @app.get("/runs/{run_id}")
 def run_detail(run_id: str, request: Request) -> dict[str, object]:
-    """특정 실행 산출물의 상세 내용을 반환한다."""
+    """특정 run artifact의 상세 내용을 반환한다."""
     try:
         return read_run_artifacts(run_id, output_root=_output_root(request))
     except ValueError as exc:
@@ -294,7 +294,7 @@ def _dataset_path(request: Request) -> Path:
 
 
 def _output_root(request: Request) -> Path:
-    """app.state 재정의를 반영한 실행 출력 루트를 반환한다."""
+    """app.state 재정의를 반영한 run artifact 출력 루트를 반환한다."""
     return Path(getattr(request.app.state, "output_root", OUTPUT_ROOT))
 
 

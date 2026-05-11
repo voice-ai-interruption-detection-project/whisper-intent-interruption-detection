@@ -7,7 +7,7 @@ from interruption_detection.policies import get_policy
 
 
 def run_scenario(scenario: Scenario, policy_name: str) -> PolicyDecision:
-    """정적 시나리오를 RunnerInput으로 바꿔 지정한 정책을 실행한다."""
+    """판단 케이스(Scenario)를 RunnerInput으로 바꿔 지정한 정책을 실행한다."""
     return run_input(RunnerInput.from_scenario(scenario), policy_name)
 
 

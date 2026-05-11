@@ -3,20 +3,20 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>AI 행동 판단 Workbench</title>
+    <title>Whisper Intent Workbench</title>
     <link rel="stylesheet" href="/static/css/style.css" />
   </head>
   <body>
-    <aside class="app-sidebar" aria-label="AI 행동 판단 Workbench 컨트롤">
+    <aside class="app-sidebar" aria-label="Whisper Intent Workbench 컨트롤">
       <div class="brand-block">
         <p class="eyebrow">Whisper Intent</p>
-        <h1>행동 판단 Workbench</h1>
+        <h1>Workbench</h1>
         <div class="status-pill" id="healthStatus">checking</div>
       </div>
 
       <section class="side-section" data-context="policy">
         <h2>Policy</h2>
-        <label class="field-label" for="policySelect">비교 기준 정책</label>
+        <label class="field-label" for="policySelect">Policy 선택</label>
         <select id="policySelect"></select>
         <div class="policy-snapshot" id="policySnapshot"></div>
       </section>
@@ -49,7 +49,7 @@
       <header class="topbar">
         <div class="top-title">
           <span>Whisper Intent</span>
-          <strong>/ 행동 판단 Workbench</strong>
+          <strong>Workbench</strong>
         </div>
         <nav class="tabs" aria-label="실험 표면 탭">
           <button class="tab-button" type="button" data-tab="playground">Playground</button>
@@ -62,13 +62,13 @@
           <div class="page-heading">
             <div>
               <p class="eyebrow">Playground</p>
-              <h2>단일 판단 케이스(Scenario) 확인</h2>
+              <h2>단일 케이스 확인</h2>
             </div>
             <div class="action-row">
               <button class="secondary-button" type="button" id="predictButton">
-                선택 정책으로 판단
+                현재 policy 실행
               </button>
-              <button type="button" id="compareButton">모든 정책 비교</button>
+              <button type="button" id="compareButton">모든 policy 비교</button>
             </div>
           </div>
 
@@ -76,20 +76,20 @@
             <section class="panel scenario-panel">
               <div class="panel-header">
                 <div>
-                  <p class="eyebrow">선택한 판단 케이스(Scenario)</p>
-                  <h3 id="scenarioTitle">판단 케이스(Scenario)를 선택하세요</h3>
+                  <p class="eyebrow">선택한 케이스</p>
+                  <h3 id="scenarioTitle">케이스를 선택하세요</h3>
                 </div>
-                <span class="chip" id="expectedChip">기준 행동</span>
+                <span class="chip" id="expectedChip">expected_action</span>
               </div>
               <dl class="meta-grid" id="scenarioMeta"></dl>
               <div class="utterance-grid">
                 <article class="utterance-card">
                   <h4>AI 발화</h4>
-                  <p id="aiUtterance">판단 케이스(Scenario)가 선택되지 않았습니다.</p>
+                  <p id="aiUtterance">선택한 케이스가 없습니다.</p>
                 </article>
                 <article class="utterance-card">
                   <h4>고객 발화 / 신호</h4>
-                  <p id="userUtterance">판단 케이스(Scenario)가 선택되지 않았습니다.</p>
+                  <p id="userUtterance">선택한 케이스가 없습니다.</p>
                 </article>
               </div>
             </section>
@@ -98,12 +98,12 @@
               <div class="panel-header">
                 <div>
                   <p class="eyebrow">판단 결과</p>
-                  <h3 id="actualAction">아직 실행 전</h3>
+                  <h3 id="actualAction">결과 대기</h3>
                 </div>
-                <span class="chip" id="matchChip">대기</span>
+                <span class="chip" id="matchChip">ready</span>
               </div>
               <p class="decision-reason" id="reason">
-                선택한 정책으로 판단하면 reason, signals, latency를 여기에서 확인합니다.
+                실행하면 reason, signals, latency를 여기에서 확인합니다.
               </p>
               <dl class="meta-grid compact" id="decisionMeta"></dl>
               <pre id="signals">{}</pre>
@@ -117,7 +117,7 @@
                 <h3>텍스트 입력(Text Replay)</h3>
               </div>
               <button class="secondary-button" type="button" id="predictTextButton">
-                텍스트 입력 판단
+                Text Replay 실행
               </button>
             </div>
             <div class="text-form-grid">
@@ -151,7 +151,7 @@
                 <h3>오디오 파일 입력(Audio File Test)</h3>
               </div>
               <button class="secondary-button" type="button" id="predictAudioButton">
-                오디오 입력 판단
+                Audio File Test 실행
               </button>
             </div>
             <div class="text-form-grid">
@@ -176,10 +176,10 @@
           <section class="panel comparison-panel">
             <div class="panel-header">
               <div>
-                <p class="eyebrow">정책 비교</p>
-                <h3>같은 판단 케이스(Scenario), 등록된 모든 정책</h3>
+                <p class="eyebrow">Policy comparison</p>
+                <h3>같은 케이스로 policy 비교</h3>
               </div>
-              <span class="muted" id="comparisonStatus">아직 비교 없음</span>
+              <span class="muted" id="comparisonStatus">No comparison yet</span>
             </div>
             <div class="comparison-grid" id="comparisonGrid"></div>
           </section>
@@ -189,30 +189,30 @@
           <div class="page-heading">
             <div>
               <p class="eyebrow">Test Bench</p>
-              <h2>배치 평가 run artifact</h2>
+              <h2>Run artifacts</h2>
             </div>
             <div class="action-row">
               <button class="secondary-button" type="button" id="runFocusButton">
-                선택 정책 실행
+                선택한 policy 실행
               </button>
-              <button type="button" id="runAllPoliciesButton">모든 정책 실행</button>
+              <button type="button" id="runAllPoliciesButton">모든 policy 실행</button>
             </div>
           </div>
 
           <section class="panel run-input-panel">
             <div class="panel-header">
               <div>
-                <p class="eyebrow">입력 경로</p>
-                <h3>입력 경로(input_mode)</h3>
+                <p class="eyebrow">Run input</p>
+                <h3>input_mode</h3>
               </div>
-              <span class="muted" id="runInputSummary">텍스트 판단 케이스(Scenario) 묶음</span>
+              <span class="muted" id="runInputSummary">Text Replay dataset</span>
             </div>
             <div class="text-form-grid">
               <label>
                 <span>Run 입력</span>
                 <select id="runInputMode">
-                  <option value="text">텍스트 판단 케이스(Scenario)</option>
-                  <option value="audio_file">오디오 파일</option>
+                  <option value="text">Text Replay</option>
+                  <option value="audio_file">Audio File Test</option>
                 </select>
               </label>
               <label class="audio-run-field">
@@ -238,8 +238,8 @@
           <section class="panel report-panel">
             <div class="panel-header">
               <div>
-                <p class="eyebrow">판단 케이스(Scenario) x policy</p>
-                <h3 id="runTableTitle">run을 선택하거나 생성하세요</h3>
+                <p class="eyebrow">scenario_id x policy</p>
+                <h3 id="runTableTitle">Select or create a run</h3>
               </div>
               <span class="muted" id="runArtifactPath"></span>
             </div>
@@ -248,10 +248,10 @@
                 <thead>
                   <tr>
                     <th>id</th>
-                    <th>고객 신호(event_type)</th>
-                    <th>기준 행동</th>
-                    <th>판단 행동</th>
-                    <th>primary failure</th>
+                    <th>event_type</th>
+                    <th>expected_action</th>
+                    <th>actual_action</th>
+                    <th>primary_failure</th>
                     <th>latency</th>
                   </tr>
                 </thead>

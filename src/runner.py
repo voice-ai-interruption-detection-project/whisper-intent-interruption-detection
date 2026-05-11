@@ -17,7 +17,7 @@ from interruption_detection.scenarios import get_scenario_by_id, load_scenarios
 
 
 def main() -> int:
-    """명령행 인자를 해석해 단일 재생, 전체 재생, 결과 저장 모드를 실행한다."""
+    """명령행 인자를 해석해 단일/전체 판단 케이스(Scenario) 실행과 결과 저장을 처리한다."""
     parser = argparse.ArgumentParser(
         description="끼어들기/의도 전환 행동 판단 policy를 실행한다."
     )
@@ -38,7 +38,7 @@ def main() -> int:
     if args.audio_manifest:
         return run_audio_mode(args, dataset)
 
-    # 명령행은 결과 저장, 단일 시나리오 확인, 전체 재생 세 가지 모드를 가진다.
+    # 명령행은 결과 저장, 단일 판단 케이스(Scenario) 확인, 전체 재생 세 가지 모드를 가진다.
     if args.write_results:
         result = evaluate_dataset(
             dataset,
@@ -69,7 +69,7 @@ def main() -> int:
 
 
 def run_audio_mode(args: argparse.Namespace, dataset: Path) -> int:
-    """오디오 manifest를 기준으로 단일/전체 audio replay 또는 artifact 생성을 실행한다."""
+    """오디오 manifest를 기준으로 단일/전체 Audio File Test 또는 run artifact 생성을 실행한다."""
     manifest_path = Path(args.audio_manifest)
     transcriber = build_transcriber(
         args.audio_transcriber,

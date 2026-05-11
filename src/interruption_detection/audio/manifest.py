@@ -14,7 +14,7 @@ class AudioManifestError(ValueError):
 
 
 class AudioManifestItem(StrictModel):
-    """시나리오 하나에 대응하는 오디오 fixture 입력."""
+    """판단 케이스(Scenario) 하나에 대응하는 오디오 fixture 입력."""
 
     scenario_id: str
     audio_path: str

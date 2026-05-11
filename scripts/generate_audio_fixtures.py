@@ -16,9 +16,9 @@ from interruption_detection.scenarios import load_scenarios
 
 
 def main() -> int:
-    """scenario bank에서 오디오 파일 입력용 TTS fixture와 manifest를 생성한다."""
+    """판단 케이스(Scenario) 기준 오디오 파일 입력용 TTS fixture와 manifest를 생성한다."""
     parser = argparse.ArgumentParser(
-        description="시나리오 기준 오디오 파일 입력 fixture와 manifest를 생성한다."
+        description="판단 케이스(Scenario) 기준 오디오 파일 입력 fixture와 manifest를 생성한다."
     )
     parser.add_argument("--dataset", default="data/scenarios.json")
     parser.add_argument("--output-dir", default="data/audio/fixtures")
@@ -128,7 +128,7 @@ def should_generate_scenario(
     all_speech: bool,
     include_no_speech: bool,
 ) -> bool:
-    """명령행 선택 기준으로 fixture 생성 대상 시나리오인지 판단한다."""
+    """명령행 선택 기준으로 fixture 생성 대상 판단 케이스(Scenario)인지 판단한다."""
     if scenario_id in selected_ids:
         return True
     if has_user_speech and all_speech:
