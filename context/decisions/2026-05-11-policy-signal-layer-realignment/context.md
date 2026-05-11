@@ -27,16 +27,17 @@ VAD-only
 
 단점은 5차 페어에서 발견한 "그 event_type을 누가 판단했는가" 문제가 다시 열릴 수 있다. 사람이 붙인 annotation을 그대로 쓰면 hardcoded mapping처럼 보일 수 있다.
 
-### 3. 현재 LLM action judge를 보존하되 signal/action 층을 분리한다
+### 3. 현재 LLM action judge를 보존하되 interpretation/action 층을 분리한다
 
 ```text
 transcript / speech signal
--> Signal Analyzer
--> Action Policy
+-> Interpreter Pipeline
+   # predicted_event_type, predicted_user_intent, confidence, ambiguity
+-> Thin Action Policy
 -> actual_action
 ```
 
-LLM은 one-shot action judge baseline, signal interpreter, ambiguous fallback, evaluator/debugger 중 하나 이상의 역할을 맡을 수 있다.
+LLM은 one-shot action judge baseline으로 보존할 수도 있고, 다음 구조에서는 `Interpreter Pipeline` 안의 보조 판단, ambiguous fallback, evaluator/debugger 중 하나 이상의 역할을 맡을 수 있다.
 
 현재 가장 유력한 회복 후보로 본다.
 
@@ -66,6 +67,7 @@ risky case
 - 현재 direct LLM action judge만 유지하면 빠르지만 제품 흐름 설명력이 약하다.
 - 초기 rule mapping만으로 돌아가면 5차에서 발견한 hardcoding 우려가 되살아난다.
 - 따라서 기존 LLM 구현을 보존하면서, 고객 신호 해석과 AI 행동 판단을 다시 나누는 방향을 먼저 검토한다.
+- 단, `Interpreter Pipeline`만 만들고 `actual_action` 생성을 뒤로 미루지는 않는다. 첫 실험은 `Interpreter Pipeline + Thin Action Policy`가 한 run 안에서 같이 돌아야 기존 `expected_action vs actual_action` 평가 흐름이 유지된다.
 
 ## 판단이 바뀐 지점
 
@@ -80,15 +82,34 @@ baseline부터 LLM action judge가 최종 action label을 고른다.
 재해석:
 baseline부터 고객 발화를 보고 판단하는 주체가 필요하다.
 그 주체는 direct LLM action judge일 수도 있지만,
-Signal Analyzer, classifier, rule/threshold, LLM fallback, hybrid 구조일 수도 있다.
+Interpreter Pipeline, classifier, rule/threshold, LLM fallback, hybrid 구조일 수도 있다.
 ```
 
 즉, 문제는 LLM을 붙였다는 점이 아니라 LLM이 고객 신호 해석과 AI 행동 판단을 한 번에 맡게 된 점이다.
 
+## 용어 기준
+
+이번 사안에서는 LLM을 고객 신호 해석 파이프라인의 이름처럼 부르지 않고, 고객 발화를 해석하는 층은 `Interpreter Pipeline`으로 부른다.
+
+`event_type`, `expected_user_intent`, `expected_action`은 사람이 붙인 기준 annotation이다. 반면 `predicted_event_type`, `predicted_user_intent`는 runtime에 transcript/context를 보고 만든 해석 결과 후보 이름이다.
+
+따라서 허용되는 흐름은 아래에 가깝다.
+
+```text
+predicted_event_type
++ predicted_user_intent
++ confidence
++ ambiguity
+-> Thin Action Policy
+-> actual_action
+```
+
+문제는 mapping 자체가 아니라, 사람이 붙인 `scenario.event_type`을 runtime 판단 결과처럼 써서 `actual_action`을 고르는 것이다.
+
 ## 연결된 파일
 
-- `context/temp/analysis-notes/pipeline-layer-realignment-working-context.tmp.md`
-- `context/temp/pair-briefs/pipeline-layer-realignment-pair-brief.tmp.md`
+- `context/temp/pipeline-layer-realignment-working-context.tmp.md`
+- `context/temp/pipeline-layer-realignment-pair-brief.tmp.md`
 - `context/decisions/2026-05-09-llm-action-policy-baseline/README.md`
 - `context/internal/product-context.md`
 - `context/internal/mvp/current.md`

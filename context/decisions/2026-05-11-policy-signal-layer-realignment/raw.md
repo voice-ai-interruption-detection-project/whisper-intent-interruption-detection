@@ -49,10 +49,11 @@ Text scenario / direct input / audio transcript
 ```text
 입력 경로
 -> transcript / speech signal
--> Signal Analyzer
--> Action Policy
--> optional LLM fallback
--> safety guard
+-> Interpreter Pipeline
+   # predicted_event_type, predicted_user_intent, confidence, ambiguity
+   # 내부 기능 후보: rule/threshold, LLM 보조 판단, ambiguous fallback, debug helper
+-> Thin Action Policy
+-> actual_action
 -> evaluation / run artifact
 ```
 
@@ -79,6 +80,8 @@ policy도 애초에 이렇게 LLM으로만 나뉠 필요가 없었던 것 같다
 현재 문제는 LLM을 썼다는 점이 아니라,
 고객 신호 해석과 AI 행동 판단이 LLM action judge 한 층으로 합쳐져 있다는 점이다.
 ```
+
+세션 중 LLM을 고객 신호 해석 파이프라인의 이름처럼 부르는 표현은 너무 어렵고 역할을 좁혀 보이게 한다고 보았다. 대신 `Interpreter Pipeline`을 두고, 그 안에 rule, LLM, fallback, debug helper 같은 기능이 붙을 수 있다고 설명하는 쪽으로 정리했다.
 
 ## 페어 설명용으로 정리한 최소 도식
 
@@ -112,12 +115,16 @@ RunnerInput
 -> actual_action
 ```
 
+이때 `Interpreter Pipeline`만 만들고 action 생성을 나중으로 미루지는 않기로 했다. 기존 Test Bench의 핵심은 `expected_action`과 `actual_action` 비교이므로, 첫 실험은 `Interpreter Pipeline + Thin Action Policy`를 한 run 안에서 같이 굴리는 쪽이 자연스럽다고 보았다.
+
 ## 오해 방지 메모
 
 - `event_type`, `expected_user_intent`, `expected_action`은 현재 기준으로 사람이 붙인 기준 annotation이다.
 - `actual_action`, `reason`, `signals`는 policy 실행 후 생기는 결과다.
 - 현재 LLM prompt에서 `event_type`, `expected_user_intent`, `expected_action`을 제외한 것은 hardcoded label mapping을 줄이기 위한 guard로 의미가 있다.
 - 다만 guard가 있다는 사실과 LLM이 최종 action judge를 맡는 것이 제품적으로 최선이라는 주장은 다르다.
+- `predicted_event_type`은 새 제품 개념을 늘리려는 이름이 아니라, 사람이 붙인 기준 annotation인 `event_type`과 runtime 해석 결과를 분리하기 위한 후보 이름이다.
+- `Thin Action Policy`가 쓸 수 있는 값은 `scenario.event_type`이 아니라 runtime에 만들어진 `predicted_event_type`, `predicted_user_intent`, `confidence`, `ambiguity` 같은 해석 결과여야 한다.
 - 이 decision은 현재 구현을 되돌리자는 기록이 아니라, 다음 작업을 진행할 수 있다는 가정에서 signal/action 층위를 다시 나눠볼 필요를 남기는 기록이다.
 - 개인 고민 자료는 공식 결정 근거가 아니라 사용자 의도와 불안의 흐름을 추적하는 보조 자료로만 본다.
 
@@ -131,8 +138,8 @@ RunnerInput
 
 ## 현재 작성한 temp 문서
 
-- `context/temp/analysis-notes/pipeline-layer-realignment-working-context.tmp.md`
-- `context/temp/pair-briefs/pipeline-layer-realignment-pair-brief.tmp.md`
+- `context/temp/pipeline-layer-realignment-working-context.tmp.md`
+- `context/temp/pipeline-layer-realignment-pair-brief.tmp.md`
 
 ## 저장한 원문
 
