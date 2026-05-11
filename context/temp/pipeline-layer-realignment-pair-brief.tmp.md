@@ -4,6 +4,8 @@
 
 현재 이슈는 LLM을 썼다는 점이 아니라, 고객 신호 해석과 AI 행동 판단이 `LLM action judge` 한 층으로 합쳐져 있다는 점이다.
 
+이 문서는 예전 자료로 되돌아가자는 제안이 아니라, 현재 구현에서 흐려진 파이프라인 층위를 다시 보려는 페어 논의용 메모다.
+
 ## 원래 의도한 판단 흐름
 
 ```text
@@ -29,6 +31,9 @@ AI 행동 판단
 -> 그 신호를 바탕으로 continue, brief_ack, respond_and_continue, stop_and_switch 등을 선택
 ```
 
+초기 기획에서 중요했던 것은 Text/Audio/Mic 중 어느 입력을 쓰든, 뒤쪽에서는 같은 판단 흐름을 타야 한다는 점이었다.
+다만 이때의 `event_type`은 사람이 붙인 기준 annotation이었고, runtime 판단 결과는 아직 따로 없었다.
+
 ## 5차 전 placeholder 흐름
 
 ```text
@@ -40,6 +45,7 @@ AI 행동 판단
 ```
 
 이 흐름은 runner, evaluator, UI, Test Bench를 확인하는 데는 유용했다.
+당시 목적은 고객 신호 해석기를 완성하는 것보다, action label이 runner/evaluator/UI에서 끝까지 흐르는지 먼저 보는 데 가까웠다.
 
 다만 고객 발화 자체를 보고 신호를 판단하는 층이 빠져 있었다.
 
@@ -50,6 +56,8 @@ AI 행동 판단
 "그게 아니라 환불받고 싶은데요"
 -> 왜 intent_shift로 봤는가?
 ```
+
+여기서 생긴 문제는 `event_type -> action` 매핑이 임시 발판을 넘어 실제 판단 로직처럼 읽히기 시작했다는 점이다.
 
 ## 현재 구현 흐름
 
@@ -72,6 +80,7 @@ excluded:
 ```
 
 그래서 현재 구조는 label mapping 문제를 줄인다.
+이 전환은 "사람이 붙인 event_type을 보지 말고, transcript를 보고 실제 판단하게 하자"는 문제의식에서 나왔다.
 
 하지만 LLM이 아래 두 질문을 한 번에 처리한다.
 
@@ -102,6 +111,7 @@ excluded:
 핵심은 고객 발화를 해석하는 `Interpreter Pipeline`을 먼저 잡는 것이다.
 그 안에는 필요에 따라 rule, LLM, fallback, debug 보조 기능이 붙을 수 있다.
 다만 action 생성을 뒤로 미루지는 않는다. 기존 Test Bench 흐름을 살리기 위해 첫 실험부터 얇은 `Action Policy`가 `actual_action`까지 만든다.
+즉 다시 단순 mapping으로 돌아가자는 것이 아니라, 해석 결과와 action 선택을 한 run 안에서 같이 남기자는 방향이다.
 
 ```text
 직접 action 판단 baseline

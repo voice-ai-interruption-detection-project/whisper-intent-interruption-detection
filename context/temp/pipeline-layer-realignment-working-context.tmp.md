@@ -457,21 +457,33 @@ event_type vs predicted_event_type
 expected_user_intent vs predicted_user_intent
 ```
 
-## 하지 말아야 할 것
+## 작업 경계
 
-- 현재 `LLMActionPolicy`를 바로 삭제하지 않는다.
-- 기존 run artifact를 덮어쓰거나 의미를 바꾸지 않는다.
-- `context/internal/`만 보고 현재 구현을 정당화하지 않는다. 이번 작업은 active 기준 자체를 검토하는 작업이다.
-- 개인 고민 자료를 공식 결정 근거처럼 쓰지 않는다.
-- 공개 `docs/` 정리는 active context 재정렬 이후로 미룬다.
-- `event_type`, `expected_user_intent`, `expected_action`을 runtime prediction 값처럼 설명하지 않는다.
-- Interpreter Pipeline만 만들고 `actual_action` 생성을 뒤로 미뤄 기존 Test Bench 비교 흐름을 끊지 않는다.
+이번 작업은 현재 구조를 부정하거나 과거 구조로 되돌리는 일이 아니다.
+지금까지 만든 흐름을 보존하면서, 어느 층이 합쳐져 있는지 다시 정리하는 작업이다.
 
-## 다음 세션 체크리스트
+| 항목 | 뜻 | 이번 작업에서의 기준 |
+| --- | --- | --- |
+| `LLMActionPolicy` | 지금 코드에 있는 LLM 기반 action 판단 정책 | 바로 삭제하지 않는다. hardcoded mapping 문제를 피한 direct LLM action judge baseline으로 보존한다. |
+| `results/runs/*` | 과거 Test Bench 실행 결과 폴더 | 과거 실험 기록이므로 덮어쓰거나 의미를 바꾸지 않는다. 새 실험은 새 run artifact로 남긴다. |
+| `context/internal/` | 현재 active 기준 문서 모음 | 현재 문서를 그대로 정답으로 두지 않는다. 이번 작업은 active 기준 자체를 다시 점검하는 작업이다. |
+| 개인 고민 자료 | repo 밖 또는 임시 대화에서 나온 보조 생각 | 참고만 한다. 공식 결정 근거는 repo 안의 decision/context/code/data/run artifact로 남긴다. |
+| 공개 `docs/` | 외부 공유용 문서 | 지금 바로 고치지 않는다. 먼저 내부 기준(`context/decisions/`, `context/internal/`)을 맞춘 뒤 옮긴다. |
+| `event_type`, `expected_user_intent`, `expected_action` | 사람이 scenario에 붙인 기준 annotation | runtime 예측값처럼 설명하지 않는다. interpreter 진단이나 action 평가 기준으로만 쓴다. |
+| `Interpreter Pipeline` | 고객 발화를 보고 신호를 해석하는 단계 | 이것만 만들고 멈추지 않는다. 첫 실험은 `Thin Action Policy`까지 붙여 `actual_action`을 만든다. |
+| `Thin Action Policy` | 해석 결과를 AI 행동으로 바꾸는 얇은 판단 단계 | 기존 Test Bench 비교 흐름을 유지하기 위해 `actual_action`을 생성한다. |
 
-1. 이 문서와 `pipeline-layer-realignment-pair-brief.tmp.md`를 먼저 읽는다.
-2. 기존 `LLM Action Policy Baseline` decision을 유지/격하/supersede 중 어떻게 다룰지 정한다.
-3. 새 decision을 만들지, 페어와 먼저 논의할지 선택한다.
-4. active context 수정 대상 파일 목록을 확정한다.
-5. 파일 수정 전 변경 계획을 사용자에게 보여준다.
-6. 코드 리팩터링은 context/decision 정렬 후 별도 작업으로 분리한다.
+## 다음 작업 순서
+
+1. 이 문서와 `pipeline-layer-realignment-pair-brief.tmp.md`를 읽는다.
+   현재 문제가 "direct LLM action judge 한 층에 신호 해석과 행동 선택이 합쳐진 상태"라는 점을 맞춘다.
+2. 기존 `LLM Action Policy Baseline` decision을 어떻게 다룰지 정한다.
+   폐기보다는 "hardcoded event_type mapping을 피하기 위해 붙인 direct baseline"으로 재해석하는 쪽이 자연스럽다.
+3. 새 decision을 남긴다.
+   후보 위치는 `context/decisions/2026-05-11-policy-signal-layer-realignment/`이고, 상태는 `exploring`이 자연스럽다.
+4. active context에서 바꿀 파일과 문구 방향을 먼저 정한다.
+   대상 후보는 `product-context.md`, `mvp/current.md`, `current-iteration-plan.md`, `project-language-map.md`, `scenario-worked-example.md`, `evaluation-and-results-contract.md`다.
+5. 문서 변경 계획을 사용자/페어에게 먼저 보여준다.
+   이 작업은 코드보다 context 기준이 먼저 흔들리는 작업이기 때문이다.
+6. 코드 리팩터링은 그 다음 작업으로 분리한다.
+   첫 코드 후보는 `InterpreterPipeline` contract와 `ThinActionPolicy`를 얇게 세우는 것이다.
