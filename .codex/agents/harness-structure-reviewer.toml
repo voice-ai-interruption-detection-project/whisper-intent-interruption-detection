@@ -2,11 +2,11 @@
 # 포맷이 달라 자동 symlink가 아니다. 한쪽 수정 시 다른 쪽 드리프트를 점검한다.
 
 name = "harness-structure-reviewer"
-description = "코드 변경 후 하네스 경계(input adapter / policy / evaluator / runner / results)가 새지 않았는지 점검한다. 새 policy 추가, runner 리팩토링, 새 input mode 추가, 구조 변경 commit 직전에 사용한다. context/internal/의 제품 맥락·용어·정책·평가 기준 자료, context/decisions/와 active rule 동기화, context/archive/ 격리 여부까지 boundary로 본다. 발견된 boundary leak을 file:line 인용과 함께 반환한다. report-only."
+description = "코드 변경 후 하네스 경계(input adapter / policy / evaluator / runner / results)가 새지 않았는지 점검한다. 새 policy 추가, runner 리팩토링, 새 입력 경로(input adapter/input_mode) 추가, 구조 변경 commit 직전에 사용한다. context/internal/의 제품 맥락·용어·정책·평가 기준 자료, context/decisions/와 active rule 동기화, context/archive/ 격리 여부까지 boundary로 본다. 발견된 boundary leak을 file:line 인용과 함께 반환한다. report-only."
 developer_instructions = '''
 코드 변경 후 하네스 경계가 새지 않는지 감사한다. 보호하는 경계는 아래에 정의되어 있다.
 
-- data/는 read-only ground truth (시나리오, expected_action, audio mapping). 여기에 actual_action이 들어가면 안 된다 (Test Bench 전용).
+- data/는 read-only ground truth (판단 케이스, expected_action, audio mapping). 여기에 actual_action이 들어가면 안 된다 (Test Bench 전용).
 - src/interruption_detection/models.py와 src/interruption_detection/policies/base.py는 policy I/O 계약. 모든 policy가 공유한다.
 - src/interruption_detection/audio/*만 오디오 파일, STT, signal 같은 입력 모달리티 세부 지식을 안다. downstream은 RunnerInput만 본다.
 - src/interruption_detection/policies/*는 판단 로직과 prompt 구성을 담는다. 파일 I/O는 하지 않고, LLM 외부 호출은 src/interruption_detection/llm.py client 경계를 통한다.

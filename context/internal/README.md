@@ -9,8 +9,9 @@
 ## 운영 기준
 
 - 처음부터 현재 기준 어휘로 작성한다.
+- 제품 의도와 테스트/개발 편의 용어를 분리해 쓴다.
 - action label은 `respond_and_continue` 같은 현재 라벨을 쓴다.
-- 실패 분류는 primary 5종(`false_stop`, `missed_switch`, `action_confusion`, `ambiguous_intent`, `STT_uncertainty`)을 기준으로 한다.
+- 현재 평가 계약의 실패 분류는 primary 5종(`false_stop`, `missed_switch`, `action_confusion`, `ambiguous_intent`, `STT_uncertainty`)을 기준으로 한다.
 - 결과 산출물은 `results/runs/{run_id}/` 계약을 기준으로 한다.
 - 과거 자료를 그대로 복사하지 말고, 필요한 내용만 현재 기준으로 재정리한다.
 
@@ -28,14 +29,25 @@
 | --- | --- |
 | [MVP Execution Hub](mvp/README.md) | 현재 MVP의 실행 기준, Step별 계획, 새 MVP 후보와 과거 혼선 방지 가이드 |
 | [Current MVP](mvp/current.md) | 현재 코드 상태와 내부 기준에 맞춘 살아있는 MVP 실행 범위 |
-| [Product Context](product-context.md) | 제품 문제, 현재 범위, 사용자, 비목표, 남은 결정 후보를 다시 잡기 위한 현재 기준 |
-| [Project Language Map](project-language-map.md) | scenario, input mode, event type, action label, policy version의 층위 정리 |
+| [Product Context](product-context.md) | 제품 문제, 현재 범위, 사용자, 후순위 범위를 다시 잡기 위한 현재 기준 |
+| [Project Language Map](project-language-map.md) | 판단 케이스, 입력 경로, event type, action label, policy version의 층위 정리 |
 | [Reference](reference/README.md) | schema key와 enum value를 빠르게 확인하는 하위 참조 문서 묶음 |
-| [Schema Keys](reference/schema-keys.md) | scenario 원본 key와 run result key의 역할 구분 |
+| [Schema Keys](reference/schema-keys.md) | 판단 케이스(`scenario`) 원본 key와 run result key의 역할 구분 |
 | [Event Types](reference/event-types.md) | `event_type` 7종의 개념, 대표 신호, 경계 기준 |
 | [Action Labels](reference/action-labels.md) | action label 6종의 의미와 expected/actual 역할 구분 |
-| [Scenario Worked Example](scenario-worked-example.md) | 한 scenario가 schema key/value, policy 판단, evaluation으로 이어지는 예시 |
+| [Scenario Worked Example](scenario-worked-example.md) | 한 판단 케이스(`scenario`)가 schema key/value, policy 판단, evaluation으로 이어지는 예시 |
 | [Evaluation and Results Contract](evaluation-and-results-contract.md) | metric, failure taxonomy, `results/runs/{run_id}/` 계약, 수치 인용 기준 |
+
+## 읽기 우선순위
+
+모든 세션에서 모든 문서를 읽을 필요는 없다. 작업 목적에 따라 아래처럼 시작점을 나눈다.
+
+| 목적 | 먼저 볼 문서 | 필요할 때만 볼 문서 |
+| --- | --- | --- |
+| 제품 방향이나 MVP 범위 확인 | [Product Context](product-context.md), [Current MVP](mvp/current.md) | [Project Language Map](project-language-map.md), [decisions](../decisions/) |
+| 코드/실험 작업 | [Current MVP](mvp/current.md), [Evaluation and Results Contract](evaluation-and-results-contract.md), `.claude/rules/` | [Reference](reference/README.md), [Scenario Worked Example](scenario-worked-example.md) |
+| 용어 혼선 해소 | [Project Language Map](project-language-map.md) | [Reference](reference/README.md), [Scenario Worked Example](scenario-worked-example.md) |
+| 제품 의도 복원 / 문서 감사 | 회의 원문, [decisions](../decisions/), 검토 대상 문서 | [archive](../archive/)는 예전 의도 확인이 꼭 필요할 때만 |
 
 ## docs로 반영할 때
 

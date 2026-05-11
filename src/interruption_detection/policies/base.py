@@ -16,5 +16,5 @@ class Policy(Protocol):
         ...
 
     def snapshot(self) -> dict[str, object]:
-        """실행 산출물에 남길 정책 설정 스냅샷을 반환한다."""
+        """run artifact에 남길 정책 설정 스냅샷을 반환한다."""
         ...

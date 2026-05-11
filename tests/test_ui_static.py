@@ -14,7 +14,9 @@ def test_root_serves_static_ui() -> None:
 
     assert response.status_code == 200
     assert "Whisper Intent Workbench" in response.text
-    assert "Test Bench Report" in response.text
+    assert "단일 케이스 확인" in response.text
+    assert "선택한 케이스" in response.text
+    assert "Test Bench" in response.text
     assert "/static/js/main.js" in response.text
 
 

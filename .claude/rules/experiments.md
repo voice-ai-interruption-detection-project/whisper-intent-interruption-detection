@@ -1,6 +1,6 @@
 # Experiment Rules
 
-이 파일은 Test Bench(scenario set batch eval) 작업 시 참고하는 가이드다. Playground는 expected_action·run artifact 계약이 없어서 이 파일을 거치지 않는다. 작업 라우팅은 루트 [CLAUDE.md](../../CLAUDE.md)를 본다.
+이 파일은 Test Bench(판단 케이스 set batch eval) 작업 시 참고하는 가이드다. Playground는 expected_action·run artifact 계약이 없어서 이 파일을 거치지 않는다. 작업 라우팅은 루트 [CLAUDE.md](../../CLAUDE.md)를 본다.
 
 ## Source of Truth 분리
 
@@ -39,14 +39,14 @@
 - README, report, presentation, slack 등에 수치를 인용할 때는 `results/runs/{run_id}` 가 존재하고 같은 값을 가져야 한다.
 - Playground 화면에서 본 수치는 외부 인용 출처로 쓰지 않는다. 같은 정책으로 Test Bench batch를 한 번 돌려서 run artifact를 만든 다음 인용한다.
 - 외부 공유 전에는 `result-evidence-checker` agent로 한 번 더 본다.
-- 외부 docs 어휘는 primary 5종(`false_stop`, `missed_switch`, `action_confusion`, `ambiguous_intent`, `STT_uncertainty`) 중 정의된 것만 사용한다.
+- 외부 공유 문서에서 실패 유형을 새로 만들기 전에는 primary 5종(`false_stop`, `missed_switch`, `action_confusion`, `ambiguous_intent`, `STT_uncertainty`)의 정의로 설명할 수 있는지 먼저 본다.
 
 ## 실패는 두 축으로 본다
 
-- Primary (사용자 시점): `false_stop`, `missed_switch`, `action_confusion`, `ambiguous_intent`, `STT_uncertainty`. 보고서·README가 쓰는 단어.
-- Secondary (디버깅 시점): `transcription`, `signal`, `intent`, `policy_threshold`, `eval_criteria`, `latency_streaming`. 디버깅할 때만 켠다.
+- Primary (사용자 시점): `false_stop`, `missed_switch`, `action_confusion`, `ambiguous_intent`, `STT_uncertainty`. 보고서·README가 쓰는 기본 단어.
+- Secondary (디버깅 시점): `transcription`, `signal`, `intent`, `policy_threshold`, `eval_criteria`, `latency_streaming`. 원인 분석이 필요할 때만 켠다.
 - 두 축을 평면에 섞어 나열하지 않는다.
-- 실패 케이스가 쌓인 직후 `failure-classifier` agent로 두 축 분류 결과를 받는다 (issue·다음 실험 계획 직전).
+- 실패 케이스가 쌓이고 issue나 다음 실험 계획으로 이어질 때는 `failure-classifier` agent로 두 축 분류 결과를 받아도 된다.
 
 ## 규칙 추가 기준
 

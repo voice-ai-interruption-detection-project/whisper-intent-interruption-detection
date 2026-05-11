@@ -2,7 +2,7 @@
 
 이 문서는 action label 6종을 짧게 확인하기 위한 내부 reference다.
 
-action label은 AI Action Policy가 선택할 수 있는 AI 행동 이름이다. 같은 값 집합이 `expected_action`과 `actual_action` 양쪽에서 쓰인다.
+action label은 AI 행동 판단(AI Action Policy)이 선택할 수 있는 AI 행동 이름이다. 같은 값 집합이 `expected_action`과 `actual_action` 양쪽에서 쓰인다.
 
 ```text
 expected_action = 사람이 정한 기준 action label
@@ -24,7 +24,7 @@ actual_action   = policy가 낸 결과 action label
 
 | 위치 | 같은 값 예시 | 뜻 |
 | --- | --- | --- |
-| `expected_action` | `stop_and_switch` | 사람이 이 scenario의 기준 행동을 전환으로 정했다 |
+| `expected_action` | `stop_and_switch` | 사람이 이 판단 케이스의 기준 행동을 전환으로 정했다 |
 | `actual_action` | `stop_and_switch` | policy가 실행 후 전환을 선택했다 |
 
 두 값이 같으면 action-level 평가에서 맞은 것이다. 두 값이 다르면 policy가 기준과 다른 action label을 고른 것이다.

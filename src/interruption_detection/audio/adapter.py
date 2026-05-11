@@ -26,7 +26,9 @@ def run_audio_item(
     signal_started = perf_counter()
     signal_summary = analyze_audio_file(audio_path)
     signal_ms = round((perf_counter() - signal_started) * 1000, 3)
+
     transcript = transcriber.transcribe(audio_path, item)
+
     runner_input = RunnerInput(
         scenario_id=scenario.scenario_id,
         domain=scenario.domain,
@@ -40,12 +42,15 @@ def run_audio_item(
         has_user_speech=transcript.has_user_speech,
         notes=scenario.notes,
     )
+
     decision = run_input(runner_input, policy_name)
+
     stage_latencies = {
         **transcript.stage_latencies_ms,
         "audio_signal_ms": signal_ms,
         **decision.stage_latencies_ms,
     }
+
     signals = {
         **decision.signals,
         "input_mode": "audio_file",
@@ -76,6 +81,7 @@ def run_audio_item(
             "metadata": transcript.metadata,
         },
     }
+
     return decision.model_copy(
         update={
             "signals": signals,
@@ -92,6 +98,7 @@ def _transcript_matches_reference(
     """STT transcript가 manifest 기준 transcript와 같은지 비교한다."""
     if reference is None:
         return None
+
     return _normalize_transcript(actual) == _normalize_transcript(reference)
 
 
@@ -102,6 +109,7 @@ def _transcript_edit_distance(
     """Whisper run 분석용으로 간단한 문자 편집 거리를 계산한다."""
     if reference is None:
         return None
+
     return _levenshtein_distance(
         _normalize_transcript(actual),
         _normalize_transcript(reference),
@@ -115,12 +123,16 @@ def _transcript_similarity(
     """편집 거리 기반 0~1 transcript 유사도를 반환한다."""
     if reference is None:
         return None
+
     normalized_actual = _normalize_transcript(actual)
     normalized_reference = _normalize_transcript(reference)
     max_length = max(len(normalized_actual), len(normalized_reference))
+
     if max_length == 0:
         return 1.0
+
     distance = _levenshtein_distance(normalized_actual, normalized_reference)
+
     return round(1 - (distance / max_length), 4)
 
 
@@ -134,8 +146,10 @@ def _levenshtein_distance(left: str, right: str) -> int:
     """짧은 transcript 비교를 위한 표준 Levenshtein distance."""
     if left == right:
         return 0
+
     if not left:
         return len(right)
+
     if not right:
         return len(left)
 
@@ -147,5 +161,7 @@ def _levenshtein_distance(left: str, right: str) -> int:
             insertion = current[right_index - 1] + 1
             substitution = previous[right_index - 1] + (left_char != right_char)
             current.append(min(deletion, insertion, substitution))
+
         previous = current
+
     return previous[-1]

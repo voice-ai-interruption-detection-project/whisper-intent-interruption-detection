@@ -29,6 +29,7 @@ def analyze_audio_file(
 ) -> AudioSignalSummary:
     """오디오 파일의 기본 신호 정보를 계산한다."""
     path = Path(audio_path)
+
     if not path.exists():
         return AudioSignalSummary(path=str(path), exists=False)
 
@@ -37,6 +38,7 @@ def analyze_audio_file(
     except Exception:
         if path.suffix.lower() == ".wav":
             return _analyze_wav(path, energy_threshold=energy_threshold)
+
         return AudioSignalSummary(
             path=str(path),
             exists=True,
@@ -53,13 +55,16 @@ def _analyze_with_soundfile(
     import soundfile as sf
 
     samples, sample_rate = sf.read(path, always_2d=True)
+
     if samples.size == 0:
         rms = 0.0
         peak = 0.0
     else:
         rms = float(np.sqrt(np.mean(np.square(samples))))
         peak = float(np.max(np.abs(samples)))
+
     duration_ms = round((len(samples) / sample_rate) * 1000, 3) if sample_rate else 0
+
     return AudioSignalSummary(
         path=str(path),
         exists=True,
@@ -87,6 +92,7 @@ def _analyze_wav(
 
     sample_count = max(frames * channels, 1)
     values = _pcm_values(raw, sample_width)
+
     if not values:
         rms = 0.0
         peak = 0.0
@@ -97,6 +103,7 @@ def _analyze_wav(
         peak = max(abs(value) for value in normalized)
 
     duration_ms = round((frames / sample_rate) * 1000, 3) if sample_rate else 0
+
     return AudioSignalSummary(
         path=str(path),
         exists=True,
@@ -113,15 +120,20 @@ def _analyze_wav(
 def _pcm_values(raw: bytes, sample_width: int) -> list[int]:
     if sample_width not in {1, 2, 4}:
         return []
+
     values: list[int] = []
+
     for index in range(0, len(raw), sample_width):
         chunk = raw[index : index + sample_width]
+
         if len(chunk) != sample_width:
             continue
+
         if sample_width == 1:
             values.append(int.from_bytes(chunk, "little", signed=False) - 128)
         else:
             values.append(int.from_bytes(chunk, "little", signed=True))
+
     return values
 
 

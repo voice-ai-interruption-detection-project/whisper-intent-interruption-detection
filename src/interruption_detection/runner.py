@@ -7,7 +7,7 @@ from interruption_detection.policies import get_policy
 
 
 def run_scenario(scenario: Scenario, policy_name: str) -> PolicyDecision:
-    """정적 시나리오를 RunnerInput으로 바꿔 지정한 정책을 실행한다."""
+    """판단 케이스(Scenario)를 RunnerInput으로 바꿔 지정한 정책을 실행한다."""
     return run_input(RunnerInput.from_scenario(scenario), policy_name)
 
 
@@ -16,11 +16,14 @@ def run_input(runner_input: RunnerInput, policy_name: str) -> PolicyDecision:
     # 명령행, API, UI, 평가기가 모두 같은 정책 실행 경로를 통과하게 한다.
     policy = get_policy(policy_name)
     started = perf_counter()
+
     decision = policy.predict(runner_input)
     policy_ms = (perf_counter() - started) * 1000
     stage_latencies = dict(decision.stage_latencies_ms)
+
     # 정책 내부 단계가 있으면 유지하고, 실행기가 바깥 실행 시간을 추가한다.
     stage_latencies["policy_ms"] = round(policy_ms, 3)
+
     return decision.model_copy(
         update={
             "stage_latencies_ms": stage_latencies,

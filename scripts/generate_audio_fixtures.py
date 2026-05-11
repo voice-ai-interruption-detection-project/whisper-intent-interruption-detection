@@ -16,9 +16,9 @@ from interruption_detection.scenarios import load_scenarios
 
 
 def main() -> int:
-    """scenario bank에서 Audio File Test용 TTS fixture와 manifest를 생성한다."""
+    """판단 케이스(Scenario) 기준 오디오 파일 입력용 TTS fixture와 manifest를 생성한다."""
     parser = argparse.ArgumentParser(
-        description="시나리오 기준 Audio File Test fixture와 manifest를 생성한다."
+        description="판단 케이스(Scenario) 기준 오디오 파일 입력 fixture와 manifest를 생성한다."
     )
     parser.add_argument("--dataset", default="data/scenarios.json")
     parser.add_argument("--output-dir", default="data/audio/fixtures")
@@ -37,6 +37,7 @@ def main() -> int:
 
     scenarios = load_scenarios(args.dataset)
     selected_ids = set(args.scenario_id)
+
     selected = [
         scenario
         for scenario in scenarios
@@ -48,6 +49,7 @@ def main() -> int:
             include_no_speech=args.include_no_speech,
         )
     ]
+
     if not selected:
         raise ValueError(
             "no scenarios selected; pass --scenario-id, --all-speech, or --include-no-speech"
@@ -59,10 +61,12 @@ def main() -> int:
     speech_tts = build_tts_client(args.provider, voice)
     silence_tts = SilenceTTSClient()
     manifest_items = []
+
     for scenario in selected:
         suffix = args.format.lower().lstrip(".") if scenario.has_user_speech else "wav"
         audio_path = output_dir / f"{scenario.scenario_id}.{suffix}"
         text = scenario.user_utterance
+
         if scenario.has_user_speech:
             speech_tts.synthesize(
                 TTSRequest(
@@ -101,11 +105,13 @@ def main() -> int:
         )
 
     manifest = {"version": "audio_fixture_v1", "items": manifest_items}
+
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
     manifest_path.write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
+
     print(
         json.dumps(
             {
@@ -117,6 +123,7 @@ def main() -> int:
             indent=2,
         )
     )
+
     return 0
 
 
@@ -128,11 +135,13 @@ def should_generate_scenario(
     all_speech: bool,
     include_no_speech: bool,
 ) -> bool:
-    """명령행 선택 기준으로 fixture 생성 대상 시나리오인지 판단한다."""
+    """명령행 선택 기준으로 fixture 생성 대상 판단 케이스(Scenario)인지 판단한다."""
     if scenario_id in selected_ids:
         return True
+
     if has_user_speech and all_speech:
         return True
+
     return not has_user_speech and include_no_speech
 
 
@@ -140,8 +149,10 @@ def build_tts_client(provider: str, voice: str) -> TTSClient:
     """명령행 provider를 실제 TTS client로 바꾼다."""
     if provider == "openai":
         return OpenAITTSClient()
+
     if provider == "say":
         return SayTTSClient(voice=voice)
+
     raise ValueError(f"unknown TTS provider: {provider}")
 
 
@@ -149,8 +160,10 @@ def tts_voice(provider: str, requested: str | None) -> str:
     """provider별 기본 voice를 고른다."""
     if requested:
         return requested
+
     if provider == "say":
         return os.getenv("LOCAL_TTS_VOICE", "Yuna")
+
     return os.getenv("OPENAI_TTS_VOICE", "coral")
 
 

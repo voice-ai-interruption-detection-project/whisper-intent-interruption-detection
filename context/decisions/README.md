@@ -53,6 +53,8 @@ tags: []
 | 2026-05-09 | LLM Action Policy Baseline | active |  |
 | 2026-05-09 | Context Directory Boundary | active |  |
 | 2026-05-09 | Product Planning Archive Boundary | active |  |
+| 2026-05-11 | Context Intent Alignment | active | docs/context-intent-alignment |
+| 2026-05-11 | UI Wording Layer Balance | active | docs/context-intent-alignment |
 
 ## 다른 기록과의 경계
 

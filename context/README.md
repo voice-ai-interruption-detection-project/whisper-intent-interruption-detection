@@ -22,3 +22,9 @@
 과거 자료나 폐기된 후보가 필요하면 [archive](archive/)를 보되, active 기준으로 직접 쓰지 않는다.
 
 임시 메모는 [temp](temp/)에 둘 수 있지만, 오래 남으면 `context/internal/`이나 `context/decisions/`로 승격할지 검토한다.
+
+## 의도 복원 / 문서 감사 예외
+
+제품 의도 복원, 문서 왜곡 점검, 과거 합의 검증처럼 현재 기준 자체를 검토하는 작업에서는 [internal](internal/)을 곧바로 정답으로 두지 않는다.
+
+이때는 먼저 회의 원문과 `context/decisions/`로 원래 의도와 결정 맥락을 확인한다. [archive](archive/)는 예전 의도 확인이 꼭 필요할 때만 본다. 현재 `internal` 문서는 그 evidence에 비춰 검토 대상이 될 수 있다. 단, 코드 작업이나 실험 실행 기준을 정할 때는 다시 active 기준과 현재 코드 상태를 우선한다.

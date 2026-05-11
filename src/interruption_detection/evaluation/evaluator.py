@@ -27,21 +27,23 @@ def evaluate_dataset(
     changed: list[str] | None = None,
     run_id: str | None = None,
 ) -> dict[str, Any]:
-    """데이터셋 전체를 지정 정책으로 실행하고 실행 산출물을 생성한다."""
+    """데이터셋 전체를 지정 정책으로 실행하고 run artifact를 생성한다."""
     dataset = Path(dataset_path)
     scenarios = load_scenarios(dataset)
     policy = get_policy(policy_name)
     timestamp = datetime.now().astimezone()
     run_id = run_id or f"{timestamp.strftime('%Y%m%d_%H%M%S')}_{policy_name}"
     run_dir = Path(output_root) / run_id
-    # 실행 산출물은 근거 자료이므로 이전 측정값을 덮어쓰지 않는다.
+
+    # run artifact는 근거 자료이므로 이전 측정값을 덮어쓰지 않는다.
     if run_dir.exists():
         raise FileExistsError(f"run artifact already exists: {run_dir}")
+
     run_dir.mkdir(parents=True, exist_ok=False)
 
     logs: list[RunDecisionLog] = []
     for scenario in scenarios:
-        # 평가기는 공통 실행기를 재사용하고, 비교용 메타데이터만 추가한다.
+        # 평가기는 공통 runner를 재사용하고, 비교용 메타데이터만 추가한다.
         decision = run_scenario(scenario, policy_name)
         primary_failure = classify_failure(
             expected=scenario.expected_action,
@@ -101,6 +103,7 @@ def build_evaluation(logs: list[RunDecisionLog]) -> dict[str, Any]:
     """판단 로그 목록에서 정확도, 실패 수, 혼동 행렬을 계산한다."""
     total = len(logs)
     correct = sum(1 for item in logs if item.expected_action == item.actual_action)
+
     failure_counts = Counter(
         item.primary_failure.value for item in logs if item.primary_failure is not None
     )
@@ -132,8 +135,10 @@ def build_confusion_matrix(logs: list[RunDecisionLog]) -> dict[str, dict[str, in
     """예상 행동과 실제 행동의 교차표를 만든다."""
     labels = [label.value for label in ActionLabel]
     matrix = {expected: {actual: 0 for actual in labels} for expected in labels}
+
     for item in logs:
         matrix[item.expected_action.value][item.actual_action.value] += 1
+
     return matrix
 
 
@@ -147,14 +152,17 @@ def classify_failure(
     # 1차 실패는 근본 원인이 아니라 불일치의 모양을 설명한다.
     if expected == actual:
         return None
+
     if event_type == EventType.AMBIGUOUS:
         return PrimaryFailure.AMBIGUOUS_INTENT
+
     if expected in {ActionLabel.STOP_AND_SWITCH, ActionLabel.HANDOFF} and actual in {
         ActionLabel.CONTINUE,
         ActionLabel.BRIEF_ACK,
         ActionLabel.RESPOND_AND_CONTINUE,
     }:
         return PrimaryFailure.MISSED_SWITCH
+
     if expected in {
         ActionLabel.CONTINUE,
         ActionLabel.BRIEF_ACK,
@@ -165,6 +173,7 @@ def classify_failure(
         ActionLabel.HANDOFF,
     }:
         return PrimaryFailure.FALSE_STOP
+
     return PrimaryFailure.ACTION_CONFUSION
 
 
@@ -197,17 +206,22 @@ def build_error_analysis(
     ]
     for failure, count in evaluation["failures"].items():
         lines.append(f"- {failure}: {count}")
+
     failed = [item for item in logs if item.primary_failure is not None]
     lines.extend(["", "## Failed cases", ""])
+
     if not failed:
         lines.append("- none")
+
     for item in failed:
         lines.append(
             "- "
             f"{item.scenario_id}: expected={item.expected_action.value}, "
             f"actual={item.actual_action.value}, primary={item.primary_failure.value}"
         )
+
     lines.append("")
+
     return "\n".join(lines)
 
 
@@ -220,7 +234,7 @@ def _write_json(path: Path, data: dict[str, Any]) -> None:
 
 
 def _write_jsonl(path: Path, logs: list[RunDecisionLog]) -> None:
-    """시나리오별 판단 로그를 JSONL 형식으로 저장한다."""
+    """판단 케이스(Scenario)별 판단 로그를 JSONL 형식으로 저장한다."""
     with path.open("w", encoding="utf-8") as handle:
         for item in logs:
             handle.write(json.dumps(item.model_dump(mode="json"), ensure_ascii=False))

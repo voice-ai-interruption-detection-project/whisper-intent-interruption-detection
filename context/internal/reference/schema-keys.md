@@ -1,6 +1,6 @@
 # Schema Key Reference
 
-이 문서는 scenario와 run log에서 보이는 key가 어떤 층위의 정보를 담는지 맞추기 위한 내부 기준 자료다.
+이 문서는 판단 케이스(`scenario`)와 run log에서 보이는 key가 어떤 층위의 정보를 담는지 맞추기 위한 내부 기준 자료다.
 
 핵심은 key와 value를 분리해서 읽는 것이다.
 
@@ -18,11 +18,11 @@ schema key   value
 
 | schema key | 값 예시 | 층위 | 정하는 주체 | 헷갈리지 말 것 |
 | --- | --- | --- | --- | --- |
-| `scenario_id` | `commerce_shipping_to_refund_001` | 식별자 | 사람 | 제품 기능명, policy version |
+| `scenario_id` | `commerce_shipping_to_refund_001` | 판단 케이스 식별자 | 사람 | 제품 기능명, policy version |
 | `level` | `1`, `3`, `5` | 판단 난이도 | 사람 | event type의 우선순위 |
 | `domain` | `commerce` | 업무 도메인 | 사람 | intent 자체 |
 | `ai_current_intent` | `shipping_inquiry` | AI가 이어가던 업무 의도 | 사람 | 고객의 새 의도 |
-| `ai_utterance` | `현재 상품은 배송 중이며...` | AI가 말하던 문장 | 사람 | input mode |
+| `ai_utterance` | `현재 상품은 배송 중이며...` | AI가 말하던 문장 | 사람 | 입력 경로 |
 | `user_utterance` | `환불받고 싶은데요` | 고객이 끼어든 발화 | 사람 또는 transcript | event type |
 | `has_user_speech` | `true`, `false` | 음성/발화 신호 여부 | 사람 또는 신호 처리 | 의미 있는 의도 여부 |
 | `user_tone_hint` | `neutral`, `frustrated`, `urgent` | 톤 힌트 | 사람 또는 추론 | complaint label 자체 |
@@ -50,7 +50,7 @@ policy를 실행한 뒤 생기는 값은 `results/runs/{run_id}/`에 둔다. 기
 | --- | --- | --- |
 | `event_type = backchannel` | 고객 신호가 맞장구라는 뜻 | AI 행동이 `backchannel`이라는 뜻이 아니다 |
 | `expected_action = respond_and_continue` | 사람이 정한 기준 행동이 답하고 이어가기라는 뜻 | policy가 이미 그렇게 실행했다는 뜻이 아니다 |
-| `actual_action = stop_and_switch` | policy가 실행 후 전환을 선택했다는 뜻 | scenario 원본의 정답을 바꾼다는 뜻이 아니다 |
+| `actual_action = stop_and_switch` | policy가 실행 후 전환을 선택했다는 뜻 | 판단 케이스 원본의 정답을 바꾼다는 뜻이 아니다 |
 | `expected_user_intent = null` | 고객 발화에서 업무 의도가 없거나 불명확하다는 뜻 | 고객 신호가 없다는 뜻은 아니다 |
 | `has_user_speech = false` | 의미 있는 고객 발화가 없다는 뜻 | 항상 `no_speech`만 뜻하지 않는다. noise는 별도 event type일 수 있다 |
 

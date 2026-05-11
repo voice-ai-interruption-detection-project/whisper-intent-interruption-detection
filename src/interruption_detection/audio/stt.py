@@ -56,15 +56,18 @@ class PrecomputedTranscriber:
         """STT 품질과 무관하게 오디오 runner 경계를 검증한다."""
         started = perf_counter()
         text = item.expected_transcript
+
         if text is None:
             raise AudioProcessingError(
                 "expected_transcript is required for precomputed transcriber"
             )
+
         has_speech = (
             item.expected_has_user_speech
             if item.expected_has_user_speech is not None
             else bool(text.strip())
         )
+
         return AudioTranscript(
             text=text,
             has_user_speech=has_speech,
@@ -102,6 +105,7 @@ class WhisperTranscriber:
         result = model.transcribe(str(path), language=item.language, fp16=False)
         text = str(result.get("text") or "").strip()
         segments = result.get("segments") or []
+
         return AudioTranscript(
             text=text,
             has_user_speech=bool(text),
@@ -122,13 +126,16 @@ class WhisperTranscriber:
     def _load_model(self):
         if self._model is not None:
             return self._model
+
         try:
             import whisper
         except ImportError as exc:
             raise AudioProcessingError(
                 "openai-whisper is required for whisper transcriber"
             ) from exc
+
         self._model = whisper.load_model(self.model_name)
+
         return self._model
 
 
@@ -140,9 +147,11 @@ def build_transcriber(
     """CLI/API 문자열 설정을 transcriber 구현체로 바꾼다."""
     if name == "precomputed":
         return PrecomputedTranscriber()
+
     if name == "whisper":
         model_name = whisper_model or os.getenv("WHISPER_MODEL", "base")
         return WhisperTranscriber(model_name=model_name)
+
     raise AudioProcessingError(
         "unknown audio transcriber " f"'{name}'. available: precomputed, whisper"
     )

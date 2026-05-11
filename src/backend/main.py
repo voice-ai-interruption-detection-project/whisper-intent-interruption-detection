@@ -44,12 +44,12 @@ OUTPUT_ROOT = Path("results/runs")
 STATIC_DIR = Path(__file__).parent / "static"
 
 # 테스트와 로컬 실험은 app.state로 데이터/출력 경로를 바꿀 수 있다.
-app = FastAPI(title="Interruption Detection Workbench")
+app = FastAPI(title="Whisper Intent Workbench API")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
 class PolicyRequest(BaseModel):
-    """시나리오 재생에서 사용할 정책 이름 요청."""
+    """판단 케이스(Scenario) 재생에서 사용할 정책 이름 요청."""
 
     policy: str = "baseline"
 
@@ -72,7 +72,7 @@ class PredictRequest(BaseModel):
 
 
 class RunRequest(BaseModel):
-    """테스트 벤치 실행 생성을 위한 요청 모델."""
+    """Test Bench 실행 생성을 위한 요청 모델."""
 
     policy: str = "baseline"
     dataset: str | None = None
@@ -84,7 +84,7 @@ class RunRequest(BaseModel):
 
 @app.get("/")
 def index() -> FileResponse:
-    """정적 Work Bench UI의 HTML 파일을 반환한다."""
+    """Whisper Intent Workbench HTML 파일을 반환한다."""
     return FileResponse(STATIC_DIR / "index.html")
 
 
@@ -113,7 +113,7 @@ def policies() -> dict[str, object]:
 
 @app.get("/scenarios")
 def scenarios(request: Request) -> dict[str, object]:
-    """현재 데이터셋의 전체 시나리오 목록을 반환한다."""
+    """현재 데이터셋의 전체 판단 케이스(Scenario) 목록을 반환한다."""
     items = _load_scenarios(request)
     return {
         "count": len(items),
@@ -123,8 +123,9 @@ def scenarios(request: Request) -> dict[str, object]:
 
 @app.get("/scenarios/{scenario_id}")
 def scenario_detail(scenario_id: str, request: Request) -> dict[str, object]:
-    """시나리오 식별자로 상세 정보를 반환한다."""
+    """판단 케이스(Scenario) 식별자로 상세 정보를 반환한다."""
     scenario = _get_scenario(request, scenario_id)
+
     return scenario.model_dump(mode="json")
 
 
@@ -134,14 +135,16 @@ def predict_scenario(
     request: Request,
     body: PolicyRequest | None = None,
 ) -> dict[str, object]:
-    """선택한 시나리오 하나를 지정 정책으로 재생한다."""
+    """선택한 판단 케이스(Scenario) 하나를 지정 정책으로 재생한다."""
     # 엔드포인트는 얇게 유지한다: 기준 입력을 읽고 공통 실행기를 호출한다.
     policy_name = body.policy if body else "baseline"
     scenario = _get_scenario(request, scenario_id)
+
     try:
         decision = run_scenario(scenario, policy_name)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
     return {
         "scenario_id": scenario.scenario_id,
         "expected_action": scenario.expected_action.value,
@@ -151,12 +154,14 @@ def predict_scenario(
 
 @app.post("/predict")
 def predict(body: PredictRequest) -> dict[str, object]:
-    """시나리오 파일 없이 전달된 입력을 바로 정책에 태운다."""
+    """판단 케이스(Scenario) 파일 없이 전달된 입력을 바로 정책에 태운다."""
     payload = body.model_dump(exclude={"policy"})
+
     try:
         decision = run_input(RunnerInput.model_validate(payload), body.policy)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
     return {"expected_action": None, "decision": decision.model_dump(mode="json")}
 
 
@@ -170,6 +175,7 @@ async def transcribe_audio(
     """업로드한 오디오 파일을 transcript adapter로 변환한다."""
     with tempfile.TemporaryDirectory() as temp_dir:
         audio_path = await _save_upload(file, Path(temp_dir))
+
         item = _audio_item_from_upload(
             scenario_id="uploaded_audio",
             audio_path=audio_path,
@@ -177,11 +183,13 @@ async def transcribe_audio(
             transcriber=transcriber,
             language=language,
         )
+
         try:
             stt = build_transcriber(transcriber)
             result = stt.transcribe(audio_path, item)
         except AudioProcessingError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
+
         return {
             "transcript": result.model_dump(mode="json"),
             "audio_signal": analyze_audio_file(audio_path).model_dump(mode="json"),
@@ -198,10 +206,12 @@ async def predict_audio(
     transcriber: str = Form(default="precomputed"),
     language: str = Form(default="ko"),
 ) -> dict[str, object]:
-    """시나리오 context와 업로드 오디오를 합쳐 같은 runner 경로로 판단한다."""
+    """판단 케이스(Scenario) context와 업로드 오디오를 합쳐 같은 runner 경로로 판단한다."""
     scenario = _get_scenario(request, scenario_id)
+
     with tempfile.TemporaryDirectory() as temp_dir:
         audio_path = await _save_upload(file, Path(temp_dir))
+
         item = _audio_item_from_upload(
             scenario_id=scenario_id,
             audio_path=audio_path,
@@ -209,6 +219,7 @@ async def predict_audio(
             transcriber=transcriber,
             language=language,
         )
+
         try:
             stt = build_transcriber(transcriber)
             decision = run_audio_item(
@@ -220,6 +231,7 @@ async def predict_audio(
             )
         except (AudioProcessingError, ValueError) as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
+
         return {
             "scenario_id": scenario.scenario_id,
             "expected_action": scenario.expected_action.value,
@@ -229,9 +241,10 @@ async def predict_audio(
 
 @app.post("/runs")
 def create_run(body: RunRequest, request: Request) -> dict[str, object]:
-    """데이터셋 전체 평가를 실행하고 새 실행 산출물을 만든다."""
+    """데이터셋 전체 평가를 실행하고 새 run artifact를 만든다."""
     # 일괄 지표와 파일 생성 책임은 API 계층이 아니라 평가기에 있다.
     dataset = Path(body.dataset) if body.dataset else _dataset_path(request)
+
     try:
         if body.input_mode == "audio_file":
             manifest = (
@@ -268,18 +281,19 @@ def create_run(body: RunRequest, request: Request) -> dict[str, object]:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except FileExistsError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
+
     return result
 
 
 @app.get("/runs")
 def list_runs(request: Request) -> dict[str, object]:
-    """최근 실행 산출물 목록을 반환한다."""
+    """최근 run artifact 목록을 반환한다."""
     return {"runs": list_run_artifacts(output_root=_output_root(request))}
 
 
 @app.get("/runs/{run_id}")
 def run_detail(run_id: str, request: Request) -> dict[str, object]:
-    """특정 실행 산출물의 상세 내용을 반환한다."""
+    """특정 run artifact의 상세 내용을 반환한다."""
     try:
         return read_run_artifacts(run_id, output_root=_output_root(request))
     except ValueError as exc:
@@ -294,7 +308,7 @@ def _dataset_path(request: Request) -> Path:
 
 
 def _output_root(request: Request) -> Path:
-    """app.state 재정의를 반영한 실행 출력 루트를 반환한다."""
+    """app.state 재정의를 반영한 run artifact 출력 루트를 반환한다."""
     return Path(getattr(request.app.state, "output_root", OUTPUT_ROOT))
 
 
@@ -312,7 +326,7 @@ def _load_scenarios(request: Request):
 
 
 def _get_scenario(request: Request, scenario_id: str):
-    """시나리오 조회 실패를 HTTP 404로 변환해 반환한다."""
+    """판단 케이스(Scenario) 조회 실패를 HTTP 404로 변환해 반환한다."""
     try:
         return get_scenario_by_id(_dataset_path(request), scenario_id)
     except ScenarioLoadError as exc:
@@ -324,9 +338,12 @@ async def _save_upload(file: UploadFile, directory: Path) -> Path:
     suffix = Path(file.filename or "upload.wav").suffix or ".wav"
     path = directory / f"upload{suffix}"
     content = await file.read()
+
     if not content:
         raise HTTPException(status_code=400, detail="audio upload is empty")
+
     path.write_bytes(content)
+
     return path
 
 
@@ -344,9 +361,11 @@ def _audio_item_from_upload(
             status_code=400,
             detail="unknown transcriber. available: precomputed, whisper",
         )
+
     normalized_transcript = (
         "" if transcriber == "precomputed" and transcript is None else transcript
     )
+
     return AudioManifestItem(
         scenario_id=scenario_id,
         audio_path=str(audio_path),

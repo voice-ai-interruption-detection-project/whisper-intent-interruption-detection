@@ -92,7 +92,7 @@ p {
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .status-pill {
@@ -144,7 +144,7 @@ p {
   font-size: 13px;
   font-weight: 900;
   letter-spacing: 0;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 body[data-active-view="playground"] .side-section[data-context="scenario"],
@@ -522,7 +522,7 @@ input[type="file"] {
   color: var(--muted);
   font-size: 12px;
   font-weight: 900;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .meta-grid dd {
@@ -554,7 +554,7 @@ input[type="file"] {
   color: var(--muted);
   font-size: 12px;
   font-weight: 900;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .utterance-card p,
@@ -589,7 +589,7 @@ input[type="file"] {
   color: var(--muted);
   font-size: 12px;
   font-weight: 900;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .text-form-grid .wide-field {
@@ -611,8 +611,8 @@ input[type="file"] {
 
 .result-panel h3#actualAction {
   color: var(--blue);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 34px;
+  font-size: 26px;
+  line-height: 1.18;
 }
 
 .decision-reason {
@@ -690,8 +690,8 @@ pre {
 
 .compare-action {
   color: var(--green);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 24px;
+  font-size: 20px;
+  line-height: 1.25;
   font-weight: 900;
 }
 
@@ -793,7 +793,7 @@ th {
   color: var(--muted);
   font-size: 12px;
   font-weight: 900;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 td {

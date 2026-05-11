@@ -73,7 +73,7 @@ PR이나 공유 메모는 길게 쓰기보다 아래 4가지를 빠뜨리지 않
 
 - 설치/실행 명령
 - Python 버전, 의존성, 외부 서비스, 환경 변수
-- data/scenario 형식
+- data/scenarios 판단 케이스 형식
 - run artifact 필수 필드
 - action label, policy version, 평가 기준
 - 팀원이 같은 repo만 보고 재현해야 하는 절차
