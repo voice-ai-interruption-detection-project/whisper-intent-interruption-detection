@@ -10,7 +10,7 @@ from interruption_detection.models import StrictModel
 
 
 class AudioManifestError(ValueError):
-    """Audio File Test manifest가 현재 계약을 어길 때 발생하는 오류."""
+    """오디오 파일 입력 manifest가 현재 계약을 어길 때 발생하는 오류."""
 
 
 class AudioManifestItem(StrictModel):
@@ -36,7 +36,7 @@ class AudioManifestItem(StrictModel):
 
 
 class AudioManifest(StrictModel):
-    """Audio File Test fixture manifest."""
+    """오디오 파일 입력 fixture manifest."""
 
     version: str = "audio_fixture_v1"
     items: list[AudioManifestItem] = Field(default_factory=list)

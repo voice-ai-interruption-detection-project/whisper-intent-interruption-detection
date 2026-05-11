@@ -84,7 +84,7 @@ class RunRequest(BaseModel):
 
 @app.get("/")
 def index() -> FileResponse:
-    """정적 Work Bench UI의 HTML 파일을 반환한다."""
+    """정적 판단 실험 UI의 HTML 파일을 반환한다."""
     return FileResponse(STATIC_DIR / "index.html")
 
 
