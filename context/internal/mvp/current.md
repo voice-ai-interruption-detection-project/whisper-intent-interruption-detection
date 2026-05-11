@@ -42,14 +42,14 @@ AI speaking
 
 | 영역 | 현재 상태 | MVP에서의 의미 |
 | --- | --- | --- |
-| `data/scenarios.json` | 커머스 판단 케이스(`scenario`) 30개 있음 | 텍스트 입력(Text Replay)과 배치 평가(Test Bench)의 기준 원본 |
+| `data/scenarios.json` | 커머스 판단 케이스(`scenario`) 30개 있음 | 텍스트 입력(Text Replay)과 Test Bench의 기준 원본 |
 | `data/scenario_stats.json` | event/action/level/intent 분포 있음 | 판단 케이스 set snapshot 확인용 |
 | `src/backend/PACKAGES.md` | backend dependency와 하네스 경계 설명 있음 | FastAPI/API 작업 시 책임 경계 가이드 |
 | `pyproject.toml` | FastAPI, Whisper, sentence-transformers, VAD, audio/data/test 의존성 있음 | 구현 후보 dependency는 준비됨 |
-| `src/runner.py`, `src/interruption_detection/runner.py` | CLI와 공통 policy 실행 entry가 있음 | 텍스트 입력(Text Replay), Backend, 배치 평가(Test Bench)가 같은 runner를 통과한다 |
+| `src/runner.py`, `src/interruption_detection/runner.py` | CLI와 공통 policy 실행 entry가 있음 | 텍스트 입력(Text Replay), Backend, Test Bench가 같은 runner를 통과한다 |
 | `src/interruption_detection/policies/` | `baseline`, `policy_v1`이 텍스트 LLM 판단 정책으로 전환됨 | Step 2 하드코딩 placeholder에서 실제 LLM action judge로 이동했다 |
 | `src/interruption_detection/llm.py` | OpenAI Responses API용 structured output client가 있음 | `OPENAI_API_KEY`가 있을 때 실제 LLM 판단을 호출한다 |
-| `src/interruption_detection/evaluation/` | 배치 평가(Test Bench) batch eval과 run artifact 생성이 있음 | `results/runs/{run_id}/` 계약으로 평가 결과를 남긴다 |
+| `src/interruption_detection/evaluation/` | Test Bench batch eval과 run artifact 생성이 있음 | `results/runs/{run_id}/` 계약으로 평가 결과를 남긴다 |
 | `src/interruption_detection/audio/` | 오디오 파일 입력(Audio File Test) manifest, precomputed/Whisper STT adapter, audio signal 요약이 있음 | 오디오 입력도 같은 runner input으로 합류한다 |
 | `src/backend/main.py`, `src/backend/static/` | FastAPI API와 Playground/Test Bench UI가 있음 | 판단 케이스 replay, 자유 텍스트 입력, audio upload, text/audio batch run이 같은 runner/evaluator 경계를 호출한다 |
 | `scripts/generate_audio_fixtures.py` | 판단 케이스의 `user_utterance`로 TTS fixture와 audio manifest를 생성함 | 대표 오디오 파일을 재현 가능한 입력으로 만든다 |
@@ -66,7 +66,7 @@ MVP 구현은 현재 브랜치의 파일과 현재 기준 문서를 기준으로
 | AI 행동 판단 Runner(AI Action Policy Runner) | 텍스트 입력, 오디오 입력, CLI, Backend가 공유할 단일 runner entry를 둔다 |
 | Baseline | transcript와 speech signal을 최소 입력으로 쓰는 LLM action 판단 기준선을 둔다 |
 | Policy v1 | action label 정의, 예시, tone hint를 포함한 LLM 정책으로 false stop을 줄이는지 본다 |
-| 배치 평가(Test Bench) | 판단 케이스 set에 policy를 batch 실행하고 `results/runs/{run_id}/` artifact를 남긴다 |
+| Test Bench(배치 평가) | 판단 케이스 set에 policy를 batch 실행하고 `results/runs/{run_id}/` artifact를 남긴다 |
 | Error Analysis | failure를 primary 5종 기준으로 분류하고 다음 수정 후보를 남긴다 |
 | 대표 오디오 파일 입력(Audio File Test) | mock/precomputed transcript라도 같은 runner 흐름에 합류시킨다 |
 
@@ -77,7 +77,7 @@ MVP 구현은 현재 브랜치의 파일과 현재 기준 문서를 기준으로
 | 완성형 실시간 음성 상담 서비스 | STT/TTS/상태 관리/대화 운영까지 포함하면 범위가 커진다 |
 | 실제 콜센터 데이터 수집 | 개인정보와 데이터 확보 문제가 크다 |
 | STT/TTS 자체 최적화 | 핵심은 음성 모델 성능보다 고객 신호를 AI 행동으로 바꾸는 판단 구조다 |
-| Live Mic 성능 평가 | 후순위 확장 슬롯이다 |
+| Live Mic 성능 평가 | 마이크 입력(Mic Trial)은 같은 입력 경로 계열이지만, 현재는 공식 수치 범위 밖의 확장 예정 상태다 |
 | audio prosody 기반 감정 인식 | pitch/RMS/speaking rate 모델링은 1차 MVP 핵심 구현이 아니다 |
 | fine-tuning | 현재 MVP에서는 학습보다 LLM action judge, prompt/criteria 비교, run artifact 검증을 우선한다 |
 | 출처 없는 개선 수치 | 수치는 `results/runs/{run_id}/evaluation.json` 생성 후 인용한다 |
@@ -86,13 +86,13 @@ MVP 구현은 현재 브랜치의 파일과 현재 기준 문서를 기준으로
 
 | 표면 | MVP에서의 역할 | 현재 우선순위 |
 | --- | --- | --- |
-| 배치 평가(Test Bench) | 판단 케이스 set에 policy를 batch 실행하고 수치를 남기는 표면 | 1순위 |
+| Test Bench | 판단 케이스 set에 policy를 batch 실행하고 수치를 남기는 배치 평가 표면 | 1순위 |
 | Playground | 단일 판단 케이스를 조작하며 판단과 reason을 확인하는 표면 | 2순위 |
 | Backend API | UI나 외부 surface가 runner를 호출하는 adapter | runner 이후 |
 
-Playground 화면에서 본 수치는 외부 인용 출처로 쓰지 않는다. 같은 정책으로 배치 평가(Test Bench) run artifact를 만든 뒤 인용한다.
+Playground 화면에서 본 수치는 외부 인용 출처로 쓰지 않는다. 같은 정책으로 Test Bench run artifact를 만든 뒤 인용한다.
 
-`Workbench`는 일부 UI title과 코드에 남아 있는 상위 UI 이름 후보다. MVP 필수 표면은 배치 평가(Test Bench)와 Playground다.
+`Workbench`는 일부 UI title과 코드에 남아 있는 상위 UI 이름 후보다. MVP 필수 표면은 Test Bench와 Playground다.
 
 ## Policy Version 목표
 
@@ -113,7 +113,7 @@ Step별 완료/예정 작업과 현재 표현 기준은 [Current MVP Iteration P
 2. action label, event type, policy input/output 타입을 정의한다.
 3. `src/runner.py`를 만들고 모든 surface가 이 entry를 통과하게 한다.
 4. `baseline`과 `policy_v1`을 최소 구현한다.
-5. 배치 평가(Test Bench) evaluator를 만들고 `results/runs/{run_id}/` artifact를 생성한다.
+5. Test Bench evaluator를 만들고 `results/runs/{run_id}/` artifact를 생성한다.
 6. failure를 primary 5종 기준으로 분류하고 `error_analysis.md`를 남긴다.
 7. Playground나 Backend API는 runner를 직접 호출하는 adapter로 붙인다.
 8. 대표 오디오 파일 입력(Audio File Test)은 transcript/signal adapter를 통해 같은 runner input으로 합류시킨다.
@@ -125,7 +125,7 @@ MVP가 닫혔다고 보려면 아래를 확인한다.
 - `data/scenarios.json`의 30개 판단 케이스를 로드하고 검증할 수 있다.
 - `expected_action`은 판단 케이스 원본에만 있고, `actual_action`은 run result에만 있다.
 - `baseline`과 하나 이상의 개선 policy를 같은 runner/evaluator로 비교한다.
-- 배치 평가(Test Bench)가 `results/runs/{run_id}/run_meta.json`, `evaluation.json`, `decision_logs.jsonl`, `error_analysis.md`를 만든다.
+- Test Bench가 `results/runs/{run_id}/run_meta.json`, `evaluation.json`, `decision_logs.jsonl`, `error_analysis.md`를 만든다.
 - README나 공유 문서에 쓰는 수치는 run id와 함께 확인 가능하다.
 - 텍스트 입력(Text Replay)에서 판단 케이스별 expected/actual/reason/failure를 볼 수 있다.
 - 대표 오디오 파일 입력(Audio File Test)이 mock/precomputed transcript라도 같은 AI 행동 판단 입력으로 들어온다.

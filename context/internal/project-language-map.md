@@ -15,7 +15,7 @@
 -> transcript / speech signal
 -> AI 행동 판단 실행
 -> expected_action과 actual_action 비교
--> failure 분석과 배치 평가(Test Bench) run artifact 기록
+-> failure 분석과 Test Bench run artifact 기록
 ```
 
 구체 예시는 [Scenario Worked Example](scenario-worked-example.md)을 먼저 본다. 특히 `event_type`, `expected_action`, `actual_action`이 한 화면에 같이 나와 헷갈릴 때는 예시를 따라가면 된다.
@@ -62,7 +62,7 @@ Project Language Map
 | `actual_action` | action label 중 policy가 실제로 낸 실행 결과 | 새 action label, `data/scenarios.json`에 들어가는 기준 원본 |
 | AI 행동 판단(`AI Action Policy`) | 고객 개입 상황에서 AI의 다음 행동을 정하는 판단 기준 | 단순 interruption detector |
 | `policy_version` | 어떤 개선 목표를 가진 policy인지 나타내는 비교 단위 | 모델 버전 전체, 배포 버전 |
-| 배치 평가 화면(`Test Bench`) | 판단 케이스 set에 policy를 batch로 돌리고 결과를 보존하는 표면 | Playground 화면, 임시 데모 |
+| `Test Bench` | 판단 케이스 set에 policy를 batch로 돌리고 결과를 보존하는 배치 평가 표면 | Playground 화면, 임시 데모 |
 | `Playground` | 단일 판단 케이스를 조작하며 policy 판단과 reason을 확인하는 표면 | batch 평가 결과, run artifact |
 
 ## Expected와 Actual은 같은 label set의 다른 역할이다
@@ -110,17 +110,17 @@ key별 세부 설명은 [Schema Keys](reference/schema-keys.md)를 본다.
 
 이 단위가 작아야 `expected_action`과 `actual_action`을 비교할 수 있고, 실패 케이스를 다시 분류할 수 있다.
 
-`Workbench`는 일부 UI title과 코드에 남아 있는 상위 UI 이름 후보다. 제품 컨셉이나 필수 표면으로 앞세우기보다, Playground와 배치 평가(Test Bench)를 묶어 부를 때만 제한적으로 쓴다.
+`Workbench`는 일부 UI title과 코드에 남아 있는 상위 UI 이름 후보다. 제품 컨셉이나 필수 표면으로 앞세우기보다, Playground와 Test Bench를 묶어 부를 때만 제한적으로 쓴다.
 
 ## 입력 경로와 판단 구조
 
-입력 경로는 제품의 본질적 개념이 아니라 같은 판단 케이스를 텍스트, 대표 오디오 파일, 나중의 마이크 입력 중 어떤 방식으로 실행할지 정하는 adapter 층위다. 문서 본문에서는 "입력 경로"로 풀어 쓰고, 코드/API 필드가 필요할 때만 `input_mode`라고 쓴다.
+입력 경로는 제품의 본질적 개념이 아니라 같은 판단 케이스를 텍스트, 대표 오디오 파일, 마이크 입력 중 어떤 방식으로 실행할지 정하는 adapter 층위다. 문서 본문에서는 "입력 경로"로 풀어 쓰고, 코드/API 필드가 필요할 때만 `input_mode`라고 쓴다.
 
 | 입력 경로 | 코드/API에서 보이는 이름 | 역할 | 현재 MVP 위치 |
 | --- | --- | --- | --- |
 | 텍스트 입력 | `input_mode=text`, Text Replay | 텍스트 판단 케이스로 policy 판단을 빠르게 검증 | 필수 |
 | 오디오 파일 입력 | `input_mode=audio_file`, Audio File Test | 대표 음성 파일에서 STT/signal 흐름을 연결 | 일부 연결 |
-| 마이크 입력 후보 | Mic Trial | live 입력과 latency를 확인 | 후순위 |
+| 마이크 입력 | Mic Trial | live 입력과 latency를 확인 | 확장 예정 |
 
 텍스트 입력은 음성 프로젝트를 포기하는 단계가 아니다. 오디오/STT 앞단을 잠시 고정하고, 뒤쪽 AI 행동 판단 구조를 먼저 검증하는 단계다.
 

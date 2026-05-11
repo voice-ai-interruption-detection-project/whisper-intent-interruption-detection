@@ -90,7 +90,7 @@ Text Replay, Audio File Test, Mic Trial은 그 판단 구조를 만들고 검증
 - 코어는 단순 감지보다 AI가 다음 행동을 어떻게 고를지다.
 - Text Replay는 음성을 포기하는 게 아니라 policy 판단을 빠르게 검증하는 단계다.
 - Audio File Test는 최소 대표 케이스로 연결한다.
-- Mic/실시간 입력은 후순위 확장이다.
+- Mic/실시간 입력은 같은 입력 경로 계열이지만, 현재 구현 성숙도상 확장 예정이다.
 - `input_mode`는 테스트 입력 방식이다.
 - `context/internal`은 현재 개발 기준 원천에 가깝게 쓰되, 파생물이 무분별하게 들어오면 안 된다.
 
@@ -241,10 +241,10 @@ Workbench UI title을 코드에서 전부 제거
 | Input Mode | 문서 본문에서는 "입력 경로" 또는 "테스트 입력 방식"으로 풀어 쓴다. 코드/API/run artifact에서는 `input_mode` 유지 |
 | Text Replay | "텍스트 입력(Text Replay)"처럼 병기 가능. 제품 컨셉이 아니라 판단 구조를 빠르게 검증하는 입력 경로 |
 | Audio File Test | "오디오 파일 입력(Audio File Test)"처럼 병기 가능. prosody 검증 전체가 아니라 대표 음성 파일을 runner에 연결하는 경로 |
-| Mic Trial | "마이크 입력 후보"로 후순위 슬롯 |
+| Mic Trial | "마이크 입력(Mic Trial)"처럼 병기 가능. 같은 입력 경로 계열이지만 현재 구현에서는 확장 예정 상태로 둔다 |
 | AI Action Policy | 설명문에서는 "AI 행동 판단" 또는 "AI 행동 기준"으로 풀어 쓴다. 코드/정식 명칭은 유지 가능 |
 | scenario | "판단 케이스(`scenario`)"로 설명. 전체 상담 플로우가 아니라 한 순간 |
-| Test Bench | "배치 평가(Test Bench)"로 병기. 수치와 run artifact를 남기는 평가 표면 |
+| Test Bench | `Playground`처럼 표면 이름으로 유지한다. 설명할 때는 "Test Bench(배치 평가)"처럼 병기하고, 수치와 run artifact를 남기는 평가 표면으로 설명한다 |
 | Playground | 단일 판단 케이스를 조작하며 reason을 보는 표면. 유지 |
 | Workbench | 상위 UI 이름 후보로만 두고 제품 컨셉으로 앞세우지 않는다 |
 | expected_action | "사람이 정한 기준 행동"으로 설명. key는 유지 |
@@ -297,7 +297,7 @@ decision 기록을 만든 뒤, 사용자는 프로젝트를 띄웠을 때 보이
 - `Work Bench` -> `행동 판단 실험`
 - `Scenario` -> `판단 케이스`
 - `Input mode` -> `입력 경로`
-- `Test Bench Report` -> `배치 평가`
+- `Test Bench Report` -> `Test Bench Report(배치 평가 화면)`처럼 표면 이름을 유지하며 설명 병기
 - `expected / actual` -> `기준 행동 / 판단 행동`
 - `event type` -> `고객 신호`
 
@@ -314,7 +314,7 @@ decision 기록을 만든 뒤, 사용자는 프로젝트를 띄웠을 때 보이
 최종 UI 워딩 기준:
 
 1. `Workbench`처럼 제품 컨셉처럼 오해될 수 있는 상위 이름은 낮춘다.
-2. `Playground`, `Test Bench`처럼 현재 문서에서 실제 표면 이름으로 남긴 용어는 유지하거나 병기한다.
+2. `Playground`, `Test Bench`처럼 현재 문서에서 실제 표면 이름으로 남긴 용어는 유지하고, 필요한 설명만 한국어로 병기한다.
 3. `input_mode`, `expected_action`, `actual_action`처럼 코드/API 계약인 말은 화면에서 완전히 숨기지 않고, 필요하면 괄호로 남긴다.
 4. 사용자가 처음 보는 제목/버튼/빈 상태 문구는 한국어로 쉽게 읽히게 한다.
 5. action/event/failure 값은 `답하고 계속 (respond_and_continue)`처럼 의미와 코드값을 함께 보여준다.

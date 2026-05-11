@@ -49,7 +49,7 @@ tags: [docs, product-context, terminology, harness, ai-collaboration]
 - 좋아진 것: `product-context`가 세션 시작 때 제품 의도를 짧게 회복하는 문서로 바뀌었다.
 - 좋아진 것: 입력 방식은 제품 개념이 아니라 "입력 경로 / input adapter" 층위로 낮아졌다.
 - 좋아진 것: 문서 감사나 원래 의도 복원 작업에서는 `internal`도 검토 대상이 될 수 있다는 예외가 생겼다.
-- 좋아진 것: `Workbench`는 제품 컨셉으로 앞세우지 않고, `Playground`와 배치 평가(Test Bench)를 실제 표면 이름으로 구분한다.
+- 좋아진 것: `Workbench`는 제품 컨셉으로 앞세우지 않고, `Playground`와 `Test Bench`를 실제 표면 이름으로 구분한다.
 - 나빠진 것: 일부 문서에서 한국어 설명과 코드 식별자가 병기되어 문장이 조금 길어졌다.
 - 감수한 부분: `input_mode`, `expected_action`, `actual_action` 같은 필드명은 코드/API/run artifact 계약이므로 rename하지 않는다.
 

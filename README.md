@@ -24,7 +24,7 @@ export OPENAI_ACTION_MODEL=gpt-5.4-mini
 # 4. 단일 판단 케이스(scenario) 실행
 poetry run python src/runner.py --policy baseline --dataset data/scenarios.json --scenario-id commerce_no_speech_001
 
-# 5. 배치 평가(Test Bench) run artifact 생성
+# 5. Test Bench run artifact 생성
 poetry run python src/runner.py --policy policy_v1 --dataset data/scenarios.json --write-results
 
 # 6. 오디오 파일 입력(Audio File Test) fixture 생성 (OpenAI TTS)
@@ -48,7 +48,7 @@ poetry run python src/runner.py \
 poetry run uvicorn backend.main:app --reload
 ```
 
-Playground는 `http://127.0.0.1:8000`에서 열린다. 배치 평가 화면(Test Bench Report)에서는 입력 경로(`input_mode`)를 선택해 텍스트 판단 케이스 묶음과 audio files를 같은 run artifact 계약으로 실행할 수 있다. `OPENAI_API_KEY`가 없으면 실제 LLM policy 실행과 TTS fixture 생성은 실패한다. 오디오 파일 입력(Audio File Test)은 `precomputed` transcript adapter로도 같은 runner 흐름을 검증할 수 있다. 테스트는 fake LLM client로 네트워크 없이 검증한다. 공식 수치는 화면 표시가 아니라 `results/runs/{run_id}/evaluation.json`을 기준으로 인용한다.
+Playground는 `http://127.0.0.1:8000`에서 열린다. Test Bench Report(배치 평가 화면)에서는 입력 경로(`input_mode`)를 선택해 텍스트 판단 케이스 묶음과 audio files를 같은 run artifact 계약으로 실행할 수 있다. `OPENAI_API_KEY`가 없으면 실제 LLM policy 실행과 TTS fixture 생성은 실패한다. 오디오 파일 입력(Audio File Test)은 `precomputed` transcript adapter로도 같은 runner 흐름을 검증할 수 있다. 테스트는 fake LLM client로 네트워크 없이 검증한다. 공식 수치는 화면 표시가 아니라 `results/runs/{run_id}/evaluation.json`을 기준으로 인용한다.
 
 자세한 패키지 설명은 [src/backend/PACKAGES.md](src/backend/PACKAGES.md).
 
