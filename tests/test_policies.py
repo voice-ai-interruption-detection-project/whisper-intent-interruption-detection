@@ -44,6 +44,15 @@ def test_baseline_uses_llm_action_judgment(fake_llm_client) -> None:
 
     assert decision.actual_action == ActionLabel.CONTINUE
     assert decision.signals["mode"] == "interpreter_pipeline_action_selector"
+    assert decision.signals["pipeline"] == {
+        "judgment_provider": "legacy_llm_action_judgment_provider",
+        "interpreter": "llm_structured_signal_interpreter",
+        "action_selector": "llm_baseline_action_selector",
+        "decision_assembler": "policy_decision",
+    }
+    assert decision.signals["judgment_provider"] == (
+        "legacy_llm_action_judgment_provider"
+    )
     assert decision.signals["predicted_event_type"] == "no_speech"
     assert decision.signals["predicted_user_intent"] is None
     assert decision.signals["signal_source"] == "llm_structured_output"
@@ -51,7 +60,18 @@ def test_baseline_uses_llm_action_judgment(fake_llm_client) -> None:
         "read_transcript",
         "classify_customer_signal",
     ]
+    assert decision.signals["selector_source"] == "llm_baseline_action_selector"
+    assert decision.signals["selector_steps"] == [
+        "received_interpretation:no_speech",
+        "use_candidate:legacy_llm_action_judgment",
+    ]
+    assert set(decision.stage_latencies_ms) == {
+        "llm_judgment_provider_ms",
+        "customer_signal_interpreter_ms",
+        "ai_action_selector_ms",
+    }
     assert fake_llm_client.requests
+    assert len(fake_llm_client.requests) == 1
     assert "expected_action" not in fake_llm_client.requests[-1].user_prompt
     assert "event_type" not in fake_llm_client.requests[-1].user_prompt
 
@@ -110,7 +130,9 @@ def test_policy_snapshot_contains_llm_metadata() -> None:
     assert snapshot["name"] == "policy_v1"
     assert snapshot["mode"] == "interpreter_pipeline_action_selector"
     assert snapshot["pipeline"] == {
-        "interpreter": "llm_structured_output",
-        "action_selector": "llm_structured_output",
+        "judgment_provider": "legacy_llm_action_judgment_provider",
+        "interpreter": "llm_structured_signal_interpreter",
+        "action_selector": "llm_baseline_action_selector",
+        "decision_assembler": "policy_decision",
     }
     assert snapshot["llm"]["provider"] == "fake"

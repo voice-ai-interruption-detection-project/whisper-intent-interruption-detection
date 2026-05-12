@@ -58,6 +58,8 @@ def test_run_audio_item_uses_existing_policy_runner(tmp_path) -> None:
 
     assert decision.actual_action == ActionLabel.STOP_AND_SWITCH
     assert decision.signals["input_mode"] == "audio_file"
+    assert decision.signals["input_adapter"] == "audio_file_adapter"
+    assert decision.signals["pipeline_input"] == "runner_input"
     assert decision.signals["mode"] == "interpreter_pipeline_action_selector"
     assert decision.signals["predicted_event_type"] == "intent_shift"
     assert decision.signals["predicted_user_intent"] == "refund_or_return"

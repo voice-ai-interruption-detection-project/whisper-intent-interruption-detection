@@ -89,6 +89,15 @@ class CustomerSignalInterpretation(StrictModel):
         return payload
 
 
+class ActionSelection(StrictModel):
+    """해석된 고객 신호를 바탕으로 선택한 다음 action."""
+
+    actual_action: ActionLabel
+    reason: str
+    selector_source: str
+    selector_steps: list[str] = Field(default_factory=list)
+
+
 class PolicyInput(StrictModel):
     """policy가 참고할 runtime 필드만 담은 입력."""
 

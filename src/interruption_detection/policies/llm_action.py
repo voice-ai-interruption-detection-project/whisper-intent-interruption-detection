@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import json
-from time import perf_counter
 
+from interruption_detection.action_selector.llm import LLMBaselineActionSelector
+from interruption_detection.interpreter.llm import LLMStructuredSignalInterpreter
 from interruption_detection.llm import (
     LLMActionClient,
     LLMActionJudgment,
@@ -11,11 +12,11 @@ from interruption_detection.llm import (
 )
 from interruption_detection.models import (
     ActionLabel,
-    CustomerSignalInterpretation,
     EventType,
     PolicyDecision,
     PolicyInput,
 )
+from interruption_detection.pipelines.decision_pipeline import DecisionPipeline
 
 
 ACTION_LABEL_DEFINITIONS: dict[ActionLabel, str] = {
@@ -78,32 +79,31 @@ FEW_SHOT_EXAMPLES = [
 ]
 
 
-class LLMActionPolicy:
-    """LLM structured output으로 고객 신호 해석과 action 선택을 실행하는 공통 정책."""
+class LegacyLLMActionJudgmentProvider:
+    """one-shot LLM structured output을 baseline action candidate로 제공한다."""
 
     def __init__(
         self,
         *,
-        name: str,
-        description: str,
+        policy_name: str,
         prompt_version: str,
         include_label_definitions: bool,
         include_few_shots: bool,
         include_tone_hint: bool,
         llm_client: LLMActionClient | None = None,
     ) -> None:
-        self.name = name
-        self.description = description
+        self.name = "legacy_llm_action_judgment_provider"
+        self.policy_name = policy_name
         self.prompt_version = prompt_version
         self.include_label_definitions = include_label_definitions
         self.include_few_shots = include_few_shots
         self.include_tone_hint = include_tone_hint
         self._llm_client = llm_client or OpenAIResponsesLLMClient()
 
-    def predict(self, policy_input: PolicyInput) -> PolicyDecision:
-        """policy용 runtime 입력으로 해석/행동 선택 결과를 반환한다."""
+    def judge(self, policy_input: PolicyInput) -> LLMActionJudgment:
+        """legacy one-shot prompt로 LLM action judgment 후보를 반환한다."""
         request = LLMActionRequest(
-            policy_name=self.name,
+            policy_name=self.policy_name,
             prompt_version=self.prompt_version,
             developer_prompt=self._developer_prompt(),
             user_prompt=self._user_prompt(policy_input),
@@ -116,47 +116,16 @@ class LLMActionPolicy:
                 ],
             },
         )
-        started = perf_counter()
 
-        judgment = self._llm_client.judge_action(request)
-        interpreter_ms = round((perf_counter() - started) * 1000, 3)
-        interpretation = self._interpret_customer_signal(judgment)
-        actual_action, reason = self._select_action(judgment, interpretation)
-
-        return PolicyDecision(
-            policy_name=self.name,
-            actual_action=actual_action,
-            reason=reason,
-            signals={
-                "mode": "interpreter_pipeline_action_selector",
-                "pipeline": {
-                    "interpreter": "llm_structured_output",
-                    "action_selector": "llm_structured_output",
-                },
-                "prompt_version": self.prompt_version,
-                "llm": self._client_snapshot(),
-                **interpretation.to_signal_dict(),
-                "input_fields": self._input_fields(),
-                "excluded_fields": request.metadata["excluded_fields"],
-            },
-            stage_latencies_ms={
-                "interpreter_pipeline_ms": interpreter_ms,
-                "ai_action_selector_ms": 0.0,
-            },
-        )
+        return self._llm_client.judge_action(request)
 
     def snapshot(self) -> dict[str, object]:
-        """LLM 판단 정책 설정을 run artifact에 남긴다."""
+        """provider 설정을 run artifact에 남긴다."""
         return {
             "name": self.name,
-            "version": "day4-interpreter-action-selector",
-            "mode": "interpreter_pipeline_action_selector",
+            "policy_name": self.policy_name,
             "prompt_version": self.prompt_version,
             "llm": self._client_snapshot(),
-            "pipeline": {
-                "interpreter": "llm_structured_output",
-                "action_selector": "llm_structured_output",
-            },
             "input_fields": self._input_fields(),
             "excluded_fields": [
                 "expected_action",
@@ -165,6 +134,18 @@ class LLMActionPolicy:
             ],
             "structured_output": "action_judgment_with_signal_interpretation",
         }
+
+    def input_fields(self) -> list[str]:
+        """LLM prompt에 포함되는 runtime 입력 필드 목록을 반환한다."""
+        return self._input_fields()
+
+    def excluded_fields(self) -> list[str]:
+        """LLM prompt에서 제외되는 평가/라벨 필드 목록을 반환한다."""
+        return [
+            "expected_action",
+            "event_type",
+            "expected_user_intent",
+        ]
 
     def _developer_prompt(self) -> str:
         allowed_action_labels = ", ".join(label.value for label in ActionLabel)
@@ -229,36 +210,59 @@ class LLMActionPolicy:
 
         return fields
 
-    def _interpret_customer_signal(
-        self,
-        judgment: LLMActionJudgment,
-    ) -> CustomerSignalInterpretation:
-        predicted_event_type = judgment.predicted_event_type
-
-        if predicted_event_type is None and judgment.is_intent_shift is True:
-            predicted_event_type = EventType.INTENT_SHIFT
-
-        predicted_user_intent = (
-            judgment.predicted_user_intent or judgment.interpreted_user_intent
-        )
-
-        return CustomerSignalInterpretation(
-            predicted_event_type=predicted_event_type,
-            predicted_user_intent=predicted_user_intent,
-            confidence=judgment.confidence,
-            ambiguity=judgment.ambiguity,
-            signal_source="llm_structured_output",
-            interpreter_steps=judgment.interpreter_steps
-            or ["llm_structured_output"],
-        )
-
-    def _select_action(
-        self,
-        judgment: LLMActionJudgment,
-        interpretation: CustomerSignalInterpretation,
-    ) -> tuple[ActionLabel, str]:
-        _ = interpretation
-        return judgment.actual_action, judgment.reason
-
     def _client_snapshot(self) -> dict[str, object]:
         return self._llm_client.snapshot()
+
+
+class LLMActionPolicy:
+    """기존 policy registry 호환을 위한 decision pipeline wrapper."""
+
+    def __init__(
+        self,
+        *,
+        name: str,
+        description: str,
+        prompt_version: str,
+        include_label_definitions: bool,
+        include_few_shots: bool,
+        include_tone_hint: bool,
+        llm_client: LLMActionClient | None = None,
+    ) -> None:
+        self.name = name
+        self.description = description
+        self.prompt_version = prompt_version
+        self._judgment_provider = LegacyLLMActionJudgmentProvider(
+            policy_name=name,
+            prompt_version=prompt_version,
+            include_label_definitions=include_label_definitions,
+            include_few_shots=include_few_shots,
+            include_tone_hint=include_tone_hint,
+            llm_client=llm_client,
+        )
+        self._pipeline = DecisionPipeline(
+            policy_name=name,
+            prompt_version=prompt_version,
+            judgment_provider=self._judgment_provider,
+            interpreter=LLMStructuredSignalInterpreter(),
+            action_selector=LLMBaselineActionSelector(),
+        )
+
+    def predict(self, policy_input: PolicyInput) -> PolicyDecision:
+        """policy용 runtime 입력으로 pipeline 판단 결과를 반환한다."""
+        return self._pipeline.run(policy_input)
+
+    def snapshot(self) -> dict[str, object]:
+        """LLM-backed pipeline 정책 설정을 run artifact에 남긴다."""
+        provider_snapshot = self._judgment_provider.snapshot()
+
+        return {
+            "name": self.name,
+            "version": "pipeline-components-v1",
+            "mode": "interpreter_pipeline_action_selector",
+            "prompt_version": self.prompt_version,
+            "llm": provider_snapshot["llm"],
+            "pipeline": self._pipeline.snapshot(),
+            "input_fields": self._judgment_provider.input_fields(),
+            "excluded_fields": self._judgment_provider.excluded_fields(),
+            "structured_output": provider_snapshot["structured_output"],
+        }

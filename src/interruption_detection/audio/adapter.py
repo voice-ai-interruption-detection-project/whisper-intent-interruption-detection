@@ -9,7 +9,7 @@ from interruption_detection.audio.signals import (
     analyze_audio_file,
     audio_signal_dump,
 )
-from interruption_detection.audio.stt import AudioTranscriber
+from interruption_detection.audio.stt import AudioTranscriber, AudioTranscript
 from interruption_detection.models import PolicyDecision, RunnerInput, Scenario
 from interruption_detection.runner import run_input
 
@@ -29,18 +29,9 @@ def run_audio_item(
 
     transcript = transcriber.transcribe(audio_path, item)
 
-    runner_input = RunnerInput(
-        scenario_id=scenario.scenario_id,
-        domain=scenario.domain,
-        level=scenario.level,
-        ai_current_intent=scenario.ai_current_intent,
-        ai_utterance=scenario.ai_utterance,
-        user_utterance=transcript.text,
-        event_type=scenario.event_type,
-        expected_user_intent=scenario.expected_user_intent,
-        user_tone_hint=scenario.user_tone_hint,
-        has_user_speech=transcript.has_user_speech,
-        notes=scenario.notes,
+    runner_input = build_audio_runner_input(
+        scenario=scenario,
+        transcript=transcript,
     )
 
     decision = run_input(runner_input, policy_name)
@@ -54,6 +45,8 @@ def run_audio_item(
     signals = {
         **decision.signals,
         "input_mode": "audio_file",
+        "input_adapter": "audio_file_adapter",
+        "pipeline_input": "runner_input",
         "audio": {
             "scenario_id": item.scenario_id,
             "audio_path": str(audio_path),
@@ -88,6 +81,27 @@ def run_audio_item(
             "stage_latencies_ms": stage_latencies,
             "latency_ms": round(sum(stage_latencies.values()), 3),
         }
+    )
+
+
+def build_audio_runner_input(
+    *,
+    scenario: Scenario,
+    transcript: AudioTranscript,
+) -> RunnerInput:
+    """오디오/STT 결과를 Text와 같은 runner 입력 경계로 변환한다."""
+    return RunnerInput(
+        scenario_id=scenario.scenario_id,
+        domain=scenario.domain,
+        level=scenario.level,
+        ai_current_intent=scenario.ai_current_intent,
+        ai_utterance=scenario.ai_utterance,
+        user_utterance=transcript.text,
+        event_type=scenario.event_type,
+        expected_user_intent=scenario.expected_user_intent,
+        user_tone_hint=scenario.user_tone_hint,
+        has_user_speech=transcript.has_user_speech,
+        notes=scenario.notes,
     )
 
 
