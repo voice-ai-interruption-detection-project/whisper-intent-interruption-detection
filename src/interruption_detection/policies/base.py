@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from interruption_detection.models import PolicyDecision, RunnerInput
+from interruption_detection.models import PolicyDecision, PolicyInput
 
 
 class Policy(Protocol):
@@ -11,8 +11,8 @@ class Policy(Protocol):
     name: str
     description: str
 
-    def predict(self, runner_input: RunnerInput) -> PolicyDecision:
-        """RunnerInput 하나에 대한 정책 판단을 반환한다."""
+    def predict(self, policy_input: PolicyInput) -> PolicyDecision:
+        """policy용 runtime 입력 하나에 대한 정책 판단을 반환한다."""
         ...
 
     def snapshot(self) -> dict[str, object]:

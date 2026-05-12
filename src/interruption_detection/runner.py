@@ -15,9 +15,10 @@ def run_input(runner_input: RunnerInput, policy_name: str) -> PolicyDecision:
     """공통 입력을 받아 정책을 실행하고 실행기 기준 지연시간을 덧붙인다."""
     # 명령행, API, UI, 평가기가 모두 같은 정책 실행 경로를 통과하게 한다.
     policy = get_policy(policy_name)
+    policy_input = runner_input.to_policy_input()
     started = perf_counter()
 
-    decision = policy.predict(runner_input)
+    decision = policy.predict(policy_input)
     policy_ms = (perf_counter() - started) * 1000
     stage_latencies = dict(decision.stage_latencies_ms)
 

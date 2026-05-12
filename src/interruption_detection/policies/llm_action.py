@@ -5,10 +5,17 @@ from time import perf_counter
 
 from interruption_detection.llm import (
     LLMActionClient,
+    LLMActionJudgment,
     LLMActionRequest,
     OpenAIResponsesLLMClient,
 )
-from interruption_detection.models import ActionLabel, PolicyDecision, RunnerInput
+from interruption_detection.models import (
+    ActionLabel,
+    CustomerSignalInterpretation,
+    EventType,
+    PolicyDecision,
+    PolicyInput,
+)
 
 
 ACTION_LABEL_DEFINITIONS: dict[ActionLabel, str] = {
@@ -72,7 +79,7 @@ FEW_SHOT_EXAMPLES = [
 
 
 class LLMActionPolicy:
-    """텍스트 transcript를 LLM으로 판단해 action label을 고르는 공통 정책."""
+    """LLM structured output으로 고객 신호 해석과 action 선택을 실행하는 공통 정책."""
 
     def __init__(
         self,
@@ -93,15 +100,14 @@ class LLMActionPolicy:
         self.include_tone_hint = include_tone_hint
         self._llm_client = llm_client or OpenAIResponsesLLMClient()
 
-    def predict(self, runner_input: RunnerInput) -> PolicyDecision:
-        """RunnerInput을 LLM prompt로 바꾸고 action judgment를 반환한다."""
+    def predict(self, policy_input: PolicyInput) -> PolicyDecision:
+        """policy용 runtime 입력으로 해석/행동 선택 결과를 반환한다."""
         request = LLMActionRequest(
             policy_name=self.name,
             prompt_version=self.prompt_version,
             developer_prompt=self._developer_prompt(),
-            user_prompt=self._user_prompt(runner_input),
+            user_prompt=self._user_prompt(policy_input),
             metadata={
-                "scenario_id": runner_input.scenario_id,
                 "input_fields": self._input_fields(),
                 "excluded_fields": [
                     "expected_action",
@@ -113,51 +119,68 @@ class LLMActionPolicy:
         started = perf_counter()
 
         judgment = self._llm_client.judge_action(request)
-        llm_ms = round((perf_counter() - started) * 1000, 3)
+        interpreter_ms = round((perf_counter() - started) * 1000, 3)
+        interpretation = self._interpret_customer_signal(judgment)
+        actual_action, reason = self._select_action(judgment, interpretation)
 
         return PolicyDecision(
             policy_name=self.name,
-            actual_action=judgment.actual_action,
-            reason=judgment.reason,
+            actual_action=actual_action,
+            reason=reason,
             signals={
-                "mode": "llm_text_action_judgment",
+                "mode": "interpreter_pipeline_action_selector",
+                "pipeline": {
+                    "interpreter": "llm_structured_output",
+                    "action_selector": "llm_structured_output",
+                },
                 "prompt_version": self.prompt_version,
                 "llm": self._client_snapshot(),
-                "confidence": judgment.confidence,
-                "interpreted_user_intent": judgment.interpreted_user_intent,
-                "is_intent_shift": judgment.is_intent_shift,
+                **interpretation.to_signal_dict(),
                 "input_fields": self._input_fields(),
                 "excluded_fields": request.metadata["excluded_fields"],
             },
-            stage_latencies_ms={"llm_ms": llm_ms},
+            stage_latencies_ms={
+                "interpreter_pipeline_ms": interpreter_ms,
+                "ai_action_selector_ms": 0.0,
+            },
         )
 
     def snapshot(self) -> dict[str, object]:
         """LLM 판단 정책 설정을 run artifact에 남긴다."""
         return {
             "name": self.name,
-            "version": "day3-llm-text",
-            "mode": "llm_text_action_judgment",
+            "version": "day4-interpreter-action-selector",
+            "mode": "interpreter_pipeline_action_selector",
             "prompt_version": self.prompt_version,
             "llm": self._client_snapshot(),
+            "pipeline": {
+                "interpreter": "llm_structured_output",
+                "action_selector": "llm_structured_output",
+            },
             "input_fields": self._input_fields(),
             "excluded_fields": [
                 "expected_action",
                 "event_type",
                 "expected_user_intent",
             ],
-            "structured_output": "action_judgment",
+            "structured_output": "action_judgment_with_signal_interpretation",
         }
 
     def _developer_prompt(self) -> str:
-        allowed = ", ".join(label.value for label in ActionLabel)
+        allowed_action_labels = ", ".join(label.value for label in ActionLabel)
+        allowed_event_types = ", ".join(item.value for item in EventType)
 
         parts = [
             "You are the AI Action Policy for a Korean commerce support assistant.",
-            "Your job is to choose exactly one action label for the assistant's next behavior.",
-            f"Allowed action labels: {allowed}.",
+            "Work in two layers: first interpret the customer's runtime signal, "
+            "then choose the assistant's next action.",
+            f"Allowed action labels: {allowed_action_labels}.",
+            f"Allowed predicted_event_type values: {allowed_event_types}, "
+            "or null when no event type is appropriate.",
             "Base your decision only on the supplied text transcript and metadata.",
             "Do not infer from hidden expected answers, event_type labels, or evaluation labels.",
+            "Return predicted_event_type, predicted_user_intent, confidence, "
+            "ambiguity, interpreter_steps, actual_action, and reason.",
             "Return a concise reason in English or Korean.",
         ]
 
@@ -176,16 +199,16 @@ class LLMActionPolicy:
 
         return "\n\n".join(parts)
 
-    def _user_prompt(self, runner_input: RunnerInput) -> str:
+    def _user_prompt(self, policy_input: PolicyInput) -> str:
         context = {
-            "ai_current_intent": runner_input.ai_current_intent,
-            "ai_utterance": runner_input.ai_utterance,
-            "user_utterance": runner_input.user_utterance,
-            "has_user_speech": runner_input.has_user_speech,
+            "ai_current_intent": policy_input.ai_current_intent,
+            "ai_utterance": policy_input.ai_utterance,
+            "user_utterance": policy_input.user_utterance,
+            "has_user_speech": policy_input.has_user_speech,
         }
 
         if self.include_tone_hint:
-            context["user_tone_hint"] = runner_input.user_tone_hint.value
+            context["user_tone_hint"] = policy_input.user_tone_hint.value
 
         return (
             "Classify the assistant's next action for this single interruption moment.\n"
@@ -205,6 +228,37 @@ class LLMActionPolicy:
             fields.append("user_tone_hint")
 
         return fields
+
+    def _interpret_customer_signal(
+        self,
+        judgment: LLMActionJudgment,
+    ) -> CustomerSignalInterpretation:
+        predicted_event_type = judgment.predicted_event_type
+
+        if predicted_event_type is None and judgment.is_intent_shift is True:
+            predicted_event_type = EventType.INTENT_SHIFT
+
+        predicted_user_intent = (
+            judgment.predicted_user_intent or judgment.interpreted_user_intent
+        )
+
+        return CustomerSignalInterpretation(
+            predicted_event_type=predicted_event_type,
+            predicted_user_intent=predicted_user_intent,
+            confidence=judgment.confidence,
+            ambiguity=judgment.ambiguity,
+            signal_source="llm_structured_output",
+            interpreter_steps=judgment.interpreter_steps
+            or ["llm_structured_output"],
+        )
+
+    def _select_action(
+        self,
+        judgment: LLMActionJudgment,
+        interpretation: CustomerSignalInterpretation,
+    ) -> tuple[ActionLabel, str]:
+        _ = interpretation
+        return judgment.actual_action, judgment.reason
 
     def _client_snapshot(self) -> dict[str, object]:
         return self._llm_client.snapshot()

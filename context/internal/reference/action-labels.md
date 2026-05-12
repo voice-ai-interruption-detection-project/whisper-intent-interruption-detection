@@ -27,7 +27,7 @@ actual_action   = policy가 낸 결과 action label
 | `expected_action` | `stop_and_switch` | 사람이 이 판단 케이스의 기준 행동을 전환으로 정했다 |
 | `actual_action` | `stop_and_switch` | policy가 실행 후 전환을 선택했다 |
 
-두 값이 같으면 action-level 평가에서 맞은 것이다. 두 값이 다르면 policy가 기준과 다른 action label을 고른 것이다.
+두 값이 같으면 최종 행동 평가에서 맞은 것이다. 두 값이 다르면 policy가 기준과 다른 action label을 고른 것이다.
 
 ```text
 expected_action = stop_and_switch

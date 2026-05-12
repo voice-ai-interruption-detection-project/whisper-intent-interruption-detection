@@ -26,6 +26,24 @@
 
 한 판단 케이스(`scenario`)가 `expected_action`과 `actual_action` 비교로 이어지는 구체 예시는 [Scenario Worked Example](scenario-worked-example.md)을 본다.
 
+## 행동 평가와 고객 신호 해석 점검
+
+현재 공식 평가는 `expected_action`과 `actual_action`이 같은지 보는 데 둔다. 공통 판단 흐름에 고객 신호 해석(`Interpreter Pipeline`)을 추가한 뒤에도, 최종 평가는 AI가 고른 `actual_action`이 기준과 맞는지 확인하는 방식으로 유지한다.
+
+고객 신호 해석 결과는 처음부터 성능 점수로 세우기보다, 실패 이유를 보는 보조 점검값으로 먼저 남긴다.
+
+| 기준값 | 실행 중 나온 값 후보 | 역할 |
+| --- | --- | --- |
+| `event_type` | `predicted_event_type` | 고객 신호 해석이 기준과 맞는지 보는 보조 점검 |
+| `expected_user_intent` | `predicted_user_intent` | 고객 의도 해석이 기준과 맞는지 보는 보조 점검 |
+| `expected_action` | `actual_action` | 최종 행동 평가 |
+
+`predicted_event_type`과 `predicted_user_intent`가 추가되더라도 바로 `action_accuracy`와 같은 대표 성능 수치로 말하지 않는다. 먼저 `decision_logs.jsonl`의 `signals`나 별도 점검 필드에 남기고, 실제로 어떤 실패를 설명해 주는지 본다. 공유 문서나 발표에서는 `action_accuracy`와 섞어 말하지 않고, 필요할 때만 "고객 신호 해석 점검값"처럼 조건을 붙여 쓴다.
+
+주의할 점은 사람이 정한 `scenario.event_type`을 policy 실행 중 곧바로 action으로 바꾸지 않는 것이다. 실행 중에는 transcript/signal을 보고 고객 신호를 따로 해석하고, 그 결과를 AI 행동 선택(`AI Action Selector`)이 참고하는 흐름만 허용한다.
+
+기존에도 LLM user prompt에는 `event_type`, `expected_user_intent`, `expected_action`을 넣지 않았다. 이번 구현은 그 guard를 유지하면서, API/evaluator 경계의 `RunnerInput`을 policy 호출 시 runtime 판단에 필요한 필드만 담은 `PolicyInput`으로 변환해 policy 입력 표면을 좁힌다.
+
 ## Run Artifact 최소 계약
 
 새 평가 결과는 아래 구조를 기준으로 둔다.
@@ -49,9 +67,11 @@ results/runs/{run_id}/
 
 같은 `run_id` 폴더를 덮어쓰지 않는다.
 
-## Metric 이름
+공통 파이프라인에서는 `decision_logs.jsonl`의 `signals`에 `predicted_event_type`, `predicted_user_intent`, `confidence`, `ambiguity`, `signal_source`, `interpreter_steps` 같은 점검값을 남긴다. 이 값들은 기준 원본인 `data/scenarios.json`에 쓰지 않는다.
 
-| metric | 의미 | 인용 조건 |
+## 지표 이름
+
+| 지표 | 의미 | 인용 조건 |
 | --- | --- | --- |
 | `action_accuracy` | 6가지 action label 중 expected와 actual이 일치한 비율 | `evaluation.json`에서 확인 |
 | `binary_metrics.accuracy` | intervention 필요 여부를 이진으로 본 정확도 | binary 기준을 함께 설명 |
@@ -59,7 +79,9 @@ results/runs/{run_id}/
 | `missed_switch_rate` | 전환해야 할 때 전환하지 못한 비율 | intent shift 기준을 명시 |
 | `latency_ms` | 실행 지연 시간 | 측정 위치와 source를 함께 기록 |
 
-`Accuracy`만 단독으로 쓰지 않는다. action-level인지 binary-level인지 같이 적는다.
+`Accuracy`만 단독으로 쓰지 않는다. action 기준인지 binary 기준인지 같이 적는다.
+
+고객 신호 해석 점검에서 계산한 일치율이 생기더라도 `action_accuracy`와 섞지 않는다. 예를 들어 `event_type` 해석 일치율은 "고객 신호 해석 점검" 또는 "predicted_event_type match"처럼 별도 이름과 조건으로 기록한다.
 
 ## Failure Taxonomy
 
