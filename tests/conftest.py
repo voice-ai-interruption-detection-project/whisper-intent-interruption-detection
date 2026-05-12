@@ -6,7 +6,7 @@ from typing import Any
 import pytest
 
 from interruption_detection.llm import LLMActionJudgment, LLMActionRequest
-from interruption_detection.models import ActionLabel
+from interruption_detection.models import ActionLabel, EventType
 from interruption_detection.policies import (
     build_policy_registry,
     replace_policy_registry_for_testing,
@@ -28,14 +28,20 @@ class KeywordFakeLLMClient:
         has_speech = bool(context.get("has_user_speech"))
 
         if not has_speech or not user_utterance.strip():
-            return _judgment(ActionLabel.CONTINUE, "No user speech to classify.")
+            return _judgment(
+                ActionLabel.CONTINUE,
+                "No user speech to classify.",
+                event_type=EventType.NO_SPEECH,
+                ambiguity="low",
+            )
 
         if any(term in user_utterance for term in ["refund", "환불", "반품"]):
             return _judgment(
                 ActionLabel.STOP_AND_SWITCH,
                 "User transcript asks for a different commerce intent.",
                 "refund_or_return",
-                True,
+                EventType.INTENT_SHIFT,
+                "low",
             )
 
         if any(term in user_utterance for term in ["agent", "human", "사람"]):
@@ -43,7 +49,8 @@ class KeywordFakeLLMClient:
                 ActionLabel.HANDOFF,
                 "User transcript asks for a human agent.",
                 "agent_connection",
-                True,
+                EventType.COMPLAINT,
+                "medium",
             )
 
         if any(term in user_utterance for term in ["shipping", "배송", "추적번호"]):
@@ -53,14 +60,31 @@ class KeywordFakeLLMClient:
                 if is_shift
                 else ActionLabel.RESPOND_AND_CONTINUE
             )
+            event_type = (
+                EventType.INTENT_SHIFT if is_shift else EventType.SAME_INTENT_QUESTION
+            )
             return _judgment(
-                action, "User transcript is about shipping.", "shipping", is_shift
+                action,
+                "User transcript is about shipping.",
+                "shipping",
+                event_type,
+                "low",
             )
 
         if user_utterance in {"ok", "네.", "네", "알겠어요.", "알겠어요"}:
-            return _judgment(ActionLabel.CONTINUE, "Short acknowledgement.")
+            return _judgment(
+                ActionLabel.CONTINUE,
+                "Short acknowledgement.",
+                event_type=EventType.BACKCHANNEL,
+                ambiguity="low",
+            )
 
-        return _judgment(ActionLabel.ASK_CLARIFYING, "User transcript is ambiguous.")
+        return _judgment(
+            ActionLabel.ASK_CLARIFYING,
+            "User transcript is ambiguous.",
+            event_type=EventType.AMBIGUOUS,
+            ambiguity="high",
+        )
 
     def snapshot(self) -> dict[str, object]:
         return {
@@ -95,12 +119,15 @@ def _judgment(
     action: ActionLabel,
     reason: str,
     intent: str | None = None,
-    is_shift: bool | None = None,
+    event_type: EventType | None = None,
+    ambiguity: str | None = None,
 ) -> LLMActionJudgment:
     return LLMActionJudgment(
         actual_action=action,
         reason=reason,
         confidence=0.88,
-        interpreted_user_intent=intent,
-        is_intent_shift=is_shift,
+        predicted_event_type=event_type,
+        predicted_user_intent=intent,
+        ambiguity=ambiguity,
+        interpreter_steps=["read_transcript", "classify_customer_signal"],
     )

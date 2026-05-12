@@ -5,13 +5,14 @@ from interruption_detection.policies.llm_action import LLMActionPolicy
 
 
 class PolicyV1(LLMActionPolicy):
-    """라벨 정의와 예시를 포함해 텍스트를 판단하는 LLM 정책."""
+    """라벨 정의와 예시를 더해 공통 해석/행동 선택 흐름을 실행하는 정책."""
 
     def __init__(self, llm_client: LLMActionClient | None = None) -> None:
         super().__init__(
             name="policy_v1",
             description=(
-                "Text LLM policy with action label definitions and few-shot guidance."
+                "Policy v1: interpret the customer signal and select action with "
+                "label definitions and few-shot guidance."
             ),
             prompt_version="policy_v1_text_llm_v1",
             include_label_definitions=True,

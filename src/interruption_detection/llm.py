@@ -9,7 +9,7 @@ from urllib.request import Request, urlopen
 from dotenv import load_dotenv
 from pydantic import Field
 
-from interruption_detection.models import ActionLabel, StrictModel
+from interruption_detection.models import ActionLabel, EventType, StrictModel
 
 load_dotenv()
 
@@ -19,11 +19,15 @@ class LLMError(ValueError):
 
 
 class LLMActionJudgment(StrictModel):
-    """LLM이 선택한 action label과 판단 근거."""
+    """LLM이 해석한 고객 신호와 선택한 action label."""
 
     actual_action: ActionLabel
     reason: str
     confidence: float | None = Field(default=None, ge=0, le=1)
+    predicted_event_type: EventType | None = None
+    predicted_user_intent: str | None = None
+    ambiguity: str | None = None
+    interpreter_steps: list[str] = Field(default_factory=list)
     interpreted_user_intent: str | None = None
     is_intent_shift: bool | None = None
 
@@ -59,15 +63,25 @@ ACTION_JUDGMENT_SCHEMA: dict[str, Any] = {
         },
         "reason": {"type": "string"},
         "confidence": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
-        "interpreted_user_intent": {"type": ["string", "null"]},
-        "is_intent_shift": {"type": ["boolean", "null"]},
+        "predicted_event_type": {
+            "type": ["string", "null"],
+            "enum": [item.value for item in EventType] + [None],
+        },
+        "predicted_user_intent": {"type": ["string", "null"]},
+        "ambiguity": {"type": ["string", "null"]},
+        "interpreter_steps": {
+            "type": "array",
+            "items": {"type": "string"},
+        },
     },
     "required": [
         "actual_action",
         "reason",
         "confidence",
-        "interpreted_user_intent",
-        "is_intent_shift",
+        "predicted_event_type",
+        "predicted_user_intent",
+        "ambiguity",
+        "interpreter_steps",
     ],
     "additionalProperties": False,
 }

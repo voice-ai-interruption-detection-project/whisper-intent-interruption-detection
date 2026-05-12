@@ -33,11 +33,11 @@ VAD-only
 transcript / speech signal
 -> Interpreter Pipeline
    # predicted_event_type, predicted_user_intent, confidence, ambiguity
--> Thin Action Policy
+-> AI Action Selector
 -> actual_action
 ```
 
-LLM은 one-shot action judge baseline으로 보존할 수도 있고, 다음 구조에서는 `Interpreter Pipeline` 안의 보조 판단, ambiguous fallback, evaluator/debugger 중 하나 이상의 역할을 맡을 수 있다.
+LLM은 one-shot action judge baseline으로 보존할 수도 있고, 공통 구조에서는 `Interpreter Pipeline` 안의 보조 판단, ambiguous fallback, evaluator/debugger 중 하나 이상의 역할을 맡을 수 있다.
 
 현재 가장 유력한 회복 후보로 본다.
 
@@ -60,14 +60,14 @@ risky case
 
 ## 기각한 이유
 
-아직 최종 기각은 없다.
+이제 최종 방향은 3번을 기준으로 둔다.
 
 다만 현재 판단은 아래에 가깝다.
 
 - 현재 direct LLM action judge만 유지하면 빠르지만 제품 흐름 설명력이 약하다.
 - 초기 rule mapping만으로 돌아가면 5차에서 발견한 hardcoding 우려가 되살아난다.
-- 따라서 기존 LLM 구현을 보존하면서, 고객 신호 해석과 AI 행동 판단을 다시 나누는 방향을 먼저 검토한다.
-- 단, `Interpreter Pipeline`만 만들고 `actual_action` 생성을 뒤로 미루지는 않는다. 첫 실험은 `Interpreter Pipeline + Thin Action Policy`가 한 run 안에서 같이 돌아야 기존 `expected_action vs actual_action` 평가 흐름이 유지된다.
+- 따라서 기존 LLM 구현을 보존하면서, 고객 신호 해석과 AI 행동 판단을 다시 나누는 방향으로 구현한다.
+- 단, `Interpreter Pipeline`만 만들고 `actual_action` 생성을 뒤로 미루지는 않는다. 첫 실험은 `Interpreter Pipeline + AI Action Selector`가 한 run 안에서 같이 돌아야 기존 `expected_action vs actual_action` 평가 흐름이 유지된다.
 
 ## 판단이 바뀐 지점
 
@@ -100,7 +100,7 @@ predicted_event_type
 + predicted_user_intent
 + confidence
 + ambiguity
--> Thin Action Policy
+-> AI Action Selector
 -> actual_action
 ```
 

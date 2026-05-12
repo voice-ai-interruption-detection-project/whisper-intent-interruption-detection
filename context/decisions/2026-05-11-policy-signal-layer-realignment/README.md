@@ -1,6 +1,6 @@
 ---
 date: 2026-05-11
-status: exploring
+status: active
 related_pr:
 related_runs:
 skill_source: record-decision
@@ -11,15 +11,15 @@ tags: [policy, llm, mvp, product-flow, context]
 
 ## 정리
 
-현재 진행할 수 있다는 가정 아래, `LLM action judge` 중심으로 합쳐진 고객 신호 해석과 AI 행동 판단 층을 다시 분리할지 검토한다.
+`LLM action judge` 중심으로 합쳐진 고객 신호 해석과 AI 행동 판단 층을 분리해, Text/Audio 입력 뒤에 공통 고객 신호 해석(`Interpreter Pipeline`)과 AI 행동 선택(`AI Action Selector`) 흐름을 둔다.
 
-핵심은 LLM 사용 여부가 아니라, LLM을 최종 action judge로 둘지, `Interpreter Pipeline` 안의 보조 판단/fallback/debug 기능으로 둘지 정렬하는 것이다.
+핵심은 LLM 사용 여부가 아니라, 고객 신호 해석과 `actual_action` 선택의 층위를 나누는 것이다.
 
-아직 코드나 active context를 바꾸는 결정은 아니다. 기존 LLM action judge 구현은 보존하고, 다음 작업 전에 문서/정책/구현 흐름을 덜 꼬이게 하는 기준을 세운다.
+기존 LLM action judge 구현은 버리지 않고, 첫 구현에서는 LLM structured output을 공통 runtime 해석 결과와 AI 행동 선택 결과로 나눠 기록한다. `expected_action`, `event_type`, `expected_user_intent`는 계속 기준값으로만 쓰고 runtime action 결정 입력으로 직접 쓰지 않는다.
 
 ## 범위
 
-- 아직 미반영
+- 구현 반영 진행 중
 - `context/internal/`
 - `context/decisions/2026-05-09-llm-action-policy-baseline/`
 - `src/interruption_detection/policies/`
@@ -45,17 +45,17 @@ tags: [policy, llm, mvp, product-flow, context]
 
 ## 결과 / 트레이드오프
 
-- 좋아진 것: LLM을 버릴지 쓸지의 이분법이 아니라, LLM 역할의 층위를 분리해 다음 작업을 논의할 수 있다.
+- 좋아진 것: LLM을 버릴지 쓸지의 이분법이 아니라, LLM 역할의 층위를 분리해 구현할 수 있다.
 - 좋아진 것: 기존 `LLMActionPolicy`를 즉시 폐기하지 않고 one-shot LLM judge baseline으로 보존할 수 있다.
-- 좋아진 것: active context를 바로 고치기 전에 decision과 작업 순서를 먼저 남긴다.
-- 나빠진 것: `Interpreter Pipeline`, `Thin Action Policy`, fallback 같은 층을 나누면 구조가 조금 복잡해질 수 있다.
-- 감수한 부분: 기존 `LLM Action Policy Baseline` decision은 아직 active로 남아 있으며, supersede 또는 재해석 여부는 후속 논의가 필요하다.
+- 좋아진 것: Text Replay와 Audio File Test가 같은 고객 신호 해석/AI 행동 선택 흐름으로 합류한다.
+- 나빠진 것: `Interpreter Pipeline`, `AI Action Selector`, fallback 같은 층을 나누면 구조가 조금 복잡해질 수 있다.
+- 감수한 부분: 기존 `LLM Action Policy Baseline` decision은 active로 유지하되, "LLM이 고객 발화를 보고 판단한다"는 결정으로 재해석한다.
 
 ## 후속 점검
 
-- [ ] 페어와 현재 이슈가 "LLM 사용 여부"가 아니라 "LLM 역할 층위" 문제인지 먼저 공유한다.
-- [ ] `LLM Action Policy Baseline` decision을 유지, 격하, supersede 중 어떻게 다룰지 정한다.
-- [ ] `context/internal/` 수정 대상과 문장 기준을 확정한다.
-- [ ] 코드 변경 전 `Interpreter Pipeline` / `Thin Action Policy` / `LLM fallback` 경계를 설계한다.
-- [ ] `Interpreter Pipeline`만 만들고 `actual_action` 생성을 뒤로 미뤄 기존 Test Bench 비교 흐름을 끊지 않도록 한다.
-- [ ] run artifact에 `signal_source`, `confidence`, `interpreter_steps` 같은 필드를 남길 필요가 있는지 검토한다.
+- [x] 페어와 현재 이슈가 "LLM 사용 여부"가 아니라 "LLM 역할 층위" 문제인지 먼저 공유한다.
+- [x] `LLM Action Policy Baseline` decision은 유지하되, 공통 해석/행동 선택 흐름의 선행 결정으로 재해석한다.
+- [x] `context/internal/` 수정 대상과 문장 기준을 확정한다.
+- [x] `Interpreter Pipeline` / `AI Action Selector` 경계를 구현 전제에 맞게 정한다.
+- [x] `Interpreter Pipeline`만 만들고 `actual_action` 생성을 뒤로 미루지 않는다.
+- [x] run artifact의 `signals`에 `predicted_event_type`, `predicted_user_intent`, `confidence`, `ambiguity`, `signal_source`, `interpreter_steps`를 남긴다.

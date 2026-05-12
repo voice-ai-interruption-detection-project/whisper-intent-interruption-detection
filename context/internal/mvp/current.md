@@ -37,7 +37,7 @@ AI speaking
 -> failure와 다음 수정점 기록
 ```
 
-현재 `baseline`과 `policy_v1`에서는 LLM이 고객 발화와 AI context를 보고 바로 `actual_action`을 고른다. 다음 구조 후보는 Text/Audio 입력 뒤에 고객 발화를 어떻게 이해했는지 먼저 남기고, 그 해석을 바탕으로 AI 행동을 고르는 흐름으로 정리하는 것이다. 이 흐름은 기존 `baseline`과 `policy_v1`도 함께 통과하게 한다.
+현재 `baseline`과 `policy_v1`은 Text/Audio 입력 뒤에 고객 발화를 어떻게 이해했는지 먼저 남기고, 그 해석을 바탕으로 AI 행동을 고르는 흐름을 통과한다. 첫 구현은 LLM structured output을 사용해 고객 신호 해석 결과와 `actual_action`을 함께 받고, 정책 코드가 이를 `signals`의 `predicted_event_type`, `predicted_user_intent`, `confidence`, `ambiguity`, `signal_source`, `interpreter_steps`로 정리한다.
 
 ## 현재 repo 상태
 
@@ -50,7 +50,7 @@ AI speaking
 | `src/backend/PACKAGES.md` | backend dependency와 하네스 경계 설명 있음 | FastAPI/API 작업 시 책임 경계 가이드 |
 | `pyproject.toml` | FastAPI, Whisper, sentence-transformers, VAD, audio/data/test 의존성 있음 | 구현 후보 dependency는 준비됨 |
 | `src/runner.py`, `src/interruption_detection/runner.py` | CLI와 공통 policy 실행 entry가 있음 | 텍스트 입력(Text Replay), Backend, Test Bench가 같은 runner를 통과한다 |
-| `src/interruption_detection/policies/` | `baseline`, `policy_v1`이 LLM으로 `actual_action`을 고르는 방식으로 전환됨 | Step 2 하드코딩 placeholder에서 벗어났지만, 고객 신호 해석과 action 선택은 아직 한 층에 합쳐져 있다 |
+| `src/interruption_detection/policies/` | `baseline`, `policy_v1`이 공통 고객 신호 해석과 AI 행동 선택 흐름으로 전환됨 | Step 2 하드코딩 placeholder에서 벗어나고, 고객 신호 해석 점검값을 `signals`에 남긴다 |
 | `src/interruption_detection/llm.py` | OpenAI Responses API용 structured output client가 있음 | `OPENAI_API_KEY`가 있을 때 실제 LLM 판단을 호출한다 |
 | `src/interruption_detection/evaluation/` | Test Bench batch eval과 run artifact 생성이 있음 | `results/runs/{run_id}/` 계약으로 평가 결과를 남긴다 |
 | `src/interruption_detection/audio/` | 오디오 파일 입력(Audio File Test) manifest, precomputed/Whisper STT adapter, audio signal 요약이 있음 | 오디오 입력도 같은 runner input으로 합류한다 |
@@ -67,12 +67,12 @@ MVP 구현은 현재 브랜치의 파일과 현재 기준 문서를 기준으로
 | 판단 케이스 목록(Scenario Bank) | `data/scenarios.json` 30개를 기준 원본으로 로드한다 |
 | 텍스트 입력(Text Replay) | 판단 케이스를 선택하거나 텍스트 입력을 넣어 policy 판단을 먼저 확인한다 |
 | AI 행동 판단 Runner(AI Action Policy Runner) | 텍스트 입력, 오디오 입력, CLI, Backend가 공유할 단일 runner entry를 둔다 |
-| Baseline | transcript와 speech signal을 최소 입력으로 보고 LLM이 바로 `actual_action`을 고르는 기준선을 둔다 |
-| Policy v1 | action label 정의, 예시, tone hint를 더해 LLM이 바로 `actual_action`을 고르는 방식으로 false stop을 줄이는지 본다 |
+| Baseline | transcript와 speech signal을 최소 입력으로 보고 고객 신호 해석과 AI 행동 선택을 실행하는 기준선을 둔다 |
+| Policy v1 | action label 정의, 예시, tone hint를 더해 같은 흐름에서 false stop을 줄이는지 본다 |
 | Test Bench(배치 평가) | 판단 케이스 set에 policy를 batch 실행하고 `results/runs/{run_id}/` artifact를 남긴다 |
 | Error Analysis | failure를 primary 5종 기준으로 분류하고 다음 수정 후보를 남긴다 |
 | 대표 오디오 파일 입력(Audio File Test) | mock/precomputed transcript라도 같은 runner 흐름에 합류시킨다 |
-| 해석/행동 층위 재정렬 후보 | Text/Audio와 `baseline`, `policy_v1`이 함께 통과하는 공통 고객 신호 해석(`Interpreter Pipeline`)과 AI 행동 선택(`AI Action Selector`)을 설계한다 |
+| 해석/행동 층위 재정렬 | Text/Audio와 `baseline`, `policy_v1`이 함께 통과하는 공통 고객 신호 해석(`Interpreter Pipeline`)과 AI 행동 선택(`AI Action Selector`)을 둔다 |
 
 ## 후순위 범위
 

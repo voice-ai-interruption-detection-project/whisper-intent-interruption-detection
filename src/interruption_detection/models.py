@@ -62,6 +62,43 @@ class StrictModel(BaseModel):
     model_config = ConfigDict(extra="forbid", use_enum_values=False)
 
 
+class CustomerSignalInterpretation(StrictModel):
+    """runtime 고객 신호 해석 결과와 디버깅용 점검값."""
+
+    predicted_event_type: EventType | None = None
+    predicted_user_intent: str | None = None
+    confidence: float | None = Field(default=None, ge=0, le=1)
+    ambiguity: str | None = None
+    signal_source: str
+    interpreter_steps: list[str] = Field(default_factory=list)
+
+    def to_signal_dict(self) -> dict[str, Any]:
+        """run artifact의 signals에 남길 표준 키와 legacy alias를 함께 만든다."""
+        payload = self.model_dump(mode="json")
+        payload["interpreted_user_intent"] = self.predicted_user_intent
+        payload["is_intent_shift"] = (
+            self.predicted_event_type == EventType.INTENT_SHIFT
+            if self.predicted_event_type is not None
+            else None
+        )
+        payload["legacy_signal_aliases"] = {
+            "interpreted_user_intent": "predicted_user_intent",
+            "is_intent_shift": "predicted_event_type == intent_shift",
+        }
+
+        return payload
+
+
+class PolicyInput(StrictModel):
+    """policy가 참고할 runtime 필드만 담은 입력."""
+
+    ai_current_intent: str
+    ai_utterance: str
+    user_utterance: str
+    user_tone_hint: UserToneHint = UserToneHint.NEUTRAL
+    has_user_speech: bool
+
+
 class Scenario(StrictModel):
     """사람이 라벨링한 expected_action을 포함한 판단 케이스(Scenario) 행."""
 
@@ -118,6 +155,16 @@ class RunnerInput(StrictModel):
             user_tone_hint=scenario.user_tone_hint,
             has_user_speech=scenario.has_user_speech,
             notes=scenario.notes,
+        )
+
+    def to_policy_input(self) -> PolicyInput:
+        """policy 호출에 필요한 runtime 필드만 추려 반환한다."""
+        return PolicyInput(
+            ai_current_intent=self.ai_current_intent,
+            ai_utterance=self.ai_utterance,
+            user_utterance=self.user_utterance,
+            user_tone_hint=self.user_tone_hint,
+            has_user_speech=self.has_user_speech,
         )
 
 

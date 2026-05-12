@@ -19,7 +19,7 @@
 -> failure 분석과 Test Bench run artifact 기록
 ```
 
-지금은 `baseline`과 `policy_v1`에서 LLM이 고객 발화와 AI context를 보고 바로 `actual_action`을 고른다. 다음 구조에서는 고객 발화를 어떻게 이해했는지 먼저 남기고, 그 해석을 바탕으로 AI 행동을 고르는 흐름으로 정리한다. 이 흐름은 특정 policy 하나에만 붙이지 않고 `baseline`과 `policy_v1`도 함께 통과하게 한다.
+지금은 `baseline`과 `policy_v1`에서 LLM structured output이 고객 발화 해석 결과와 `actual_action`을 함께 만들고, 정책 코드가 이를 고객 신호 해석(`Interpreter Pipeline`)과 AI 행동 선택(`AI Action Selector`) 흐름으로 나눠 기록한다. 이 흐름은 특정 policy 하나에만 붙이지 않고 `baseline`과 `policy_v1`이 함께 통과한다.
 
 구체 예시는 [Scenario Worked Example](scenario-worked-example.md)을 먼저 본다. 특히 `event_type`, `expected_action`, `actual_action`이 한 화면에 같이 나와 헷갈릴 때는 예시를 따라가면 된다.
 
@@ -124,7 +124,7 @@ scenario.event_type
 -> actual_action
 ```
 
-허용할 수 있는 후보 흐름은 아래다.
+허용하는 흐름은 아래다.
 
 ```text
 transcript / speech signal

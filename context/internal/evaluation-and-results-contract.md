@@ -28,7 +28,7 @@
 
 ## 행동 평가와 고객 신호 해석 점검
 
-현재 공식 평가는 `expected_action`과 `actual_action`이 같은지 보는 데 둔다. 공통 판단 흐름에 고객 신호 해석(`Interpreter Pipeline`)을 추가하더라도, 최종 평가는 AI가 고른 `actual_action`이 기준과 맞는지 확인하는 방식으로 유지한다.
+현재 공식 평가는 `expected_action`과 `actual_action`이 같은지 보는 데 둔다. 공통 판단 흐름에 고객 신호 해석(`Interpreter Pipeline`)을 추가한 뒤에도, 최종 평가는 AI가 고른 `actual_action`이 기준과 맞는지 확인하는 방식으로 유지한다.
 
 고객 신호 해석 결과는 처음부터 성능 점수로 세우기보다, 실패 이유를 보는 보조 점검값으로 먼저 남긴다.
 
@@ -41,6 +41,8 @@
 `predicted_event_type`과 `predicted_user_intent`가 추가되더라도 바로 `action_accuracy`와 같은 대표 성능 수치로 말하지 않는다. 먼저 `decision_logs.jsonl`의 `signals`나 별도 점검 필드에 남기고, 실제로 어떤 실패를 설명해 주는지 본다. 공유 문서나 발표에서는 `action_accuracy`와 섞어 말하지 않고, 필요할 때만 "고객 신호 해석 점검값"처럼 조건을 붙여 쓴다.
 
 주의할 점은 사람이 정한 `scenario.event_type`을 policy 실행 중 곧바로 action으로 바꾸지 않는 것이다. 실행 중에는 transcript/signal을 보고 고객 신호를 따로 해석하고, 그 결과를 AI 행동 선택(`AI Action Selector`)이 참고하는 흐름만 허용한다.
+
+기존에도 LLM user prompt에는 `event_type`, `expected_user_intent`, `expected_action`을 넣지 않았다. 이번 구현은 그 guard를 유지하면서, API/evaluator 경계의 `RunnerInput`을 policy 호출 시 runtime 판단에 필요한 필드만 담은 `PolicyInput`으로 변환해 policy 입력 표면을 좁힌다.
 
 ## Run Artifact 최소 계약
 
@@ -65,7 +67,7 @@ results/runs/{run_id}/
 
 같은 `run_id` 폴더를 덮어쓰지 않는다.
 
-다음 공통 파이프라인 작업에서는 `decision_logs.jsonl`의 `signals`에 `predicted_event_type`, `predicted_user_intent`, `confidence`, `ambiguity`, `signal_source`, `interpreter_steps` 같은 점검값을 남길 수 있다. 이 값들은 기준 원본인 `data/scenarios.json`에 쓰지 않는다.
+공통 파이프라인에서는 `decision_logs.jsonl`의 `signals`에 `predicted_event_type`, `predicted_user_intent`, `confidence`, `ambiguity`, `signal_source`, `interpreter_steps` 같은 점검값을 남긴다. 이 값들은 기준 원본인 `data/scenarios.json`에 쓰지 않는다.
 
 ## 지표 이름
 

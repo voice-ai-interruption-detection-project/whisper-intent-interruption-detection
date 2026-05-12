@@ -34,6 +34,14 @@ def test_evaluate_dataset_writes_run_artifacts(tmp_path) -> None:
     assert set(
         ["expected_action", "actual_action", "reason", "signals", "stage_latencies_ms"]
     ).issubset(first)
+    assert {
+        "predicted_event_type",
+        "predicted_user_intent",
+        "confidence",
+        "ambiguity",
+        "signal_source",
+        "interpreter_steps",
+    }.issubset(first["signals"])
 
 
 def test_evaluate_dataset_rejects_overwrite(tmp_path) -> None:
