@@ -6,7 +6,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from interruption_detection.audio.adapter import run_audio_item
+from interruption_detection.audio.adapter import (
+    build_audio_policy_input_sources,
+    run_audio_item,
+)
 from interruption_detection.audio.manifest import (
     AudioManifestItem,
     audio_path_for_item,
@@ -97,6 +100,7 @@ def evaluate_audio_manifest(
             "audio_manifest": str(manifest_path),
             "audio_manifest_version": manifest.version,
             "transcriber": transcriber.snapshot(),
+            "policy_input_sources": build_audio_policy_input_sources(transcriber.name),
         },
     }
     if dataset_snapshot is not None:

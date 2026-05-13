@@ -152,7 +152,7 @@ has_user_speech = true
 -> false_stop
 ```
 
-현재 `policy_v1`의 목표는 이 케이스를 줄이는 것이다. 고객 발화가 있어도 transcript와 tone hint를 보고 단순 backchannel이면 현재 설명을 계속하거나 짧게 인정하고 이어간다.
+현재 `policy_v1`의 목표는 이 케이스를 줄이는 것이다. 고객 발화가 있어도 transcript와 action label 예시를 보고 단순 backchannel이면 현재 설명을 계속하거나 짧게 인정하고 이어간다.
 
 ### 평가 해석
 

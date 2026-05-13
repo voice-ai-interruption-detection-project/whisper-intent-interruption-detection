@@ -25,7 +25,7 @@ schema key   value
 | `ai_utterance` | `현재 상품은 배송 중이며...` | AI가 말하던 문장 | 사람 | 입력 경로 |
 | `user_utterance` | `환불받고 싶은데요` | 고객이 끼어든 발화 | 사람 또는 transcript | event type |
 | `has_user_speech` | `true`, `false` | 음성/발화 신호 여부 | 사람 또는 신호 처리 | 의미 있는 의도 여부 |
-| `user_tone_hint` | `neutral`, `frustrated`, `urgent` | 톤 힌트 | 사람 또는 추론 | complaint label 자체 |
+| `user_tone_hint` | `neutral`, `frustrated`, `urgent` | 톤 힌트 | 사람 또는 추론 | complaint label 자체, 음성에서 자동 추출된 신호라는 가정 |
 | `event_type` | `intent_shift` | 기준 고객 신호 | 사람 | AI가 해야 하는 행동, runtime 해석 결과 |
 | `expected_user_intent` | `refund_request`, `null` | 기준 고객 의도 | 사람 | AI의 현재 의도, runtime 해석 결과 |
 | `expected_actions` | `["stop_and_switch"]`, `["continue", "brief_ack"]` | 기준/정답 action label 목록 | 사람 | policy 실행 결과 |
@@ -34,6 +34,8 @@ schema key   value
 ## Result 쪽 key
 
 policy를 실행한 뒤 생기는 값은 `results/runs/{run_id}/`에 둔다. 기준 원본과 같은 파일에 섞지 않는다.
+
+Audio File Test에서 `user_tone_hint`가 policy input에 포함되면 출처를 함께 봐야 한다. 현재 TTS/precomputed transcript fixture에서는 이 값이 음성 prosody 분석 결과가 아니라 scenario metadata다. 오디오 run artifact의 `signals.policy_input_sources`와 `run_meta.input_adapter_snapshot.policy_input_sources`는 이런 출처 차이를 남기기 위한 점검값이다.
 
 | result key | 값 예시 | 층위 | 생성 시점 | 위치 |
 | --- | --- | --- | --- | --- |

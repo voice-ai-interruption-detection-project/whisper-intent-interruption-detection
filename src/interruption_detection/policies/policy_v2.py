@@ -79,7 +79,7 @@ class PolicyV2(LLMActionPolicy):
             name="policy_v2",
             description=(
                 "Policy v2: stabilize backchannel, noise, and no-speech handling "
-                "while keeping the policy_v1 prompt surface."
+                "with additional guidance and tone hints."
             ),
             prompt_version="policy_v2_backchannel_noise_v1",
             include_label_definitions=True,

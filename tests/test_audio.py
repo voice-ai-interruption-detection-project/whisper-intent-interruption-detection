@@ -60,6 +60,13 @@ def test_run_audio_item_uses_existing_policy_runner(tmp_path) -> None:
     assert decision.signals["input_mode"] == "audio_file"
     assert decision.signals["input_adapter"] == "audio_file_adapter"
     assert decision.signals["pipeline_input"] == "runner_input"
+    assert decision.signals["policy_input_sources"] == {
+        "ai_current_intent": "scenario_metadata",
+        "ai_utterance": "scenario_metadata",
+        "user_utterance": "audio_transcript:precomputed",
+        "has_user_speech": "audio_transcript:precomputed",
+        "user_tone_hint": "scenario_metadata",
+    }
     assert decision.signals["mode"] == "interpreter_pipeline_action_selector"
     assert decision.signals["predicted_event_type"] == "intent_shift"
     assert decision.signals["predicted_user_intent"] == "refund_or_return"
@@ -118,6 +125,13 @@ def test_evaluate_audio_manifest_writes_run_artifact(tmp_path) -> None:
     assert meta["input_adapter_snapshot"]["transcriber"]["provider"] == (
         "precomputed_manifest"
     )
+    assert meta["input_adapter_snapshot"]["policy_input_sources"] == {
+        "ai_current_intent": "scenario_metadata",
+        "ai_utterance": "scenario_metadata",
+        "user_utterance": "audio_transcript:precomputed",
+        "has_user_speech": "audio_transcript:precomputed",
+        "user_tone_hint": "scenario_metadata",
+    }
     assert (run_dir / "decision_logs.jsonl").exists()
 
 

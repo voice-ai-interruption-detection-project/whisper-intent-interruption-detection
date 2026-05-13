@@ -82,7 +82,9 @@ def test_baseline_uses_llm_action_judgment(fake_llm_client) -> None:
     assert "event_type" not in fake_llm_client.requests[-1].user_prompt
 
 
-def test_policy_v1_uses_rich_llm_prompt(fake_llm_client) -> None:
+def test_policy_v1_uses_label_definitions_and_examples_without_tone_hint(
+    fake_llm_client,
+) -> None:
     policy = PolicyV1(llm_client=fake_llm_client)
 
     decision = policy.predict(
@@ -105,9 +107,16 @@ def test_policy_v1_uses_rich_llm_prompt(fake_llm_client) -> None:
         "is_intent_shift": "predicted_event_type == intent_shift",
     }
     request = fake_llm_client.requests[-1]
+    assert request.prompt_version == "policy_v1_label_examples_no_tone_v1"
     assert "Action label definitions" in request.developer_prompt
     assert "Examples:" in request.developer_prompt
-    assert "user_tone_hint" in request.user_prompt
+    assert "user_tone_hint" not in request.user_prompt
+    assert request.metadata["input_fields"] == [
+        "ai_current_intent",
+        "ai_utterance",
+        "user_utterance",
+        "has_user_speech",
+    ]
     assert "event_type" not in request.user_prompt
     assert "expected_user_intent" not in request.user_prompt
     assert "expected_actions" not in request.user_prompt
@@ -127,6 +136,7 @@ def test_policy_v2_adds_backchannel_noise_guidance(fake_llm_client) -> None:
     assert "backchannel_noise_no_speech_stabilization" in request.developer_prompt
     assert "has_user_speech is false" in request.developer_prompt
     assert "환불요." in request.developer_prompt
+    assert "user_tone_hint" in request.user_prompt
     assert request.metadata["policy_guidance"]["target_failure"] == "false_stop"
     assert "event_type" not in request.user_prompt
     assert "expected_user_intent" not in request.user_prompt
@@ -156,6 +166,13 @@ def test_policy_snapshot_contains_llm_metadata() -> None:
 
     assert snapshot["name"] == "policy_v1"
     assert snapshot["mode"] == "interpreter_pipeline_action_selector"
+    assert snapshot["prompt_version"] == "policy_v1_label_examples_no_tone_v1"
+    assert snapshot["input_fields"] == [
+        "ai_current_intent",
+        "ai_utterance",
+        "user_utterance",
+        "has_user_speech",
+    ]
     assert snapshot["pipeline"] == {
         "judgment_provider": "legacy_llm_action_judgment_provider",
         "interpreter": "llm_structured_signal_interpreter",
