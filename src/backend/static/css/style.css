@@ -564,6 +564,52 @@ input[type="file"] {
   line-height: 1.55;
 }
 
+.mic-override {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.mic-toggle {
+  margin: 0;
+}
+
+.mic-controls {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-2);
+}
+
+.mic-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mic-actions button {
+  min-height: 34px;
+}
+
+.mic-controls audio {
+  width: 100%;
+  min-height: 36px;
+}
+
+.compact-form {
+  grid-template-columns: minmax(160px, 220px) minmax(0, 1fr);
+}
+
+.mic-status {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
 .text-input-panel,
 .audio-input-panel,
 .run-input-panel {
@@ -634,6 +680,39 @@ pre {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 13px;
   line-height: 1.55;
+}
+
+.playground-review {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-2);
+}
+
+.playground-review h4 {
+  color: var(--text);
+  font-size: 14px;
+}
+
+.playground-review p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.playground-review[data-verdict="agree"] {
+  border-color: rgba(104, 210, 111, 0.5);
+}
+
+.playground-review[data-verdict="disagree"] {
+  border-color: rgba(255, 123, 114, 0.5);
+}
+
+.playground-review[data-verdict="uncertain"] {
+  border-color: rgba(227, 179, 65, 0.55);
 }
 
 .comparison-panel {

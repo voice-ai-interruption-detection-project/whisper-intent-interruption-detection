@@ -8,14 +8,20 @@ import pytest
 from fastapi.testclient import TestClient
 
 from backend.main import app
+from interruption_detection.evaluation.playground_review import (
+    PlaygroundReviewJudgment,
+)
+from interruption_detection.models import ActionLabel
 
 
 @pytest.fixture()
 def client(tmp_path):
     previous_dataset = getattr(app.state, "dataset_path", None)
     previous_output = getattr(app.state, "output_root", None)
+    previous_review_client = getattr(app.state, "playground_review_client", None)
     app.state.dataset_path = Path("data/scenarios.json")
     app.state.output_root = tmp_path
+    app.state.playground_review_client = FakePlaygroundReviewClient()
     try:
         yield TestClient(app)
     finally:
@@ -27,6 +33,35 @@ def client(tmp_path):
             del app.state.output_root
         else:
             app.state.output_root = previous_output
+        if previous_review_client is None:
+            del app.state.playground_review_client
+        else:
+            app.state.playground_review_client = previous_review_client
+
+
+class FakePlaygroundReviewClient:
+    """테스트에서 실제 LLM 호출 없이 Playground review를 반환한다."""
+
+    def __init__(self) -> None:
+        self.requests = []
+
+    def review(self, request):
+        self.requests.append(request)
+
+        return PlaygroundReviewJudgment(
+            verdict="agree",
+            recommended_action=ActionLabel.STOP_AND_SWITCH,
+            confidence=0.91,
+            reason="The selected action is reasonable for the runtime transcript.",
+            reviewer_steps=["read_runtime_context", "compare_policy_action"],
+        )
+
+    def snapshot(self) -> dict[str, object]:
+        return {
+            "provider": "fake",
+            "model": "playground-review-fake",
+            "response_format": "json_schema",
+        }
 
 
 def test_health(client: TestClient) -> None:
@@ -116,6 +151,40 @@ def test_free_predict(client: TestClient) -> None:
 
     assert response.status_code == 200
     assert response.json()["decision"]["actual_action"] == "stop_and_switch"
+
+
+def test_playground_review_uses_runtime_input_only(client: TestClient) -> None:
+    response = client.post(
+        "/playground/reviews",
+        json={
+            "ai_current_intent": "shipping_inquiry",
+            "ai_utterance": "배송 상태를 안내드리겠습니다.",
+            "user_utterance": "환불받고 싶어요.",
+            "user_tone_hint": "neutral",
+            "has_user_speech": True,
+            "decision": {
+                "policy_name": "policy_v1",
+                "actual_action": "stop_and_switch",
+                "reason": "The user asks for a refund.",
+                "signals": {
+                    "predicted_event_type": "intent_shift",
+                    "predicted_user_intent": "refund_request",
+                },
+            },
+        },
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["review"]["verdict"] == "agree"
+    assert body["review"]["recommended_action"] == "stop_and_switch"
+    assert body["review"]["reviewer_snapshot"]["provider"] == "fake"
+
+    request = app.state.playground_review_client.requests[-1]
+    assert "expected_actions" not in request.user_prompt
+    assert "event_type" not in request.user_prompt
+    assert "expected_user_intent" not in request.user_prompt
+    assert request.metadata["official_metric"] is False
 
 
 def test_create_and_read_run(client: TestClient) -> None:

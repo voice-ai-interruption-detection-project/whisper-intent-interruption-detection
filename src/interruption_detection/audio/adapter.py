@@ -21,8 +21,10 @@ def run_audio_item(
     audio_path: str | Path,
     policy_name: str,
     transcriber: AudioTranscriber,
+    input_mode: str = "audio_file",
+    input_adapter: str = "audio_file_adapter",
 ) -> PolicyDecision:
-    """오디오 fixture 하나를 RunnerInput으로 변환한 뒤 기존 policy runner를 호출한다."""
+    """오디오 입력 하나를 RunnerInput으로 변환한 뒤 기존 policy runner를 호출한다."""
     signal_started = perf_counter()
     signal_summary = analyze_audio_file(audio_path)
     signal_ms = round((perf_counter() - signal_started) * 1000, 3)
@@ -44,8 +46,8 @@ def run_audio_item(
 
     signals = {
         **decision.signals,
-        "input_mode": "audio_file",
-        "input_adapter": "audio_file_adapter",
+        "input_mode": input_mode,
+        "input_adapter": input_adapter,
         "pipeline_input": "runner_input",
         "audio": {
             "scenario_id": item.scenario_id,

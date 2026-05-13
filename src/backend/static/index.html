@@ -92,6 +92,40 @@
                   <p id="userUtterance">선택한 케이스가 없습니다.</p>
                 </article>
               </div>
+              <div class="mic-override">
+                <label class="checkbox-field mic-toggle">
+                  <input id="micOverrideToggle" type="checkbox" />
+                  <span>마이크로 고객 발화 대체</span>
+                </label>
+                <div class="mic-controls" id="micControls" hidden>
+                  <div class="mic-actions">
+                    <button class="secondary-button" type="button" id="micStartButton">
+                      녹음 시작
+                    </button>
+                    <button class="ghost-button" type="button" id="micStopButton" disabled>
+                      중지
+                    </button>
+                    <button class="ghost-button" type="button" id="micClearButton" disabled>
+                      비우기
+                    </button>
+                  </div>
+                  <audio id="micPlayback" controls hidden></audio>
+                  <div class="text-form-grid compact-form">
+                    <label>
+                      <span>Transcript adapter</span>
+                      <select id="micTranscriber">
+                        <option value="whisper">whisper</option>
+                        <option value="precomputed">precomputed</option>
+                      </select>
+                    </label>
+                    <label class="wide-field">
+                      <span>Mic transcript</span>
+                      <textarea id="micTranscript" rows="2"></textarea>
+                    </label>
+                  </div>
+                  <p class="mic-status" id="micStatus">녹음 대기</p>
+                </div>
+              </div>
             </section>
 
             <section class="panel result-panel">
@@ -107,6 +141,7 @@
               </p>
               <dl class="meta-grid compact" id="decisionMeta"></dl>
               <pre id="signals">{}</pre>
+              <div class="playground-review" id="playgroundReview" hidden></div>
             </section>
           </div>
 
@@ -232,7 +267,7 @@
               </label>
               <label class="audio-run-field">
                 <span>Whisper model</span>
-                <input id="audioBenchWhisperModel" type="text" value="base" />
+                <input id="audioBenchWhisperModel" type="text" value="medium" />
               </label>
             </div>
           </section>

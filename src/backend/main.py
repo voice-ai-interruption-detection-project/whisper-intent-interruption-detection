@@ -32,6 +32,10 @@ from interruption_detection.evaluation.evaluator import (
     evaluate_dataset,
     is_action_match,
 )
+from interruption_detection.evaluation.playground_review import (
+    PlaygroundReviewInput,
+    review_playground_decision,
+)
 from interruption_detection.models import (
     ActionLabel,
     EventType,
@@ -195,6 +199,23 @@ def predict(body: PredictRequest) -> dict[str, object]:
     return {"expected_actions": None, "decision": decision.model_dump(mode="json")}
 
 
+@app.post("/playground/reviews")
+def review_playground(
+    body: PlaygroundReviewInput,
+    request: Request,
+) -> dict[str, object]:
+    """Playground 단일 판단 결과를 공식 metric과 분리된 LLM review로 점검한다."""
+    try:
+        review = review_playground_decision(
+            body,
+            client=_playground_review_client(request),
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return {"review": review.model_dump(mode="json")}
+
+
 @app.post("/audio/transcribe")
 async def transcribe_audio(
     file: UploadFile = File(...),
@@ -258,6 +279,56 @@ async def predict_audio(
                 audio_path=audio_path,
                 policy_name=policy,
                 transcriber=stt,
+            )
+        except (AudioProcessingError, ValueError) as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+        return {
+            "scenario_id": scenario.scenario_id,
+            "expected_actions": [action.value for action in scenario.expected_actions],
+            "action_match": is_action_match(
+                scenario.expected_actions,
+                decision.actual_action,
+            ),
+            "decision": decision.model_dump(mode="json"),
+        }
+
+
+@app.post("/scenarios/{scenario_id}/mic/predict")
+async def predict_scenario_mic(
+    scenario_id: str,
+    request: Request,
+    file: UploadFile = File(...),
+    policy: str = Form(default="baseline"),
+    transcript: str | None = Form(default=None),
+    transcriber: str = Form(default="precomputed"),
+    language: str = Form(default="ko"),
+) -> dict[str, object]:
+    """선택한 Scenario context에서 고객 발화만 mic 녹음 transcript로 대체해 판단한다."""
+    scenario = _get_scenario(request, scenario_id)
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        audio_path = await _save_upload(file, Path(temp_dir))
+
+        item = _audio_item_from_upload(
+            scenario_id=scenario_id,
+            audio_path=audio_path,
+            transcript=transcript,
+            transcriber=transcriber,
+            language=language,
+            audio_kind="mic_recording",
+        )
+
+        try:
+            stt = build_transcriber(transcriber)
+            decision = run_audio_item(
+                scenario=scenario,
+                item=item,
+                audio_path=audio_path,
+                policy_name=policy,
+                transcriber=stt,
+                input_mode="mic_trial",
+                input_adapter="mic_recording_adapter",
             )
         except (AudioProcessingError, ValueError) as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -359,6 +430,11 @@ def _output_root(request: Request) -> Path:
 def _audio_manifest_path(request: Request) -> Path:
     """app.state 재정의를 반영한 audio manifest 경로를 반환한다."""
     return Path(getattr(request.app.state, "audio_manifest_path", AUDIO_MANIFEST_PATH))
+
+
+def _playground_review_client(request: Request):
+    """테스트에서 Playground review client를 교체할 수 있게 app.state를 확인한다."""
+    return getattr(request.app.state, "playground_review_client", None)
 
 
 def _load_scenarios(request: Request):
@@ -468,6 +544,7 @@ def _audio_item_from_upload(
     transcript: str | None,
     transcriber: str,
     language: str,
+    audio_kind: str = "uploaded_audio",
 ) -> AudioManifestItem:
     """업로드 요청 필드를 오디오 adapter 입력 모델로 검증한다."""
     if transcriber not in {"precomputed", "whisper"}:
@@ -483,7 +560,7 @@ def _audio_item_from_upload(
     return AudioManifestItem(
         scenario_id=scenario_id,
         audio_path=str(audio_path),
-        audio_kind="uploaded_audio",
+        audio_kind=audio_kind,
         transcript_source=transcriber,
         expected_transcript=normalized_transcript,
         expected_has_user_speech=(
