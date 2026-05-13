@@ -419,7 +419,7 @@
       "has_user_speech": true,
       "notes": "결제 문제 해결 중 상담사 연결 요청",
       "expected_actions": [
-        "stop_and_switch"
+        "handoff"
       ]
     },
     {
@@ -465,9 +465,9 @@
       "expected_user_intent": null,
       "user_tone_hint": "neutral",
       "has_user_speech": true,
-      "notes": "고객 의도 불명확, 확인 질문 필요",
+      "notes": "고객이 잠깐 멈춤을 요청한 케이스, 짧게 인정하고 기다림",
       "expected_actions": [
-        "ask_clarifying"
+        "brief_ack"
       ]
     },
     {

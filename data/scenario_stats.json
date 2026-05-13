@@ -10,11 +10,11 @@
   },
   "expected_actions_distribution": {
     "continue": 14,
-    "brief_ack": 6,
+    "brief_ack": 7,
     "respond_and_continue": 6,
-    "stop_and_switch": 7,
-    "ask_clarifying": 2,
-    "handoff": 1
+    "stop_and_switch": 6,
+    "ask_clarifying": 1,
+    "handoff": 2
   },
   "level_distribution": {
     "1": 9,
@@ -46,7 +46,7 @@
   "generated_date": "2026-05-09",
   "notes": {
     "intent_distribution_variance": "ai_current_intent와 expected_user_intent를 분리 집계함. ai_current_intent의 실제 분포가 초기 목표(shipping_inquiry 8, refund_request 8)와 다르게 형성됨. 페어 검증 단계에서 조정 가능.",
-    "expected_actions_allocation": "expected_actions 분포: continue(14) + brief_ack(6) + respond_and_continue(6) + stop_and_switch(7) + ask_clarifying(2) + handoff(1) = 36개 action label / 30개 scenario. backchannel 6개는 continue와 brief_ack를 모두 허용한다.",
+    "expected_actions_allocation": "expected_actions 분포: continue(14) + brief_ack(7) + respond_and_continue(6) + stop_and_switch(6) + ask_clarifying(1) + handoff(2) = 36개 action label / 30개 scenario. backchannel 6개는 continue와 brief_ack를 모두 허용한다.",
     "level_balance": "level 1~2: 17개, level 3: 7개, level 4~5: 6개로 학습 곡선 구성"
   }
 }
