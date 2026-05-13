@@ -2,11 +2,11 @@
 
 이 문서는 action label 6종을 짧게 확인하기 위한 내부 reference다.
 
-action label은 AI 행동 판단(AI Action Policy)이 선택할 수 있는 AI 행동 이름이다. 같은 값 집합이 `expected_action`과 `actual_action` 양쪽에서 쓰인다.
+action label은 AI 행동 판단(AI Action Policy)이 선택할 수 있는 AI 행동 이름이다. 같은 값 집합이 `expected_actions`와 `actual_action` 양쪽에서 쓰인다.
 
 ```text
-expected_action = 사람이 정한 기준 action label
-actual_action   = policy가 낸 결과 action label
+expected_actions = 사람이 정한 기준 action label 목록
+actual_action    = policy가 낸 결과 action label
 ```
 
 ## 6가지 action label
@@ -24,14 +24,15 @@ actual_action   = policy가 낸 결과 action label
 
 | 위치 | 같은 값 예시 | 뜻 |
 | --- | --- | --- |
-| `expected_action` | `stop_and_switch` | 사람이 이 판단 케이스의 기준 행동을 전환으로 정했다 |
+| `expected_actions` | `["stop_and_switch"]` | 사람이 이 판단 케이스의 기준 행동을 전환 하나로 정했다 |
+| `expected_actions` | `["continue", "brief_ack"]` | 둘 중 하나면 자연스러운 행동으로 인정한다 |
 | `actual_action` | `stop_and_switch` | policy가 실행 후 전환을 선택했다 |
 
-두 값이 같으면 최종 행동 평가에서 맞은 것이다. 두 값이 다르면 policy가 기준과 다른 action label을 고른 것이다.
+`actual_action`이 `expected_actions`에 포함되면 최종 행동 평가에서 맞은 것이다. 포함되지 않으면 policy가 기준과 다른 action label을 고른 것이다.
 
 ```text
-expected_action = stop_and_switch
-actual_action   = respond_and_continue
+expected_actions = ["stop_and_switch"]
+actual_action    = respond_and_continue
 
 => 같은 action label vocabulary 안에서 기준과 결과가 다름
 => intent shift를 같은 주제 질문처럼 처리했을 가능성
@@ -49,5 +50,5 @@ actual_action   = respond_and_continue
 
 - action label을 고객 신호의 종류처럼 설명하지 않았는가?
 - `respond_and_continue`를 `pause`로 되돌리지 않았는가?
-- `expected_action`과 `actual_action`을 서로 다른 값 체계처럼 설명하지 않았는가?
+- `expected_actions`와 `actual_action`을 서로 다른 값 체계처럼 설명하지 않았는가?
 - `handoff`는 확정 상담사 연결이 아니라 이관 후보로 설명했는가?

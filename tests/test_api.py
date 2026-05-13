@@ -68,8 +68,20 @@ def test_scenario_predict_uses_runner(client: TestClient) -> None:
 
     assert response.status_code == 200
     body = response.json()
-    assert body["expected_action"] == "respond_and_continue"
+    assert body["expected_actions"] == ["respond_and_continue"]
     assert body["decision"]["actual_action"] == "respond_and_continue"
+
+
+def test_backchannel_predict_returns_expected_actions(client: TestClient) -> None:
+    response = client.post(
+        "/scenarios/commerce_backchannel_003/predict",
+        json={"policy": "policy_v1"},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["expected_actions"] == ["continue", "brief_ack"]
+    assert body["action_match"] is True
 
 
 def test_free_predict(client: TestClient) -> None:

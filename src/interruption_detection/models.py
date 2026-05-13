@@ -109,7 +109,7 @@ class PolicyInput(StrictModel):
 
 
 class Scenario(StrictModel):
-    """사람이 라벨링한 expected_action을 포함한 판단 케이스(Scenario) 행."""
+    """사람이 라벨링한 expected_actions를 포함한 판단 케이스(Scenario) 행."""
 
     scenario_id: str
     level: int = Field(ge=1)
@@ -118,7 +118,7 @@ class Scenario(StrictModel):
     ai_utterance: str
     user_utterance: str
     event_type: EventType
-    expected_action: ActionLabel
+    expected_actions: list[ActionLabel]
     expected_user_intent: str | None
     user_tone_hint: UserToneHint
     has_user_speech: bool
@@ -131,6 +131,10 @@ class Scenario(StrictModel):
             raise ValueError(
                 "user_utterance must be empty when has_user_speech is false"
             )
+        if not self.expected_actions:
+            raise ValueError("expected_actions must contain at least one action")
+        if len(set(self.expected_actions)) != len(self.expected_actions):
+            raise ValueError("expected_actions must not contain duplicates")
         return self
 
 
@@ -194,8 +198,9 @@ class RunDecisionLog(StrictModel):
     scenario_id: str
     policy_name: str
     event_type: EventType
-    expected_action: ActionLabel
+    expected_actions: list[ActionLabel]
     actual_action: ActionLabel
+    action_match: bool = False
     reason: str
     signals: dict[str, Any] = Field(default_factory=dict)
     stage_latencies_ms: dict[str, float] = Field(default_factory=dict)

@@ -73,6 +73,7 @@ def test_baseline_uses_llm_action_judgment(fake_llm_client) -> None:
     assert fake_llm_client.requests
     assert len(fake_llm_client.requests) == 1
     assert "expected_action" not in fake_llm_client.requests[-1].user_prompt
+    assert "expected_actions" not in fake_llm_client.requests[-1].user_prompt
     assert "event_type" not in fake_llm_client.requests[-1].user_prompt
 
 
@@ -104,6 +105,7 @@ def test_policy_v1_uses_rich_llm_prompt(fake_llm_client) -> None:
     assert "user_tone_hint" in request.user_prompt
     assert "event_type" not in request.user_prompt
     assert "expected_user_intent" not in request.user_prompt
+    assert "expected_actions" not in request.user_prompt
 
 
 def test_runner_input_strips_evaluation_fields_before_policy() -> None:

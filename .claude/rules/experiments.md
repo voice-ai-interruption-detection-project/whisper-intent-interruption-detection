@@ -1,6 +1,6 @@
 # Experiment Rules
 
-이 파일은 Test Bench(판단 케이스 set batch eval) 작업 시 참고하는 가이드다. Playground는 expected_action·run artifact 계약이 없어서 이 파일을 거치지 않는다. 작업 라우팅은 루트 [CLAUDE.md](../../CLAUDE.md)를 본다.
+이 파일은 Test Bench(판단 케이스 set batch eval) 작업 시 참고하는 가이드다. Playground는 expected_actions·run artifact 계약이 없어서 이 파일을 거치지 않는다. 작업 라우팅은 루트 [CLAUDE.md](../../CLAUDE.md)를 본다.
 
 ## Source of Truth 분리
 
@@ -13,7 +13,7 @@
 새 result를 만들 때 `results/runs/{run_id}/`에 다음 4개를 같이 만든다.
 
 - `run_meta.json` — 필수 필드: `run_id`, `timestamp`, `source` (`cli`/`eval`/`demo`/`manual-review`), `mode`, `target`, `changed`, `dataset`, `policy_version`, `policy_snapshot`, `criteria_snapshot`, `latency_ms`, `command`
-- `evaluation.json` — `action_accuracy`, `failures` (primary frame), `confusion_matrix`, `latency_ms`
+- `evaluation.json` — `action_accuracy`, `failures` (primary frame), `mismatch_matrix`, `latency_ms`
 - `decision_logs.jsonl` — case별 `reason`, `signals`, `stage_latencies_ms`
 - `error_analysis.md` — 실패 케이스 (없으면 비어있어도 됨)
 
@@ -21,7 +21,7 @@
 
 ## 코드 변경 단위 (실험 측)
 
-- 새 action label 추가: label 이름, 의미, 어떤 expected_action 예시가 있는지 같이 기록한다.
+- 새 action label 추가: label 이름, 의미, 어떤 expected_actions 예시가 있는지 같이 기록한다.
 - 새 policy version 추가: 기존 evaluator를 그대로 통과하는 형태를 기준으로 둔다 (eval 코드 변경 없음).
 - threshold 변경: 상수/생성자 인자로 바꾸고 `policy_snapshot`에 노출시킨다. magic number는 줄인다.
 

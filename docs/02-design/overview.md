@@ -223,9 +223,9 @@ else:
   ↓
 각 정책별 예측 수행 (Baseline, Policy v1, Policy v2, Policy v3)
   ↓
-expected_action과 비교
+actual_action이 expected_actions에 포함되는지 비교
   ↓
-Confusion Matrix, Accuracy, Precision, Recall 계산
+Mismatch Matrix, Accuracy, Precision, Recall 계산
   ↓
 "Baseline vs Policy v1에서 뭐가 개선됐는가?" 분석
 ```

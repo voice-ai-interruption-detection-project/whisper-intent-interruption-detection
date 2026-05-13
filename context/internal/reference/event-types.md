@@ -11,15 +11,15 @@ AI 행동   -> action label
 
 ## 7가지 event_type
 
-| event_type | 개념 | 대표 워딩/신호 | expected_user_intent | 기본 expected_action | 자주 헷갈리는 값 |
+| event_type | 개념 | 대표 워딩/신호 | expected_user_intent | 기본 expected_actions | 자주 헷갈리는 값 |
 | --- | --- | --- | --- | --- | --- |
-| `no_speech` | 고객 발화 없음 | 침묵, 응답 없음 | `null` | `continue` | `noise` |
-| `noise` | 의미 없는 소리나 배경음 | 기침, 주변 소리, 문 닫는 소리 | `null` | `continue` | `no_speech`, `backchannel` |
-| `backchannel` | 이해/동의/수신 확인 신호 | "네", "음", "알겠어요", "그렇군요" | `null` | `continue` 또는 `brief_ack` | `ambiguous`, `same_intent_question` |
-| `same_intent_question` | 같은 업무 안의 보충 질문 | "배송비는요?", "몇 시쯤 와요?" | 현재 업무 intent와 같음 | `respond_and_continue` | `intent_shift` |
-| `intent_shift` | 다른 업무 의도로 전환 | "환불받고 싶은데요", "반품은 어떻게 해요?" | 새 업무 intent | `stop_and_switch` | `same_intent_question`, `complaint` |
-| `complaint` | 불만, 긴급, 강한 감정 신호 | "너무 늦잖아요", "지금 당장 해줘요" | 상황에 따라 `null` 또는 관련 intent | `stop_and_switch` 또는 `handoff` | `intent_shift`, `ambiguous` |
-| `ambiguous` | 의도가 불명확한 발화 | "잠깐만요", "음...", "아니..." | `null` | `ask_clarifying` | `backchannel`, `complaint` |
+| `no_speech` | 고객 발화 없음 | 침묵, 응답 없음 | `null` | `["continue"]` | `noise` |
+| `noise` | 의미 없는 소리나 배경음 | 기침, 주변 소리, 문 닫는 소리 | `null` | `["continue"]` | `no_speech`, `backchannel` |
+| `backchannel` | 이해/동의/수신 확인 신호 | "네", "음", "알겠어요", "그렇군요" | `null` | `["continue", "brief_ack"]` | `ambiguous`, `same_intent_question` |
+| `same_intent_question` | 같은 업무 안의 보충 질문 | "배송비는요?", "몇 시쯤 와요?" | 현재 업무 intent와 같음 | `["respond_and_continue"]` | `intent_shift` |
+| `intent_shift` | 다른 업무 의도로 전환 | "환불받고 싶은데요", "반품은 어떻게 해요?" | 새 업무 intent | `["stop_and_switch"]` | `same_intent_question`, `complaint` |
+| `complaint` | 불만, 긴급, 강한 감정 신호 | "너무 늦잖아요", "지금 당장 해줘요" | 상황에 따라 `null` 또는 관련 intent | `["stop_and_switch"]` 또는 `["handoff"]` | `intent_shift`, `ambiguous` |
+| `ambiguous` | 의도가 불명확한 발화 | "잠깐만요", "음...", "아니..." | `null` | `["ask_clarifying"]` | `backchannel`, `complaint` |
 
 ## 판단 순서
 

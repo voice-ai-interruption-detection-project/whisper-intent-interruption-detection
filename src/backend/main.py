@@ -21,7 +21,10 @@ from interruption_detection.evaluation.artifacts import (
     read_run_artifacts,
 )
 from interruption_detection.evaluation.audio_evaluator import evaluate_audio_manifest
-from interruption_detection.evaluation.evaluator import evaluate_dataset
+from interruption_detection.evaluation.evaluator import (
+    evaluate_dataset,
+    is_action_match,
+)
 from interruption_detection.models import (
     ActionLabel,
     EventType,
@@ -147,7 +150,11 @@ def predict_scenario(
 
     return {
         "scenario_id": scenario.scenario_id,
-        "expected_action": scenario.expected_action.value,
+        "expected_actions": [action.value for action in scenario.expected_actions],
+        "action_match": is_action_match(
+            scenario.expected_actions,
+            decision.actual_action,
+        ),
         "decision": decision.model_dump(mode="json"),
     }
 
@@ -162,7 +169,7 @@ def predict(body: PredictRequest) -> dict[str, object]:
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-    return {"expected_action": None, "decision": decision.model_dump(mode="json")}
+    return {"expected_actions": None, "decision": decision.model_dump(mode="json")}
 
 
 @app.post("/audio/transcribe")
@@ -234,7 +241,11 @@ async def predict_audio(
 
         return {
             "scenario_id": scenario.scenario_id,
-            "expected_action": scenario.expected_action.value,
+            "expected_actions": [action.value for action in scenario.expected_actions],
+            "action_match": is_action_match(
+                scenario.expected_actions,
+                decision.actual_action,
+            ),
             "decision": decision.model_dump(mode="json"),
         }
 

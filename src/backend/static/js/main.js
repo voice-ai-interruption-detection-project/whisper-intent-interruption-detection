@@ -237,8 +237,8 @@ function renderScenarioList() {
 
       const meta = document.createElement("span");
       meta.className = "scenario-meta";
-      meta.textContent = `${formatEventType(scenario.event_type)} / ${formatActionLabel(
-        scenario.expected_action
+      meta.textContent = `${formatEventType(scenario.event_type)} / ${formatExpectedActions(
+        scenario
       )}`;
 
       const utterance = document.createElement("span");
@@ -257,7 +257,7 @@ function renderSelectedScenario() {
   if (!scenario) return;
 
   elements.scenarioTitle.textContent = scenario.scenario_id;
-  elements.expectedChip.textContent = `expected ${scenario.expected_action}`;
+  elements.expectedChip.textContent = `expected ${formatExpectedActions(scenario)}`;
   elements.aiUtterance.textContent = scenario.ai_utterance;
   elements.userUtterance.textContent = scenario.user_utterance || "고객 발화 없음";
 
@@ -373,8 +373,8 @@ async function predictScenario(scenarioId, policyName) {
 // 단일 policy 판단 결과를 결과 패널의 expected/actual 비교 형태로 표시한다.
 function renderFocusResult(result) {
   const decision = result.decision;
-  const hasExpected = result.expected_action !== undefined && result.expected_action !== null;
-  const isMatch = hasExpected && result.expected_action === decision.actual_action;
+  const hasExpected = Array.isArray(result.expected_actions);
+  const isMatch = hasExpected && resultActionMatch(result);
 
   elements.actualAction.textContent = formatActionLabel(decision.actual_action);
   elements.matchChip.textContent = hasExpected ? (isMatch ? "match" : "mismatch") : "unscored";
@@ -383,7 +383,7 @@ function renderFocusResult(result) {
 
   renderDefinitionList(elements.decisionMeta, [
     ["policy", decision.policy_name],
-    ["expected_action", hasExpected ? result.expected_action : "n/a"],
+    ["expected_actions", hasExpected ? formatExpectedActions(result) : "n/a"],
     ["actual_action", decision.actual_action],
     ["latency", `${decision.latency_ms} ms`],
   ]);
@@ -405,14 +405,14 @@ function fillTextInputsFromScenario(scenario) {
 function renderComparison() {
   const selectedPolicyName = elements.policySelect.value;
   const matches = state.comparisonResults.filter((result) => {
-    return result.expected_action === result.decision.actual_action;
+    return resultActionMatch(result);
   }).length;
 
   elements.comparisonStatus.textContent = `${matches}/${state.comparisonResults.length} match`;
   elements.comparisonGrid.replaceChildren(
     ...state.comparisonResults.map((result) => {
       const decision = result.decision;
-      const isMatch = result.expected_action === decision.actual_action;
+      const isMatch = resultActionMatch(result);
       const card = document.createElement("article");
       card.className = "compare-card";
       card.dataset.state = isMatch ? "match" : "mismatch";
@@ -449,7 +449,7 @@ function renderComparison() {
 
       const expected = document.createElement("p");
       expected.className = "compare-expected";
-      expected.textContent = `expected ${result.expected_action}`;
+      expected.textContent = `expected ${formatExpectedActions(result)}`;
 
       const reason = document.createElement("p");
       reason.className = "compare-reason";
@@ -644,10 +644,11 @@ async function renderSelectedRun(runId) {
   elements.decisionLogRows.replaceChildren(
     ...artifacts.decision_logs.map((log) => {
       const row = document.createElement("tr");
+      const isMatch = log.action_match ?? logActionMatch(log);
       const cells = [
         log.scenario_id,
         log.event_type,
-        log.expected_action,
+        formatExpectedActions(log),
         log.actual_action,
         log.primary_failure || "none",
         `${log.latency_ms} ms`,
@@ -657,7 +658,7 @@ async function renderSelectedRun(runId) {
         cell.textContent = value;
 
         if (index === 3) {
-          cell.className = log.expected_action === log.actual_action ? "ok-text" : "bad-text";
+          cell.className = isMatch ? "ok-text" : "bad-text";
         }
 
         row.append(cell);
@@ -819,6 +820,34 @@ function percent(value) {
   if (value === undefined || value === null) return "n/a";
 
   return `${Math.round(Number(value) * 100)}%`;
+}
+
+function resultActionMatch(result) {
+  if (typeof result.action_match === "boolean") {
+    return result.action_match;
+  }
+
+  const expectedActions = Array.isArray(result.expected_actions)
+    ? result.expected_actions
+    : [result.expected_action].filter(Boolean);
+
+  return expectedActions.includes(result.decision.actual_action);
+}
+
+function formatExpectedActions(item) {
+  const expectedActions = Array.isArray(item.expected_actions)
+    ? item.expected_actions
+    : [item.expected_action].filter(Boolean);
+
+  return expectedActions.filter(Boolean).join(", ");
+}
+
+function logActionMatch(log) {
+  const expectedActions = Array.isArray(log.expected_actions)
+    ? log.expected_actions
+    : [log.expected_action].filter(Boolean);
+
+  return expectedActions.includes(log.actual_action);
 }
 
 function formatCodeLabel(value, labels) {

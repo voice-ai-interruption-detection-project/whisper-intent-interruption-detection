@@ -217,7 +217,7 @@ Action: "그러면 AI는 뭘 해야 하는가?"
    → predicted_intent = "환불요청"
 
 3️⃣ Action 결정
-   → expected_action = "stop_and_switch"
+   → expected_actions = ["stop_and_switch"]
 ```
 
 ---
@@ -237,7 +237,7 @@ Action: "그러면 AI는 뭘 해야 하는가?"
   
   "event_type": "intent_shift",
   "expected_user_intent": "refund_request",
-  "expected_action": "stop_and_switch",
+  "expected_actions": ["stop_and_switch"],
   
   "has_user_speech": true,
   "user_tone_hint": "neutral",

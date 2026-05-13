@@ -16,7 +16,7 @@ from interruption_detection.audio.stt import AudioProcessingError, AudioTranscri
 from interruption_detection.evaluation.evaluator import (
     build_error_analysis,
     build_evaluation,
-    classify_failure,
+    build_run_decision_log,
     get_criteria_snapshot,
 )
 from interruption_detection.models import RunDecisionLog, Scenario
@@ -72,26 +72,7 @@ def evaluate_audio_manifest(
             transcriber=transcriber,
         )
 
-        primary_failure = classify_failure(
-            expected=scenario.expected_action,
-            actual=decision.actual_action,
-            event_type=scenario.event_type,
-        )
-
-        logs.append(
-            RunDecisionLog(
-                scenario_id=scenario.scenario_id,
-                policy_name=policy_name,
-                event_type=scenario.event_type,
-                expected_action=scenario.expected_action,
-                actual_action=decision.actual_action,
-                reason=decision.reason,
-                signals=decision.signals,
-                stage_latencies_ms=decision.stage_latencies_ms,
-                latency_ms=decision.latency_ms,
-                primary_failure=primary_failure,
-            )
-        )
+        logs.append(build_run_decision_log(scenario, policy_name, decision))
 
     evaluation = build_evaluation(logs)
     total_latency = round(sum(item.latency_ms for item in logs), 3)

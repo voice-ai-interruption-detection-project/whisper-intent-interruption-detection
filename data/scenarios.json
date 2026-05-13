@@ -8,11 +8,13 @@
       "ai_utterance": "현재 상품은 배송 중이며 내일 오후 도착 예정입니다.",
       "user_utterance": "",
       "event_type": "no_speech",
-      "expected_action": "continue",
       "expected_user_intent": null,
       "user_tone_hint": "neutral",
       "has_user_speech": false,
-      "notes": "사용자 발화 없음, AI 계속 진행"
+      "notes": "사용자 발화 없음, AI 계속 진행",
+      "expected_actions": [
+        "continue"
+      ]
     },
     {
       "scenario_id": "commerce_no_speech_002",
@@ -22,11 +24,13 @@
       "ai_utterance": "환불은 구매일로부터 7일 이내 가능합니다.",
       "user_utterance": "",
       "event_type": "no_speech",
-      "expected_action": "continue",
       "expected_user_intent": null,
       "user_tone_hint": "neutral",
       "has_user_speech": false,
-      "notes": "침묵"
+      "notes": "침묵",
+      "expected_actions": [
+        "continue"
+      ]
     },
     {
       "scenario_id": "commerce_no_speech_003",
@@ -36,11 +40,13 @@
       "ai_utterance": "반품은 수거 신청 후 2~3일 이내 처리됩니다.",
       "user_utterance": "",
       "event_type": "no_speech",
-      "expected_action": "continue",
       "expected_user_intent": null,
       "user_tone_hint": "neutral",
       "has_user_speech": false,
-      "notes": "사용자 반응 없음"
+      "notes": "사용자 반응 없음",
+      "expected_actions": [
+        "continue"
+      ]
     },
     {
       "scenario_id": "commerce_no_speech_004",
@@ -50,11 +56,13 @@
       "ai_utterance": "결제 내역을 확인해 드리겠습니다.",
       "user_utterance": "",
       "event_type": "no_speech",
-      "expected_action": "continue",
       "expected_user_intent": null,
       "user_tone_hint": "neutral",
       "has_user_speech": false,
-      "notes": "조회 진행 중 고객 침묵"
+      "notes": "조회 진행 중 고객 침묵",
+      "expected_actions": [
+        "continue"
+      ]
     },
     {
       "scenario_id": "commerce_noise_001",
@@ -64,11 +72,13 @@
       "ai_utterance": "사이즈는 M, L, XL 세 가지가 있습니다.",
       "user_utterance": "",
       "event_type": "noise",
-      "expected_action": "continue",
       "expected_user_intent": null,
       "user_tone_hint": "neutral",
       "has_user_speech": false,
-      "notes": "기침 소리"
+      "notes": "기침 소리",
+      "expected_actions": [
+        "continue"
+      ]
     },
     {
       "scenario_id": "commerce_noise_002",
@@ -78,11 +88,13 @@
       "ai_utterance": "배송 상태를 확인해 드리겠습니다. 현재 물류센터에서 출발했습니다.",
       "user_utterance": "",
       "event_type": "noise",
-      "expected_action": "continue",
       "expected_user_intent": null,
       "user_tone_hint": "neutral",
       "has_user_speech": false,
-      "notes": "배경음 - 개 짖는 소리"
+      "notes": "배경음 - 개 짖는 소리",
+      "expected_actions": [
+        "continue"
+      ]
     },
     {
       "scenario_id": "commerce_noise_003",
@@ -92,11 +104,13 @@
       "ai_utterance": "환불 신청 방법을 안내드리겠습니다.",
       "user_utterance": "",
       "event_type": "noise",
-      "expected_action": "continue",
       "expected_user_intent": null,
       "user_tone_hint": "neutral",
       "has_user_speech": false,
-      "notes": "차 경적 소리"
+      "notes": "차 경적 소리",
+      "expected_actions": [
+        "continue"
+      ]
     },
     {
       "scenario_id": "commerce_noise_004",
@@ -106,11 +120,13 @@
       "ai_utterance": "결제가 실패했습니다. 결제 방법을 변경해서 다시 시도해 주세요.",
       "user_utterance": "",
       "event_type": "noise",
-      "expected_action": "continue",
       "expected_user_intent": null,
       "user_tone_hint": "neutral",
       "has_user_speech": false,
-      "notes": "카페 소음"
+      "notes": "카페 소음",
+      "expected_actions": [
+        "continue"
+      ]
     },
     {
       "scenario_id": "commerce_backchannel_001",
@@ -120,11 +136,14 @@
       "ai_utterance": "현재 상품은 배송 중이며 내일 오후 도착 예정입니다.",
       "user_utterance": "네, 알겠어요.",
       "event_type": "backchannel",
-      "expected_action": "continue",
       "expected_user_intent": null,
       "user_tone_hint": "neutral",
       "has_user_speech": true,
-      "notes": "고객 이해 신호"
+      "notes": "고객 이해 신호",
+      "expected_actions": [
+        "continue",
+        "brief_ack"
+      ]
     },
     {
       "scenario_id": "commerce_backchannel_002",
@@ -134,11 +153,14 @@
       "ai_utterance": "배송은 영업일 기준 3~5일 정도 소요됩니다.",
       "user_utterance": "음, 알겠습니다.",
       "event_type": "backchannel",
-      "expected_action": "brief_ack",
       "expected_user_intent": null,
       "user_tone_hint": "neutral",
       "has_user_speech": true,
-      "notes": "수신 확인"
+      "notes": "수신 확인",
+      "expected_actions": [
+        "continue",
+        "brief_ack"
+      ]
     },
     {
       "scenario_id": "commerce_backchannel_003",
@@ -148,11 +170,14 @@
       "ai_utterance": "환불은 구매일로부터 7일 이내 가능합니다.",
       "user_utterance": "네.",
       "event_type": "backchannel",
-      "expected_action": "continue",
       "expected_user_intent": null,
       "user_tone_hint": "neutral",
       "has_user_speech": true,
-      "notes": "짧은 긍정"
+      "notes": "짧은 긍정",
+      "expected_actions": [
+        "continue",
+        "brief_ack"
+      ]
     },
     {
       "scenario_id": "commerce_backchannel_004",
@@ -162,11 +187,14 @@
       "ai_utterance": "색상은 검정, 흰색, 회색 3가지 중에서 선택하실 수 있습니다.",
       "user_utterance": "알겠어요.",
       "event_type": "backchannel",
-      "expected_action": "continue",
       "expected_user_intent": null,
       "user_tone_hint": "neutral",
       "has_user_speech": true,
-      "notes": "색상 설명에 대한 인정"
+      "notes": "색상 설명에 대한 인정",
+      "expected_actions": [
+        "continue",
+        "brief_ack"
+      ]
     },
     {
       "scenario_id": "commerce_backchannel_005",
@@ -176,11 +204,14 @@
       "ai_utterance": "결제 오류가 발생했다면 환불이 진행 중일 수 있습니다.",
       "user_utterance": "맞아요.",
       "event_type": "backchannel",
-      "expected_action": "brief_ack",
       "expected_user_intent": null,
       "user_tone_hint": "neutral",
       "has_user_speech": true,
-      "notes": "안심 메시지에 대한 반응"
+      "notes": "안심 메시지에 대한 반응",
+      "expected_actions": [
+        "continue",
+        "brief_ack"
+      ]
     },
     {
       "scenario_id": "commerce_backchannel_006",
@@ -190,11 +221,14 @@
       "ai_utterance": "반품은 수거 신청 후 2~3일 이내 처리됩니다.",
       "user_utterance": "네, 감사합니다.",
       "event_type": "backchannel",
-      "expected_action": "continue",
       "expected_user_intent": null,
       "user_tone_hint": "neutral",
       "has_user_speech": true,
-      "notes": "감사와 함께 이해 표현"
+      "notes": "감사와 함께 이해 표현",
+      "expected_actions": [
+        "continue",
+        "brief_ack"
+      ]
     },
     {
       "scenario_id": "commerce_shipping_follow_001",
@@ -204,11 +238,13 @@
       "ai_utterance": "배송은 영업일 기준 3~5일 정도 소요됩니다.",
       "user_utterance": "배송비는 얼마예요?",
       "event_type": "same_intent_question",
-      "expected_action": "respond_and_continue",
       "expected_user_intent": "shipping_inquiry",
       "user_tone_hint": "neutral",
       "has_user_speech": true,
-      "notes": "배송 주제 내 추가 질문"
+      "notes": "배송 주제 내 추가 질문",
+      "expected_actions": [
+        "respond_and_continue"
+      ]
     },
     {
       "scenario_id": "commerce_shipping_follow_002",
@@ -218,11 +254,13 @@
       "ai_utterance": "현재 상품은 배송 중이며 내일 오후 도착 예정입니다.",
       "user_utterance": "추적번호는 어디서 봐요?",
       "event_type": "same_intent_question",
-      "expected_action": "respond_and_continue",
       "expected_user_intent": "shipping_inquiry",
       "user_tone_hint": "neutral",
       "has_user_speech": true,
-      "notes": "배송 추적 관련 추가 질문"
+      "notes": "배송 추적 관련 추가 질문",
+      "expected_actions": [
+        "respond_and_continue"
+      ]
     },
     {
       "scenario_id": "commerce_refund_follow_001",
@@ -232,11 +270,13 @@
       "ai_utterance": "환불은 구매일로부터 7일 이내 가능합니다.",
       "user_utterance": "환불은 계좌로 돌아오나요?",
       "event_type": "same_intent_question",
-      "expected_action": "respond_and_continue",
       "expected_user_intent": "refund_request",
       "user_tone_hint": "neutral",
       "has_user_speech": true,
-      "notes": "환불 방법에 대한 추가 질문"
+      "notes": "환불 방법에 대한 추가 질문",
+      "expected_actions": [
+        "respond_and_continue"
+      ]
     },
     {
       "scenario_id": "commerce_return_follow_001",
@@ -246,11 +286,13 @@
       "ai_utterance": "반품 수거 신청은 마이페이지에서 간단히 진행할 수 있습니다.",
       "user_utterance": "반품은 비용이 드나요?",
       "event_type": "same_intent_question",
-      "expected_action": "respond_and_continue",
       "expected_user_intent": "return_request",
       "user_tone_hint": "neutral",
       "has_user_speech": true,
-      "notes": "반품 비용 관련 추가 질문"
+      "notes": "반품 비용 관련 추가 질문",
+      "expected_actions": [
+        "respond_and_continue"
+      ]
     },
     {
       "scenario_id": "commerce_product_follow_001",
@@ -260,11 +302,13 @@
       "ai_utterance": "사이즈는 M, L, XL 세 가지가 있습니다.",
       "user_utterance": "어떤 사이즈를 추천하세요?",
       "event_type": "same_intent_question",
-      "expected_action": "respond_and_continue",
       "expected_user_intent": "product_inquiry",
       "user_tone_hint": "neutral",
       "has_user_speech": true,
-      "notes": "상품 사이즈에 대한 추가 질문"
+      "notes": "상품 사이즈에 대한 추가 질문",
+      "expected_actions": [
+        "respond_and_continue"
+      ]
     },
     {
       "scenario_id": "commerce_payment_follow_001",
@@ -274,11 +318,13 @@
       "ai_utterance": "결제 내역을 확인해 드리겠습니다.",
       "user_utterance": "환불은 언제 되나요?",
       "event_type": "same_intent_question",
-      "expected_action": "respond_and_continue",
       "expected_user_intent": "payment_issue",
       "user_tone_hint": "neutral",
       "has_user_speech": true,
-      "notes": "결제 관련 추가 질문"
+      "notes": "결제 관련 추가 질문",
+      "expected_actions": [
+        "respond_and_continue"
+      ]
     },
     {
       "scenario_id": "commerce_shipping_to_return_001",
@@ -288,11 +334,13 @@
       "ai_utterance": "현재 상품은 배송 중이며 내일 오후 도착 예정입니다.",
       "user_utterance": "아니 반품하고 싶은데요.",
       "event_type": "intent_shift",
-      "expected_action": "stop_and_switch",
       "expected_user_intent": "return_request",
       "user_tone_hint": "neutral",
       "has_user_speech": true,
-      "notes": "배송 안내 중 반품 의도로 전환"
+      "notes": "배송 안내 중 반품 의도로 전환",
+      "expected_actions": [
+        "stop_and_switch"
+      ]
     },
     {
       "scenario_id": "commerce_shipping_to_refund_001",
@@ -302,11 +350,13 @@
       "ai_utterance": "배송은 영업일 기준 3~5일 정도 소요됩니다.",
       "user_utterance": "아니 환불받고 싶어요.",
       "event_type": "intent_shift",
-      "expected_action": "stop_and_switch",
       "expected_user_intent": "refund_request",
       "user_tone_hint": "neutral",
       "has_user_speech": true,
-      "notes": "배송 안내 중 환불 의도로 전환"
+      "notes": "배송 안내 중 환불 의도로 전환",
+      "expected_actions": [
+        "stop_and_switch"
+      ]
     },
     {
       "scenario_id": "commerce_refund_to_payment_001",
@@ -316,11 +366,13 @@
       "ai_utterance": "환불은 구매일로부터 7일 이내 가능합니다.",
       "user_utterance": "아, 근데 결제가 두 번 된 거 같아요.",
       "event_type": "intent_shift",
-      "expected_action": "stop_and_switch",
       "expected_user_intent": "payment_issue",
       "user_tone_hint": "frustrated",
       "has_user_speech": true,
-      "notes": "환불 설명 중 결제 문제 언급"
+      "notes": "환불 설명 중 결제 문제 언급",
+      "expected_actions": [
+        "stop_and_switch"
+      ]
     },
     {
       "scenario_id": "commerce_return_to_shipping_001",
@@ -330,11 +382,13 @@
       "ai_utterance": "반품은 수거 신청 후 2~3일 이내 처리됩니다.",
       "user_utterance": "근데 배송은 언제 되는 거죠?",
       "event_type": "intent_shift",
-      "expected_action": "stop_and_switch",
       "expected_user_intent": "shipping_inquiry",
       "user_tone_hint": "neutral",
       "has_user_speech": true,
-      "notes": "반품 설명 중 배송 질문으로 전환"
+      "notes": "반품 설명 중 배송 질문으로 전환",
+      "expected_actions": [
+        "stop_and_switch"
+      ]
     },
     {
       "scenario_id": "commerce_product_to_shipping_001",
@@ -344,11 +398,13 @@
       "ai_utterance": "사이즈는 M, L, XL 세 가지가 있습니다.",
       "user_utterance": "배송은 며칠 걸려요?",
       "event_type": "intent_shift",
-      "expected_action": "stop_and_switch",
       "expected_user_intent": "shipping_inquiry",
       "user_tone_hint": "neutral",
       "has_user_speech": true,
-      "notes": "상품 문의 중 배송 질문으로 전환"
+      "notes": "상품 문의 중 배송 질문으로 전환",
+      "expected_actions": [
+        "stop_and_switch"
+      ]
     },
     {
       "scenario_id": "commerce_payment_to_agent_001",
@@ -358,11 +414,13 @@
       "ai_utterance": "결제 내역을 확인해 드리겠습니다.",
       "user_utterance": "이거 복잡하니까 사람이랑 통화하고 싶어요.",
       "event_type": "intent_shift",
-      "expected_action": "stop_and_switch",
       "expected_user_intent": "agent_connection",
       "user_tone_hint": "frustrated",
       "has_user_speech": true,
-      "notes": "결제 문제 해결 중 상담사 연결 요청"
+      "notes": "결제 문제 해결 중 상담사 연결 요청",
+      "expected_actions": [
+        "stop_and_switch"
+      ]
     },
     {
       "scenario_id": "commerce_complaint_001",
@@ -372,11 +430,13 @@
       "ai_utterance": "배송은 정상 진행 중입니다.",
       "user_utterance": "뭐 이거 벌써 2주 됐잖아요.",
       "event_type": "complaint",
-      "expected_action": "stop_and_switch",
       "expected_user_intent": null,
       "user_tone_hint": "frustrated",
       "has_user_speech": true,
-      "notes": "배송 지연에 대한 불만, severity: low"
+      "notes": "배송 지연에 대한 불만, severity: low",
+      "expected_actions": [
+        "stop_and_switch"
+      ]
     },
     {
       "scenario_id": "commerce_complaint_002",
@@ -386,11 +446,13 @@
       "ai_utterance": "배송 상태를 확인해 드리겠습니다.",
       "user_utterance": "뭐 이딴 배송이야! 지금 당장 와야 돼!",
       "event_type": "complaint",
-      "expected_action": "handoff",
       "expected_user_intent": null,
       "user_tone_hint": "urgent",
       "has_user_speech": true,
-      "notes": "긴급 불만 - severity: high, 상담사 연결 필요"
+      "notes": "긴급 불만 - severity: high, 상담사 연결 필요",
+      "expected_actions": [
+        "handoff"
+      ]
     },
     {
       "scenario_id": "commerce_ambiguous_001",
@@ -400,11 +462,13 @@
       "ai_utterance": "어떤 상품을 찾으세요?",
       "user_utterance": "음... 잠깐요.",
       "event_type": "ambiguous",
-      "expected_action": "ask_clarifying",
       "expected_user_intent": null,
       "user_tone_hint": "neutral",
       "has_user_speech": true,
-      "notes": "고객 의도 불명확, 확인 질문 필요"
+      "notes": "고객 의도 불명확, 확인 질문 필요",
+      "expected_actions": [
+        "ask_clarifying"
+      ]
     },
     {
       "scenario_id": "commerce_ambiguous_002",
@@ -414,11 +478,13 @@
       "ai_utterance": "배송 상태를 확인해 드리겠습니다.",
       "user_utterance": "음... 그게 맞나?",
       "event_type": "ambiguous",
-      "expected_action": "ask_clarifying",
       "expected_user_intent": null,
       "user_tone_hint": "neutral",
       "has_user_speech": true,
-      "notes": "고객의 의도가 애매함, 명확한 요청 필요"
+      "notes": "고객의 의도가 애매함, 명확한 요청 필요",
+      "expected_actions": [
+        "ask_clarifying"
+      ]
     }
   ],
   "metadata": {

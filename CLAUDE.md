@@ -31,7 +31,7 @@
 | 영역                 | 역할                          | 기준 / 주의                                                                                         |
 | -------------------- | ----------------------------- | --------------------------------------------------------------------------------------------------- |
 | `docs/`              | mkdocs로 외부 배포되는 공유/공개 문서 | 공개 문장으로 다듬은 내용만 둔다. 내부 기준과 어긋나면 follow-up에서 정리한다.                     |
-| `data/`              | 기준 원본                      | 판단 케이스(`scenario`)와 expected_action만 둔다. actual_action, metric, decision log는 넣지 않는다.              |
+| `data/`              | 기준 원본                      | 판단 케이스(`scenario`)와 expected_actions만 둔다. actual_action, metric, decision log는 넣지 않는다.              |
 | `results/`           | Test Bench run artifact | 외부 인용 수치의 출처다. `results/runs/{run_id}/` 계약을 따른다.                                    |
 | `context/`           | 내부 기준·결정·archive·임시 메모 | 루트 노이즈를 줄이기 위해 운영 맥락 문서는 이 아래에 둔다. 자세한 역할은 [context/README.md](context/README.md)를 본다. |
 | `context/internal/`  | 내부 기준 자료를 맞추는 작업 자료층 | 제품 맥락, 용어 정리, 정책 초안, 평가 기준, 설계 메모를 현재 어휘로 정리한다. 제품 맥락은 `context/internal/product-context.md`에 둔다. |

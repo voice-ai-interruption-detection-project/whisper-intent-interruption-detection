@@ -110,7 +110,7 @@ class LegacyLLMActionJudgmentProvider:
             metadata={
                 "input_fields": self._input_fields(),
                 "excluded_fields": [
-                    "expected_action",
+                    "expected_actions",
                     "event_type",
                     "expected_user_intent",
                 ],
@@ -128,7 +128,7 @@ class LegacyLLMActionJudgmentProvider:
             "llm": self._client_snapshot(),
             "input_fields": self._input_fields(),
             "excluded_fields": [
-                "expected_action",
+                "expected_actions",
                 "event_type",
                 "expected_user_intent",
             ],
@@ -142,7 +142,7 @@ class LegacyLLMActionJudgmentProvider:
     def excluded_fields(self) -> list[str]:
         """LLM prompt에서 제외되는 평가/라벨 필드 목록을 반환한다."""
         return [
-            "expected_action",
+            "expected_actions",
             "event_type",
             "expected_user_intent",
         ]

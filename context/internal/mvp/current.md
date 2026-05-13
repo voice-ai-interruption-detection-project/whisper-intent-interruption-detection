@@ -33,7 +33,7 @@ AI speaking
 -> 고객 신호 해석
 -> AI 행동 판단
 -> actual_action 생성
--> expected_action과 비교
+-> expected_actions과 비교
 -> failure와 다음 수정점 기록
 ```
 
@@ -130,13 +130,13 @@ Step별 완료/예정 작업과 현재 표현 기준은 [Current MVP Iteration P
 MVP가 닫혔다고 보려면 아래를 확인한다.
 
 - `data/scenarios.json`의 30개 판단 케이스를 로드하고 검증할 수 있다.
-- `expected_action`은 판단 케이스 원본에만 있고, `actual_action`은 run result에만 있다.
+- `expected_actions`은 판단 케이스 원본에만 있고, `actual_action`은 run result에만 있다.
 - `baseline`과 하나 이상의 개선 policy를 같은 runner/evaluator로 비교한다.
 - Test Bench가 `results/runs/{run_id}/run_meta.json`, `evaluation.json`, `decision_logs.jsonl`, `error_analysis.md`를 만든다.
 - README나 공유 문서에 쓰는 수치는 run id와 함께 확인 가능하다.
 - 텍스트 입력(Text Replay)에서 판단 케이스별 expected/actual/reason/failure를 볼 수 있다.
 - 대표 오디오 파일 입력(Audio File Test)이 mock/precomputed transcript라도 같은 AI 행동 판단 입력으로 들어온다.
-- 공통 고객 신호 해석/AI 행동 선택 흐름이 점검값을 남기더라도 기존 `expected_action`과 `actual_action` 비교가 유지된다.
+- 공통 고객 신호 해석/AI 행동 선택 흐름이 점검값을 남기더라도 기존 `expected_actions`과 `actual_action` 비교가 유지된다.
 - 같은 주제 질문에 답하고 이어가는 행동은 `respond_and_continue`로 기록한다.
 
 ## 현재 표현 기준

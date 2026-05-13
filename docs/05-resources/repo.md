@@ -45,10 +45,7 @@ whisper-intent-interruption-detection/
 ├─ results/                           # 평가 결과
 │  ├─ evaluation.json                 # 지표
 │  ├─ decision_logs.jsonl             # 판단 로그
-│  ├─ confusion_matrix_p0.png
-│  ├─ confusion_matrix_p1.png
-│  ├─ confusion_matrix_p2.png
-│  ├─ confusion_matrix_p3.png
+│  ├─ run_meta.json                   # 실행 설정과 기준 snapshot
 │  ├─ metrics_comparison.png
 │  └─ error_analysis.md               # 실패 분석
 │
@@ -149,7 +146,6 @@ python src/evaluator.py \
   --data data/scenarios.json \
   --policies p0 p1 p2 p3 \
   --output results/ \
-  --generate_confusion_matrix \
   --generate_report
 ```
 

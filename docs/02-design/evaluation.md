@@ -5,7 +5,7 @@
 ```
 각 정책(Baseline~Policy v3)을 같은 30개 시나리오에 적용
   ↓
-expected_action과 actual_action 비교
+actual_action이 expected_actions에 포함되는지 비교
   ↓
 어떤 정책이 어떤 상황을 더 잘 다루는가 분석
 ```
@@ -64,7 +64,7 @@ No Intervention:      continue, brief_ack
 |------|------|---------|
 | **False Stop Rate** | 멈추지 말아야 할 때 멈춘 비율 | "왜 내 맞장구에 반응을 안 하지?" |
 | **Missed Switch Rate** | 전환해야 할 때 못한 비율 | "내 의도를 못 알아듣나?" |
-| **Confusion Matrix** | 각 action별로 헷갈리는 패턴 | 어떤 행동을 자주 헷갈리는가? |
+| **Mismatch Matrix** | 복수 정답 set별 오답 actual_action 패턴 | 어떤 허용 행동 묶음에서 무엇으로 틀리는가? |
 
 ---
 
@@ -124,23 +124,20 @@ No Intervention:      continue, brief_ack
 
 ---
 
-## Confusion Matrix 예시
+## Mismatch Matrix 예시
 
 ```
-Policy v2 정책의 Confusion Matrix (예시):
+Policy v2 정책의 Mismatch Matrix (예시):
 
-                 Predicted
-              con pau sto ask han
-        continue  28  1   0   0   0
-        pause      2  18  4   0   0
-Actual stop_switch 1  3   21  2   0
-        ask_clar   0  0   1   4   0
-        handoff    0  0   0   0   1
+Expected actions set                Actual action
+brief_ack|continue                  stop_and_switch: 2
+respond_and_continue                ask_clarifying: 1
+stop_and_switch                     continue: 3
 
 해석:
-- "pause"를 많이 "stop_and_switch"로 헷갈림
+- backchannel 허용 set(continue/brief_ack)에서 멈춤 판단이 난 케이스가 있음
 - "same_intent_question"과 "intent_shift" 경계에서 실수 많음
-- "handoff"는 샘플이 너무 적음
+- 정답 action이 여러 개인 케이스는 primary label로 접지 않고 set membership으로 평가함
 ```
 
 ---
@@ -154,9 +151,9 @@ Actual stop_switch 1  3   21  2   0
   "scenario_id": "commerce_refund_001",
   "policy_version": "Policy v2",
   
-  "expected_action": "stop_and_switch",
+  "expected_actions": ["stop_and_switch"],
   "actual_action": "stop_and_switch",
-  "is_correct": true,
+  "action_match": true,
   
   "signals": {
     "has_user_speech": true,
@@ -195,10 +192,8 @@ Step 6: 실패 케이스 분석
 results/
 ├─ evaluation.json          # 정책별 지표 종합
 ├─ decision_logs.jsonl      # 각 시나리오별 판단 로그
-├─ confusion_matrix_p0.png  # Baseline 혼동 행렬
-├─ confusion_matrix_p1.png  # Policy v1 혼동 행렬
-├─ confusion_matrix_p2.png  # Policy v2 혼동 행렬
-├─ confusion_matrix_p3.png  # Policy v3 혼동 행렬
+├─ evaluation.json          # action_accuracy, failures, mismatch_matrix, latency
+├─ run_meta.json            # 실행 설정과 기준 snapshot
 ├─ metrics_comparison.png   # Accuracy/Precision/Recall 비교
 └─ error_analysis.md        # 실패 케이스 분석
 ```
@@ -216,7 +211,7 @@ results/
 - 실제로는 domain/task별로 조정 필요
 
 ### 3️⃣ 라벨링 편향
-- expected_action은 우리가 "이게 맞다"고 정한 것
+- expected_actions는 우리가 "허용 가능한 행동"으로 정한 것
 - 실제 고객 반응과 다를 수 있음
 
 ### 4️⃣ 샘플 크기 작음

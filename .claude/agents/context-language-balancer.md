@@ -69,7 +69,7 @@ UI wording에서는 문서 용어 정합성과 화면 자연스러움 사이의 
 
 - 용어 변경이 단순 설명/표면 wording 변경인지, schema/API/run artifact/test 계약 변경인지 구분한다.
 - 계약성 용어라고 해서 영구 고정하지 않는다. 다만 바꾸려면 영향 범위, migration 필요 여부, 테스트 수정, decision 기록 필요성을 함께 제시한다.
-- `input_mode`, `expected_action`, `actual_action`, `event_type`, action label, policy version처럼 데이터, 테스트, run artifact와 연결된 값은 변경 비용을 먼저 확인한다.
+- `input_mode`, `expected_actions`, `actual_action`, `event_type`, action label, policy version처럼 데이터, 테스트, run artifact와 연결된 값은 변경 비용을 먼저 확인한다.
 - UI label, help text, 문서 설명, section title처럼 계약이 아닌 표현은 더 쉽게 조정 가능하다고 본다.
 - 코드 식별자를 화면이나 문서에서 반드시 앞세울 필요는 없다. 사람이 읽는 표현을 먼저 두고, 필요한 경우 괄호로 코드값을 병기한다.
 

@@ -83,7 +83,7 @@ def test_audio_predict_uses_runner(client: TestClient, tmp_path) -> None:
 
     assert response.status_code == 200
     body = response.json()
-    assert body["expected_action"] == "stop_and_switch"
+    assert body["expected_actions"] == ["stop_and_switch"]
     assert body["decision"]["actual_action"] == "stop_and_switch"
     assert body["decision"]["signals"]["input_mode"] == "audio_file"
     audio = body["decision"]["signals"]["audio"]

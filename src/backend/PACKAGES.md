@@ -13,7 +13,7 @@
 | --- | --- | --- |
 | `src/backend/` | HTTP 요청/응답, 파일 업로드, input adapter, runner 호출 | policy 판정 로직, evaluator 재구현, result 직접 누적 |
 | `src/runner.py` | Text/Audio/CLI/Test Bench가 공유하는 policy 실행 entry | HTTP 세부 구현 |
-| `data/scenarios.json` | 기준 scenario와 `expected_action` | `actual_action`, metric, decision log |
+| `data/scenarios.json` | 기준 scenario와 `expected_actions` | `actual_action`, metric, decision log |
 | `results/runs/{run_id}/` | Test Bench run artifact, metric, decision log | 기준 scenario 원본 |
 
 입력 방식이 Text Replay든 Audio File Test든 최종 판단은 같은 runner entry를 통과해야 한다. Backend endpoint는 그 entry를 감싸는 adapter로 둔다.
@@ -33,7 +33,7 @@ handoff
 
 `pause`는 현재 action label로 쓰지 않는다. 같은 주제 질문에 답하고 이어가는 행동은 `respond_and_continue`로 쓴다.
 
-`expected_action`은 사람이 정한 기준값이고, `actual_action`은 policy 실행 후 나온 결과값이다. 두 값은 같은 action label vocabulary를 쓰지만 저장 위치와 생성 시점이 다르다.
+`expected_actions`는 사람이 정한 기준 행동 목록이고, `actual_action`은 policy 실행 후 나온 결과값이다. 두 값은 같은 action label vocabulary를 쓰지만 저장 위치와 생성 시점이 다르다.
 
 ## API와 서버
 
@@ -103,7 +103,7 @@ class ScenarioCard(BaseModel):
     ai_utterance: str
     user_utterance: str
     event_type: str
-    expected_action: str
+    expected_actions: list[str]
     expected_user_intent: str | None
     user_tone_hint: str
     has_user_speech: bool
@@ -281,13 +281,16 @@ scenarios = pd.DataFrame(payload["scenarios"])
 
 ### scikit-learn (`>=1.8.0,<2.0.0`)
 
-embedding similarity, confusion matrix, accuracy 같은 평가 보조 계산에 쓴다.
+embedding similarity, mismatch matrix, accuracy 같은 평가 보조 계산에 쓴다.
 
 ```python
-from sklearn.metrics import accuracy_score, confusion_matrix
+from sklearn.metrics import accuracy_score
 
-accuracy = accuracy_score(expected_actions, actual_actions)
-matrix = confusion_matrix(expected_actions, actual_actions, labels=action_labels)
+matches = [
+    actual_action in expected_actions
+    for expected_actions, actual_action in zip(expected_action_sets, actual_actions)
+]
+accuracy = accuracy_score([True] * len(matches), matches)
 ```
 
 수치를 공유 문서나 PR에 쓸 때는 `results/runs/{run_id}/evaluation.json`에서 확인한 값만 인용한다.

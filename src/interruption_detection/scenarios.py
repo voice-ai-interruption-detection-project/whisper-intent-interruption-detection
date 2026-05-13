@@ -72,5 +72,10 @@ def _reject_result_fields(item: dict[str, Any], index: int) -> None:
             f"scenario at index {index} contains actual_action; results belong in runs"
         )
 
-    if item.get("expected_action") == "pause":
+    if "expected_action" in item:
+        raise ScenarioLoadError(
+            "expected_action is deprecated; use expected_actions list"
+        )
+
+    if "pause" in item.get("expected_actions", []):
         raise ScenarioLoadError("pause is not an active action label")

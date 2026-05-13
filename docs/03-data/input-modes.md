@@ -218,7 +218,7 @@ Policy 판단: intent_shift → stop_and_switch
              ↓
 ┌─────────────────────────────────────┐
 │  결과 표시                          │
-│  ├─ expected_action                │
+│  ├─ expected_actions               │
 │  ├─ actual_action                  │
 │  ├─ decision reason                │
 │  └─ evaluation                      │
