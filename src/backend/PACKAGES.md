@@ -13,7 +13,7 @@
 | --- | --- | --- |
 | `src/backend/` | HTTP 요청/응답, 파일 업로드, input adapter, runner 호출 | policy 판정 로직, evaluator 재구현, result 직접 누적 |
 | `src/runner.py` | Text/Audio/CLI/Test Bench가 공유하는 policy 실행 entry | HTTP 세부 구현 |
-| `data/scenarios.json` | 기준 scenario와 `expected_actions` | `actual_action`, metric, decision log |
+| `data/scenarios.json`, `data/datasets.json` | 기준 scenario와 Test Bench dataset registry | `actual_action`, metric, decision log |
 | `results/runs/{run_id}/` | Test Bench run artifact, metric, decision log | 기준 scenario 원본 |
 
 입력 방식이 Text Replay든 Audio File Test든 최종 판단은 같은 runner entry를 통과해야 한다. Backend endpoint는 그 entry를 감싸는 adapter로 둔다.
@@ -48,7 +48,7 @@ REST API 표면을 만든다.
 
 Backend가 `evaluation.json`이나 `decision_logs.jsonl`을 직접 산출하는 구조로 만들지 않는다. 평가 결과가 필요하면 Test Bench run artifact를 읽거나, 별도 eval runner를 호출하는 방향을 먼저 검토한다.
 
-`POST /runs`는 `input_mode`로 text scenario batch와 audio manifest batch를 선택한다. 두 경로 모두 evaluator가 `results/runs/{run_id}/` 계약을 만들고, Backend는 요청 모델을 검증한 뒤 evaluator를 호출한다.
+`POST /runs`는 `dataset_id`와 `input_mode`로 text scenario batch와 audio manifest batch를 선택한다. 두 경로 모두 evaluator가 `results/runs/{run_id}/` 계약을 만들고, Backend는 요청 모델을 검증한 뒤 evaluator를 호출한다.
 
 현재 구현된 endpoint와 후보는 아래처럼 본다.
 

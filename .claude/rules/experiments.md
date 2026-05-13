@@ -19,6 +19,8 @@
 
 `run_id`는 `{YYYYMMDD_HHMMSS}_{policy_name}` 패턴을 유지한다. 같은 `run_id` 폴더가 이미 있으면 두 번째 실행은 거부한다.
 
+진단용 edge slice처럼 공식 core dataset이 아닌 입력을 쓴 run은 `run_meta.json`에 `dataset_id`, `dataset_scope`, `dataset_snapshot`을 같이 남겨 수치 해석 범위를 구분한다.
+
 ## 코드 변경 단위 (실험 측)
 
 - 새 action label 추가: label 이름, 의미, 어떤 expected_actions 예시가 있는지 같이 기록한다.

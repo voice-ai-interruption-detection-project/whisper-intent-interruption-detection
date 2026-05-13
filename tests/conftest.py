@@ -35,7 +35,7 @@ class KeywordFakeLLMClient:
                 ambiguity="low",
             )
 
-        if any(term in user_utterance for term in ["refund", "환불", "반품"]):
+        if any(term in user_utterance for term in ["refund", "환불", "반품", "취소"]):
             return _judgment(
                 ActionLabel.STOP_AND_SWITCH,
                 "User transcript asks for a different commerce intent.",
@@ -71,7 +71,19 @@ class KeywordFakeLLMClient:
                 "low",
             )
 
-        if user_utterance in {"ok", "네.", "네", "알겠어요.", "알겠어요"}:
+        if user_utterance in {
+            "ok",
+            "네.",
+            "네",
+            "알겠어요.",
+            "알겠어요",
+            "음, 알겠습니다.",
+            "음, 알겠습니다",
+            "맞아요.",
+            "맞아요",
+            "네 감사합니다.",
+            "네 감사합니다",
+        }:
             return _judgment(
                 ActionLabel.CONTINUE,
                 "Short acknowledgement.",

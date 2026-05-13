@@ -25,6 +25,7 @@ def test_ui_javascript_uses_api_vocabularies() -> None:
 
     assert "/schema" in js
     assert "/policies" in js
+    assert "/datasets" in js
     assert "/runs" in js
     assert "policy_v1" not in js
     assert "baseline" not in js

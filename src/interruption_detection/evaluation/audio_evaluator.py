@@ -35,6 +35,7 @@ def evaluate_audio_manifest(
     command: str | None = None,
     changed: list[str] | None = None,
     run_id: str | None = None,
+    dataset_snapshot: dict[str, object] | None = None,
 ) -> dict[str, Any]:
     """오디오 manifest를 지정 정책으로 실행하고 run artifact를 생성한다."""
     dataset = Path(dataset_path)
@@ -98,6 +99,15 @@ def evaluate_audio_manifest(
             "transcriber": transcriber.snapshot(),
         },
     }
+    if dataset_snapshot is not None:
+        meta.update(
+            {
+                "dataset_id": dataset_snapshot.get("id"),
+                "dataset_label": dataset_snapshot.get("label"),
+                "dataset_scope": dataset_snapshot.get("scope"),
+                "dataset_snapshot": dataset_snapshot,
+            }
+        )
 
     _write_json(run_dir / "run_meta.json", meta)
     _write_json(run_dir / "evaluation.json", evaluation)

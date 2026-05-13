@@ -57,7 +57,22 @@ def test_policies_comes_from_registry(client: TestClient) -> None:
     assert [item["name"] for item in response.json()["policies"]] == [
         "baseline",
         "policy_v1",
+        "policy_v2",
     ]
+
+
+def test_datasets_comes_from_registry(client: TestClient) -> None:
+    response = client.get("/datasets")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["default_dataset_id"] == "core"
+    assert [item["id"] for item in body["datasets"]] == [
+        "core",
+        "policy_v2_edge",
+    ]
+    assert body["datasets"][1]["scope"] == "diagnostic"
+    assert body["datasets"][1]["input_modes"] == ["text"]
 
 
 def test_scenario_predict_uses_runner(client: TestClient) -> None:
@@ -108,13 +123,49 @@ def test_create_and_read_run(client: TestClient) -> None:
 
     assert response.status_code == 200
     run_id = response.json()["run_id"]
+    assert response.json()["run_meta"]["dataset_id"] == "core"
+    assert response.json()["run_meta"]["dataset_scope"] == "official"
     list_response = client.get("/runs")
     assert list_response.status_code == 200
     assert list_response.json()["runs"][0]["run_id"] == run_id
+    assert list_response.json()["runs"][0]["dataset_id"] == "core"
 
     detail = client.get(f"/runs/{run_id}")
     assert detail.status_code == 200
     assert detail.json()["evaluation"]["total"] == 30
+
+
+def test_create_run_with_policy_v2_edge_dataset(client: TestClient) -> None:
+    response = client.post(
+        "/runs",
+        json={
+            "policy": "policy_v2",
+            "dataset_id": "policy_v2_edge",
+            "input_mode": "text",
+        },
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["run_meta"]["dataset_id"] == "policy_v2_edge"
+    assert body["run_meta"]["dataset_scope"] == "diagnostic"
+    assert body["evaluation"]["total"] == 11
+
+
+def test_create_run_rejects_dataset_input_mode_mismatch(
+    client: TestClient,
+) -> None:
+    response = client.post(
+        "/runs",
+        json={
+            "policy": "policy_v2",
+            "dataset_id": "policy_v2_edge",
+            "input_mode": "audio_file",
+        },
+    )
+
+    assert response.status_code == 400
+    assert "does not support input_mode" in response.json()["detail"]
 
 
 def test_create_audio_run(client: TestClient, tmp_path) -> None:

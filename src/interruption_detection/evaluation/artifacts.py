@@ -38,6 +38,9 @@ def list_run_artifacts(
                 "target": meta.get("target"),
                 "policy_version": meta.get("policy_version"),
                 "dataset": meta.get("dataset"),
+                "dataset_id": meta.get("dataset_id"),
+                "dataset_label": meta.get("dataset_label"),
+                "dataset_scope": meta.get("dataset_scope"),
                 "input_adapter_snapshot": (
                     input_adapter if isinstance(input_adapter, dict) else None
                 ),

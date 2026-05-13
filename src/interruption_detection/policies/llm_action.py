@@ -79,6 +79,13 @@ FEW_SHOT_EXAMPLES = [
 ]
 
 
+EXCLUDED_PROMPT_FIELDS = [
+    "expected_actions",
+    "event_type",
+    "expected_user_intent",
+]
+
+
 class LegacyLLMActionJudgmentProvider:
     """one-shot LLM structured output을 baseline action candidate로 제공한다."""
 
@@ -90,6 +97,8 @@ class LegacyLLMActionJudgmentProvider:
         include_label_definitions: bool,
         include_few_shots: bool,
         include_tone_hint: bool,
+        policy_guidance: dict[str, object] | None = None,
+        extra_few_shots: list[dict[str, object]] | None = None,
         llm_client: LLMActionClient | None = None,
     ) -> None:
         self.name = "legacy_llm_action_judgment_provider"
@@ -98,42 +107,46 @@ class LegacyLLMActionJudgmentProvider:
         self.include_label_definitions = include_label_definitions
         self.include_few_shots = include_few_shots
         self.include_tone_hint = include_tone_hint
+        self.policy_guidance = policy_guidance
+        self.extra_few_shots = extra_few_shots or []
         self._llm_client = llm_client or OpenAIResponsesLLMClient()
 
     def judge(self, policy_input: PolicyInput) -> LLMActionJudgment:
         """legacy one-shot prompt로 LLM action judgment 후보를 반환한다."""
+        metadata = {
+            "input_fields": self._input_fields(),
+            "excluded_fields": self.excluded_fields(),
+        }
+
+        if self.policy_guidance is not None:
+            metadata["policy_guidance"] = self.policy_guidance
+
         request = LLMActionRequest(
             policy_name=self.policy_name,
             prompt_version=self.prompt_version,
             developer_prompt=self._developer_prompt(),
             user_prompt=self._user_prompt(policy_input),
-            metadata={
-                "input_fields": self._input_fields(),
-                "excluded_fields": [
-                    "expected_actions",
-                    "event_type",
-                    "expected_user_intent",
-                ],
-            },
+            metadata=metadata,
         )
 
         return self._llm_client.judge_action(request)
 
     def snapshot(self) -> dict[str, object]:
         """provider 설정을 run artifact에 남긴다."""
-        return {
+        snapshot = {
             "name": self.name,
             "policy_name": self.policy_name,
             "prompt_version": self.prompt_version,
             "llm": self._client_snapshot(),
             "input_fields": self._input_fields(),
-            "excluded_fields": [
-                "expected_actions",
-                "event_type",
-                "expected_user_intent",
-            ],
+            "excluded_fields": self.excluded_fields(),
             "structured_output": "action_judgment_with_signal_interpretation",
         }
+
+        if self.policy_guidance is not None:
+            snapshot["policy_guidance"] = self.policy_guidance
+
+        return snapshot
 
     def input_fields(self) -> list[str]:
         """LLM prompt에 포함되는 runtime 입력 필드 목록을 반환한다."""
@@ -141,11 +154,7 @@ class LegacyLLMActionJudgmentProvider:
 
     def excluded_fields(self) -> list[str]:
         """LLM prompt에서 제외되는 평가/라벨 필드 목록을 반환한다."""
-        return [
-            "expected_actions",
-            "event_type",
-            "expected_user_intent",
-        ]
+        return list(EXCLUDED_PROMPT_FIELDS)
 
     def _developer_prompt(self) -> str:
         allowed_action_labels = ", ".join(label.value for label in ActionLabel)
@@ -172,10 +181,16 @@ class LegacyLLMActionJudgmentProvider:
             )
             parts.append(f"Action label definitions:\n{definitions}")
 
-        if self.include_few_shots:
+        if self.policy_guidance is not None:
             parts.append(
-                "Examples:\n"
-                + json.dumps(FEW_SHOT_EXAMPLES, ensure_ascii=False, indent=2)
+                "Policy-specific guidance:\n"
+                + json.dumps(self.policy_guidance, ensure_ascii=False, indent=2)
+            )
+
+        if self.include_few_shots:
+            examples = [*FEW_SHOT_EXAMPLES, *self.extra_few_shots]
+            parts.append(
+                "Examples:\n" + json.dumps(examples, ensure_ascii=False, indent=2)
             )
 
         return "\n\n".join(parts)
@@ -226,6 +241,8 @@ class LLMActionPolicy:
         include_label_definitions: bool,
         include_few_shots: bool,
         include_tone_hint: bool,
+        policy_guidance: dict[str, object] | None = None,
+        extra_few_shots: list[dict[str, object]] | None = None,
         llm_client: LLMActionClient | None = None,
     ) -> None:
         self.name = name
@@ -237,6 +254,8 @@ class LLMActionPolicy:
             include_label_definitions=include_label_definitions,
             include_few_shots=include_few_shots,
             include_tone_hint=include_tone_hint,
+            policy_guidance=policy_guidance,
+            extra_few_shots=extra_few_shots,
             llm_client=llm_client,
         )
         self._pipeline = DecisionPipeline(
@@ -255,7 +274,7 @@ class LLMActionPolicy:
         """LLM-backed pipeline 정책 설정을 run artifact에 남긴다."""
         provider_snapshot = self._judgment_provider.snapshot()
 
-        return {
+        snapshot = {
             "name": self.name,
             "version": "pipeline-components-v1",
             "mode": "interpreter_pipeline_action_selector",
@@ -266,3 +285,8 @@ class LLMActionPolicy:
             "excluded_fields": self._judgment_provider.excluded_fields(),
             "structured_output": provider_snapshot["structured_output"],
         }
+
+        if "policy_guidance" in provider_snapshot:
+            snapshot["policy_guidance"] = provider_snapshot["policy_guidance"]
+
+        return snapshot

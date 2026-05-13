@@ -12,6 +12,7 @@ from interruption_detection.models import (
 from interruption_detection.policies.baseline import BaselinePolicy
 from interruption_detection.policies import get_policy, list_policies
 from interruption_detection.policies.policy_v1 import PolicyV1
+from interruption_detection.policies.policy_v2 import PolicyV2
 
 
 def make_input(
@@ -29,7 +30,11 @@ def make_input(
 
 
 def test_list_policies_returns_registry_entries() -> None:
-    assert [item["name"] for item in list_policies()] == ["baseline", "policy_v1"]
+    assert [item["name"] for item in list_policies()] == [
+        "baseline",
+        "policy_v1",
+        "policy_v2",
+    ]
 
 
 def test_unknown_policy_fails() -> None:
@@ -106,6 +111,26 @@ def test_policy_v1_uses_rich_llm_prompt(fake_llm_client) -> None:
     assert "event_type" not in request.user_prompt
     assert "expected_user_intent" not in request.user_prompt
     assert "expected_actions" not in request.user_prompt
+    assert "policy_guidance" not in request.metadata
+
+
+def test_policy_v2_adds_backchannel_noise_guidance(fake_llm_client) -> None:
+    policy = PolicyV2(llm_client=fake_llm_client)
+
+    decision = policy.predict(make_input(has_user_speech=False))
+
+    assert decision.actual_action == ActionLabel.CONTINUE
+    request = fake_llm_client.requests[-1]
+    assert request.policy_name == "policy_v2"
+    assert request.prompt_version == "policy_v2_backchannel_noise_v1"
+    assert "Policy-specific guidance" in request.developer_prompt
+    assert "backchannel_noise_no_speech_stabilization" in request.developer_prompt
+    assert "has_user_speech is false" in request.developer_prompt
+    assert "환불요." in request.developer_prompt
+    assert request.metadata["policy_guidance"]["target_failure"] == "false_stop"
+    assert "event_type" not in request.user_prompt
+    assert "expected_user_intent" not in request.user_prompt
+    assert "expected_actions" not in request.user_prompt
 
 
 def test_runner_input_strips_evaluation_fields_before_policy() -> None:
@@ -138,3 +163,26 @@ def test_policy_snapshot_contains_llm_metadata() -> None:
         "decision_assembler": "policy_decision",
     }
     assert snapshot["llm"]["provider"] == "fake"
+
+
+def test_policy_v2_snapshot_exposes_guidance() -> None:
+    snapshot = get_policy("policy_v2").snapshot()
+
+    assert snapshot["name"] == "policy_v2"
+    assert snapshot["prompt_version"] == "policy_v2_backchannel_noise_v1"
+    assert snapshot["policy_guidance"]["focus"] == (
+        "backchannel_noise_no_speech_stabilization"
+    )
+    assert snapshot["policy_guidance"]["target_failure"] == "false_stop"
+    assert snapshot["input_fields"] == [
+        "ai_current_intent",
+        "ai_utterance",
+        "user_utterance",
+        "has_user_speech",
+        "user_tone_hint",
+    ]
+    assert snapshot["excluded_fields"] == [
+        "expected_actions",
+        "event_type",
+        "expected_user_intent",
+    ]

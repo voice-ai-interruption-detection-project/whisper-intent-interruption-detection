@@ -16,6 +16,13 @@ from interruption_detection.audio.stt import (
     AudioProcessingError,
     build_transcriber,
 )
+from interruption_detection.datasets import (
+    DatasetRegistryError,
+    DatasetSpec,
+    find_dataset_by_path,
+    get_dataset_by_id,
+    load_dataset_registry,
+)
 from interruption_detection.evaluation.artifacts import (
     list_run_artifacts,
     read_run_artifacts,
@@ -42,6 +49,7 @@ from interruption_detection.scenarios import (
 
 
 DATASET_PATH = Path("data/scenarios.json")
+DATASET_REGISTRY_PATH = Path("data/datasets.json")
 AUDIO_MANIFEST_PATH = Path("data/audio/manifest.json")
 OUTPUT_ROOT = Path("results/runs")
 STATIC_DIR = Path(__file__).parent / "static"
@@ -78,6 +86,7 @@ class RunRequest(BaseModel):
     """Test Bench 실행 생성을 위한 요청 모델."""
 
     policy: str = "baseline"
+    dataset_id: str | None = None
     dataset: str | None = None
     input_mode: Literal["text", "audio_file"] = "text"
     audio_manifest: str | None = None
@@ -112,6 +121,20 @@ def schema() -> dict[str, list[str]]:
 def policies() -> dict[str, object]:
     """등록된 정책 목록과 각 정책 스냅샷을 반환한다."""
     return {"policies": list_policies()}
+
+
+@app.get("/datasets")
+def datasets(request: Request) -> dict[str, object]:
+    """Test Bench에서 선택할 수 있는 repo-local dataset 목록을 반환한다."""
+    try:
+        items = load_dataset_registry(_dataset_registry_path(request))
+    except DatasetRegistryError as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+    return {
+        "datasets": [item.model_dump(mode="json") for item in items],
+        "default_dataset_id": _default_dataset_id(request, items),
+    }
 
 
 @app.get("/scenarios")
@@ -254,9 +277,9 @@ async def predict_audio(
 def create_run(body: RunRequest, request: Request) -> dict[str, object]:
     """데이터셋 전체 평가를 실행하고 새 run artifact를 만든다."""
     # 일괄 지표와 파일 생성 책임은 API 계층이 아니라 평가기에 있다.
-    dataset = Path(body.dataset) if body.dataset else _dataset_path(request)
-
     try:
+        dataset, dataset_snapshot = _resolve_run_dataset(body, request)
+
         if body.input_mode == "audio_file":
             manifest = (
                 Path(body.audio_manifest)
@@ -274,6 +297,7 @@ def create_run(body: RunRequest, request: Request) -> dict[str, object]:
                 output_root=_output_root(request),
                 source="api",
                 command="POST /runs",
+                dataset_snapshot=dataset_snapshot,
             )
         else:
             result = evaluate_dataset(
@@ -282,10 +306,12 @@ def create_run(body: RunRequest, request: Request) -> dict[str, object]:
                 output_root=_output_root(request),
                 source="api",
                 command="POST /runs",
+                dataset_snapshot=dataset_snapshot,
             )
     except (
         AudioManifestError,
         AudioProcessingError,
+        DatasetRegistryError,
         ScenarioLoadError,
         ValueError,
     ) as exc:
@@ -318,6 +344,13 @@ def _dataset_path(request: Request) -> Path:
     return Path(getattr(request.app.state, "dataset_path", DATASET_PATH))
 
 
+def _dataset_registry_path(request: Request) -> Path:
+    """app.state 재정의를 반영한 dataset registry 경로를 반환한다."""
+    return Path(
+        getattr(request.app.state, "dataset_registry_path", DATASET_REGISTRY_PATH)
+    )
+
+
 def _output_root(request: Request) -> Path:
     """app.state 재정의를 반영한 run artifact 출력 루트를 반환한다."""
     return Path(getattr(request.app.state, "output_root", OUTPUT_ROOT))
@@ -342,6 +375,76 @@ def _get_scenario(request: Request, scenario_id: str):
         return get_scenario_by_id(_dataset_path(request), scenario_id)
     except ScenarioLoadError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+def _default_dataset_id(request: Request, items: list[DatasetSpec]) -> str | None:
+    """현재 기본 dataset path에 대응하는 registry id를 반환한다."""
+    default_path = _dataset_path(request)
+
+    for item in items:
+        if Path(item.path) == default_path:
+            return item.id
+
+    return items[0].id if items else None
+
+
+def _resolve_run_dataset(
+    body: RunRequest,
+    request: Request,
+) -> tuple[Path, dict[str, object]]:
+    """RunRequest의 dataset 선택을 실제 path와 run metadata snapshot으로 바꾼다."""
+    if body.dataset_id and body.dataset:
+        raise DatasetRegistryError("dataset_id and dataset must not be used together")
+
+    if body.dataset_id:
+        item = get_dataset_by_id(_dataset_registry_path(request), body.dataset_id)
+        _ensure_dataset_supports_mode(item, body.input_mode)
+        snapshot = item.model_dump(mode="json")
+
+        return Path(item.path), snapshot
+
+    if body.dataset:
+        custom_path = Path(body.dataset)
+
+        return custom_path, {
+            "id": "custom",
+            "label": str(custom_path),
+            "path": str(custom_path),
+            "scope": "diagnostic",
+            "description": "API request dataset path",
+            "input_modes": [body.input_mode],
+        }
+
+    dataset_path = _dataset_path(request)
+
+    try:
+        item = find_dataset_by_path(_dataset_registry_path(request), dataset_path)
+    except DatasetRegistryError:
+        item = None
+
+    if item is not None:
+        _ensure_dataset_supports_mode(item, body.input_mode)
+
+        return dataset_path, item.model_dump(mode="json")
+
+    return dataset_path, {
+        "id": "default",
+        "label": str(dataset_path),
+        "path": str(dataset_path),
+        "scope": "official",
+        "description": "Default app dataset path",
+        "input_modes": [body.input_mode],
+    }
+
+
+def _ensure_dataset_supports_mode(item: DatasetSpec, input_mode: str) -> None:
+    """dataset registry의 input_modes와 요청 input_mode를 맞춘다."""
+    if input_mode not in item.input_modes:
+        modes = ", ".join(item.input_modes)
+        raise DatasetRegistryError(
+            f"dataset '{item.id}' does not support input_mode '{input_mode}'. "
+            f"available: {modes}"
+        )
 
 
 async def _save_upload(file: UploadFile, directory: Path) -> Path:

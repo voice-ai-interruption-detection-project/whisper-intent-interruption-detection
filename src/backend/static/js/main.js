@@ -3,6 +3,7 @@ const state = {
   activeTab: "playground",
   schema: null,
   policies: [],
+  datasets: [],
   scenarios: [],
   runs: [],
   selectedScenarioId: null,
@@ -90,6 +91,7 @@ const elements = {
   runFocusButton: document.querySelector("#runFocusButton"),
   runAllPoliciesButton: document.querySelector("#runAllPoliciesButton"),
   runInputMode: document.querySelector("#runInputMode"),
+  runDataset: document.querySelector("#runDataset"),
   runInputSummary: document.querySelector("#runInputSummary"),
   audioRunManifest: document.querySelector("#audioRunManifest"),
   audioBenchTranscriber: document.querySelector("#audioBenchTranscriber"),
@@ -115,6 +117,7 @@ elements.compareButton.addEventListener("click", comparePolicies);
 elements.runFocusButton.addEventListener("click", runFocusPolicy);
 elements.runAllPoliciesButton.addEventListener("click", runAllPolicies);
 elements.runInputMode.addEventListener("change", renderRunInputControls);
+elements.runDataset.addEventListener("change", renderRunInputControls);
 elements.audioBenchTranscriber.addEventListener("change", renderRunInputControls);
 elements.audioRunManifest.addEventListener("input", renderRunInputControls);
 elements.audioBenchWhisperModel.addEventListener("input", renderRunInputControls);
@@ -126,20 +129,22 @@ elements.tabButtons.forEach((button) => {
 async function bootstrap() {
   await checkHealth();
   // 초기 데이터는 함께 가져와 첫 렌더링의 기준을 서로 맞춘다.
-  const [schema, policies, scenarios, runs] = await Promise.all([
+  const [schema, policies, datasets, scenarios, runs] = await Promise.all([
     fetchJson("/schema"),
     fetchJson("/policies"),
+    fetchJson("/datasets"),
     fetchJson("/scenarios"),
     fetchJson("/runs"),
   ]);
   state.schema = schema;
   state.policies = policies.policies;
+  state.datasets = datasets.datasets;
   state.scenarios = scenarios.scenarios;
   state.runs = runs.runs;
   state.selectedScenarioId = state.scenarios[0]?.scenario_id || null;
   state.selectedRunId = state.runs[0]?.run_id || null;
 
-  renderControls();
+  renderControls(datasets.default_dataset_id);
   renderScenarioList();
   renderSelectedScenario();
   renderRunCards();
@@ -161,10 +166,11 @@ async function checkHealth() {
 }
 
 // 정책 선택, event_type 필터, 데이터셋 요약의 초기 선택지를 채운다.
-function renderControls() {
+function renderControls(defaultDatasetId) {
   elements.policySelect.replaceChildren(
     ...state.policies.map((policy) => option(policy.name, policy.name))
   );
+  renderDatasetOptions(defaultDatasetId);
   elements.eventFilter.replaceChildren(
     option("", "전체 고객 신호"),
     ...state.schema.event_types.map((eventType) => option(eventType, formatEventType(eventType)))
@@ -174,6 +180,28 @@ function renderControls() {
   );
   renderPolicySnapshot();
   renderDatasetStats();
+}
+
+// Test Bench dataset 선택지는 registry와 input_mode 지원 범위를 기준으로 표시한다.
+function renderDatasetOptions(preferredDatasetId) {
+  const inputMode = elements.runInputMode.value;
+  const currentDatasetId = preferredDatasetId || elements.runDataset.value;
+
+  elements.runDataset.replaceChildren(
+    ...state.datasets.map((dataset) => {
+      const datasetOption = option(dataset.id, `${dataset.label} (${dataset.scope})`);
+      datasetOption.disabled = !datasetSupportsInputMode(dataset, inputMode);
+
+      return datasetOption;
+    })
+  );
+
+  const selected = state.datasets.find((dataset) => {
+    return dataset.id === currentDatasetId && datasetSupportsInputMode(dataset, inputMode);
+  });
+  const fallback = state.datasets.find((dataset) => datasetSupportsInputMode(dataset, inputMode));
+
+  elements.runDataset.value = (selected || fallback)?.id || "";
 }
 
 // 현재 policy snapshot을 사이드바에 표시한다.
@@ -496,6 +524,11 @@ async function createRun(policyName) {
     policy: policyName,
     input_mode: elements.runInputMode.value,
   };
+  const datasetId = elements.runDataset.value;
+
+  if (datasetId) {
+    body.dataset_id = datasetId;
+  }
 
   if (body.input_mode === "audio_file") {
     body.audio_manifest = elements.audioRunManifest.value;
@@ -703,14 +736,20 @@ function clearResults() {
 function renderRunInputControls() {
   const isAudio = elements.runInputMode.value === "audio_file";
 
+  renderDatasetOptions();
+
   document.querySelectorAll(".audio-run-field").forEach((field) => {
     field.hidden = !isAudio;
   });
 
   elements.audioBenchWhisperModel.disabled = elements.audioBenchTranscriber.value !== "whisper";
+  const dataset = selectedDatasetSpec();
+  const datasetSummary = dataset
+    ? `${dataset.label} / ${dataset.scope}`
+    : "dataset";
   elements.runInputSummary.textContent = isAudio
-    ? `Audio File Test / ${elements.audioBenchTranscriber.value} / ${elements.audioRunManifest.value}`
-    : "Text Replay dataset";
+    ? `Audio File Test / ${datasetSummary} / ${elements.audioBenchTranscriber.value}`
+    : `Text Replay / ${datasetSummary}`;
 }
 
 // 현재 선택된 판단 케이스(Scenario) 식별자에 해당하는 객체를 찾는다.
@@ -802,12 +841,24 @@ function summarizeFailures(failures = {}) {
 
 // run card에서 text/audio target을 짧게 표시한다.
 function runTargetSummary(run) {
+  const datasetLabel = run.dataset_label || run.dataset_id || run.dataset || run.target || "dataset";
+  const datasetScope = run.dataset_scope ? ` / ${run.dataset_scope}` : "";
+
   if (run.mode === "audio_file") {
     const transcriber = run.input_adapter_snapshot?.transcriber?.provider || "audio";
-    return `${run.target || "audio manifest"} / ${transcriber}`;
+    return `${datasetLabel}${datasetScope} / ${transcriber}`;
   }
 
-  return run.dataset || run.target || "text dataset";
+  return `${datasetLabel}${datasetScope}`;
+}
+
+// 현재 선택된 Test Bench dataset registry 항목을 반환한다.
+function selectedDatasetSpec() {
+  return state.datasets.find((dataset) => dataset.id === elements.runDataset.value);
+}
+
+function datasetSupportsInputMode(dataset, inputMode) {
+  return (dataset.input_modes || ["text"]).includes(inputMode);
 }
 
 // 날짜 접두어를 줄여 사이드바에서 실행 식별자를 읽기 쉽게 만든다.
