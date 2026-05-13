@@ -15,12 +15,12 @@ from interruption_detection.models import PolicyDecision, PolicyInput
 
 
 class JudgmentProvider(Protocol):
-    """pipeline에 LLM/action 후보 judgment를 제공하는 컴포넌트."""
+    """pipeline에 LLM signal judgment를 제공하는 컴포넌트."""
 
     name: str
 
     def judge(self, policy_input: PolicyInput) -> object:
-        """runtime 입력에서 해석/action 후보 judgment를 생성한다."""
+        """runtime 입력에서 고객 신호 해석 judgment를 생성한다."""
         ...
 
     def snapshot(self) -> dict[str, object]:

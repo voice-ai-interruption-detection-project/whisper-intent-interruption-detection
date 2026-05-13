@@ -9,20 +9,18 @@ from urllib.request import Request, urlopen
 from dotenv import load_dotenv
 from pydantic import Field
 
-from interruption_detection.models import ActionLabel, EventType, StrictModel
+from interruption_detection.models import EventType, StrictModel
 
 load_dotenv()
 
 
 class LLMError(ValueError):
-    """LLM action judgment boundary에서 발생한 오류."""
+    """LLM signal judgment boundary에서 발생한 오류."""
 
 
-class LLMActionJudgment(StrictModel):
-    """LLM이 해석한 고객 신호와 선택한 action label."""
+class LLMSignalJudgment(StrictModel):
+    """LLM이 해석한 runtime 고객 신호."""
 
-    actual_action: ActionLabel
-    reason: str
     confidence: float | None = Field(default=None, ge=0, le=1)
     predicted_event_type: EventType | None = None
     predicted_user_intent: str | None = None
@@ -32,8 +30,8 @@ class LLMActionJudgment(StrictModel):
     is_intent_shift: bool | None = None
 
 
-class LLMActionRequest(StrictModel):
-    """LLM action judge에 전달하는 prompt와 추적 메타데이터."""
+class LLMSignalRequest(StrictModel):
+    """LLM signal interpreter에 전달하는 prompt와 추적 메타데이터."""
 
     policy_name: str
     prompt_version: str
@@ -42,11 +40,11 @@ class LLMActionRequest(StrictModel):
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
-class LLMActionClient(Protocol):
-    """정책이 의존하는 최소 LLM client 인터페이스."""
+class LLMSignalClient(Protocol):
+    """정책이 의존하는 최소 LLM signal client 인터페이스."""
 
-    def judge_action(self, request: LLMActionRequest) -> LLMActionJudgment:
-        """LLM prompt를 실행해 action judgment를 반환한다."""
+    def interpret_signal(self, request: LLMSignalRequest) -> LLMSignalJudgment:
+        """LLM prompt를 실행해 고객 신호 해석 결과를 반환한다."""
         ...
 
     def snapshot(self) -> dict[str, object]:
@@ -54,14 +52,9 @@ class LLMActionClient(Protocol):
         ...
 
 
-ACTION_JUDGMENT_SCHEMA: dict[str, Any] = {
+SIGNAL_JUDGMENT_SCHEMA: dict[str, Any] = {
     "type": "object",
     "properties": {
-        "actual_action": {
-            "type": "string",
-            "enum": [label.value for label in ActionLabel],
-        },
-        "reason": {"type": "string"},
         "confidence": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
         "predicted_event_type": {
             "type": ["string", "null"],
@@ -75,8 +68,6 @@ ACTION_JUDGMENT_SCHEMA: dict[str, Any] = {
         },
     },
     "required": [
-        "actual_action",
-        "reason",
         "confidence",
         "predicted_event_type",
         "predicted_user_intent",
@@ -88,7 +79,7 @@ ACTION_JUDGMENT_SCHEMA: dict[str, Any] = {
 
 
 class OpenAIResponsesLLMClient:
-    """OpenAI Responses API를 직접 호출하는 얇은 action judge client."""
+    """OpenAI Responses API를 직접 호출하는 얇은 signal interpreter client."""
 
     def __init__(
         self,
@@ -105,10 +96,10 @@ class OpenAIResponsesLLMClient:
         ).rstrip("/")
         self.timeout_s = timeout_s or float(os.getenv("OPENAI_ACTION_TIMEOUT_S", "30"))
 
-    def judge_action(self, request: LLMActionRequest) -> LLMActionJudgment:
-        """Responses API structured output을 호출해 action judgment로 검증한다."""
+    def interpret_signal(self, request: LLMSignalRequest) -> LLMSignalJudgment:
+        """Responses API structured output을 호출해 signal judgment로 검증한다."""
         if not self.api_key:
-            raise LLMError("OPENAI_API_KEY is required for LLM action judgment")
+            raise LLMError("OPENAI_API_KEY is required for LLM signal judgment")
 
         payload = {
             "model": self.model,
@@ -127,9 +118,9 @@ class OpenAIResponsesLLMClient:
             "text": {
                 "format": {
                     "type": "json_schema",
-                    "name": "action_judgment",
+                    "name": "signal_judgment",
                     "strict": True,
-                    "schema": ACTION_JUDGMENT_SCHEMA,
+                    "schema": SIGNAL_JUDGMENT_SCHEMA,
                 }
             },
             "max_output_tokens": 700,
@@ -143,7 +134,7 @@ class OpenAIResponsesLLMClient:
         except json.JSONDecodeError as exc:
             raise LLMError("LLM response was not valid JSON") from exc
 
-        return LLMActionJudgment.model_validate(parsed)
+        return LLMSignalJudgment.model_validate(parsed)
 
     def snapshot(self) -> dict[str, object]:
         """Provider 설정을 결과 artifact에 남길 형태로 반환한다."""

@@ -37,7 +37,7 @@ AI speaking
 -> failure와 다음 수정점 기록
 ```
 
-현재 `baseline`과 `policy_v1`은 Text/Audio 입력 뒤에 고객 발화를 어떻게 이해했는지 먼저 남기고, 그 해석을 바탕으로 AI 행동을 고르는 흐름을 통과한다. 첫 구현은 LLM structured output을 사용해 고객 신호 해석 결과와 `actual_action`을 함께 받고, 정책 코드가 이를 `signals`의 `predicted_event_type`, `predicted_user_intent`, `confidence`, `ambiguity`, `signal_source`, `interpreter_steps`로 정리한다.
+현재 `baseline`, `policy_v1`, `policy_v2`는 Text/Audio 입력 뒤에 고객 발화를 어떻게 이해했는지 먼저 남기고, 그 해석을 바탕으로 AI 행동을 고르는 흐름을 통과한다. LLM structured output은 고객 신호 해석 결과만 만들고, `RuleBasedActionSelector`가 `predicted_event_type`, `predicted_user_intent`, tone hint, speech 여부를 기준으로 `actual_action`을 선택한다.
 
 ## 현재 repo 상태
 
@@ -52,7 +52,7 @@ AI speaking
 | `src/backend/PACKAGES.md` | backend dependency와 하네스 경계 설명 있음 | FastAPI/API 작업 시 책임 경계 가이드 |
 | `pyproject.toml` | FastAPI, Whisper, sentence-transformers, VAD, audio/data/test 의존성 있음 | 구현 후보 dependency는 준비됨 |
 | `src/runner.py`, `src/interruption_detection/runner.py` | CLI와 공통 policy 실행 entry가 있음 | 텍스트 입력(Text Replay), Backend, Test Bench가 같은 runner를 통과한다 |
-| `src/interruption_detection/policies/` | `baseline`, `policy_v1`이 공통 고객 신호 해석과 AI 행동 선택 흐름으로 전환됨 | Step 2 하드코딩 placeholder에서 벗어나고, 고객 신호 해석 점검값을 `signals`에 남긴다 |
+| `src/interruption_detection/policies/` | `baseline`, `policy_v1`, `policy_v2`가 공통 고객 신호 해석과 rule-based AI 행동 선택 흐름으로 전환됨 | Step 2 하드코딩 placeholder에서 벗어나고, 고객 신호 해석 점검값과 selector 선택 근거를 `signals`에 남긴다 |
 | `src/interruption_detection/llm.py` | OpenAI Responses API용 structured output client가 있음 | `OPENAI_API_KEY`가 있을 때 실제 LLM 판단을 호출한다 |
 | `src/interruption_detection/evaluation/` | Test Bench batch eval과 run artifact 생성이 있음 | `results/runs/{run_id}/` 계약으로 평가 결과를 남긴다 |
 | `src/interruption_detection/audio/` | 오디오 파일 입력(Audio File Test) manifest, precomputed/Whisper STT adapter, audio signal 요약이 있음 | 오디오 입력도 같은 runner input으로 합류한다 |

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from interruption_detection.llm import LLMActionClient
+from interruption_detection.llm import LLMSignalClient
 from interruption_detection.policies.llm_action import LLMActionPolicy
 
 
@@ -43,8 +43,9 @@ POLICY_V2_FEW_SHOTS = [
             "has_user_speech": False,
             "user_tone_hint": "neutral",
         },
-        "actual_action": "continue",
-        "reason": "There is no user speech, so the assistant should continue.",
+        "predicted_event_type": "no_speech",
+        "predicted_user_intent": None,
+        "ambiguity": "low",
     },
     {
         "input": {
@@ -54,8 +55,9 @@ POLICY_V2_FEW_SHOTS = [
             "has_user_speech": True,
             "user_tone_hint": "neutral",
         },
-        "actual_action": "brief_ack",
-        "reason": "The user gives a short acknowledgement, not a new request.",
+        "predicted_event_type": "backchannel",
+        "predicted_user_intent": None,
+        "ambiguity": "low",
     },
     {
         "input": {
@@ -65,8 +67,9 @@ POLICY_V2_FEW_SHOTS = [
             "has_user_speech": True,
             "user_tone_hint": "neutral",
         },
-        "actual_action": "stop_and_switch",
-        "reason": "The short utterance is still a clear refund request.",
+        "predicted_event_type": "intent_shift",
+        "predicted_user_intent": "refund_request",
+        "ambiguity": "low",
     },
 ]
 
@@ -74,7 +77,7 @@ POLICY_V2_FEW_SHOTS = [
 class PolicyV2(LLMActionPolicy):
     """짧은 맞장구와 비의미 음성에서 false_stop을 줄이는 정책."""
 
-    def __init__(self, llm_client: LLMActionClient | None = None) -> None:
+    def __init__(self, llm_client: LLMSignalClient | None = None) -> None:
         super().__init__(
             name="policy_v2",
             description=(

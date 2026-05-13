@@ -2,43 +2,32 @@ from __future__ import annotations
 
 import json
 
-from interruption_detection.action_selector.llm import LLMBaselineActionSelector
+from interruption_detection.action_selector.rule_based import RuleBasedActionSelector
 from interruption_detection.interpreter.llm import LLMStructuredSignalInterpreter
 from interruption_detection.llm import (
-    LLMActionClient,
-    LLMActionJudgment,
-    LLMActionRequest,
+    LLMSignalClient,
+    LLMSignalJudgment,
+    LLMSignalRequest,
     OpenAIResponsesLLMClient,
 )
-from interruption_detection.models import (
-    ActionLabel,
-    EventType,
-    PolicyDecision,
-    PolicyInput,
-)
+from interruption_detection.models import EventType, PolicyDecision, PolicyInput
 from interruption_detection.pipelines.decision_pipeline import DecisionPipeline
 
 
-ACTION_LABEL_DEFINITIONS: dict[ActionLabel, str] = {
-    ActionLabel.CONTINUE: (
-        "Continue the AI utterance when there is no meaningful user request, only "
-        "silence/noise, or a brief acknowledgement that does not need a response."
+EVENT_TYPE_DEFINITIONS: dict[EventType, str] = {
+    EventType.NO_SPEECH: "No user speech is present.",
+    EventType.NOISE: "Sound is present, but no meaningful user utterance is present.",
+    EventType.BACKCHANNEL: (
+        "A short acknowledgement such as 네, 알겠습니다, 맞아요, or thanks."
     ),
-    ActionLabel.BRIEF_ACK: (
-        "Briefly acknowledge a short backchannel, then continue the original AI flow."
+    EventType.SAME_INTENT_QUESTION: (
+        "The user asks a follow-up question about the assistant's current intent."
     ),
-    ActionLabel.RESPOND_AND_CONTINUE: (
-        "Answer a same-topic follow-up question, then continue the original flow."
+    EventType.INTENT_SHIFT: (
+        "The user introduces a different task, request, or target intent."
     ),
-    ActionLabel.STOP_AND_SWITCH: (
-        "Stop the current AI utterance and switch to the user's new intent."
-    ),
-    ActionLabel.ASK_CLARIFYING: (
-        "Ask a clarifying question when the user signal is too ambiguous to route."
-    ),
-    ActionLabel.HANDOFF: (
-        "Route toward a human agent for urgent, severe, or explicit agent requests."
-    ),
+    EventType.COMPLAINT: "The user expresses dissatisfaction or escalation.",
+    EventType.AMBIGUOUS: "The user signal is too unclear to route confidently.",
 }
 
 
@@ -51,8 +40,9 @@ FEW_SHOT_EXAMPLES = [
             "has_user_speech": True,
             "user_tone_hint": "neutral",
         },
-        "actual_action": "stop_and_switch",
-        "reason": "The user is changing from shipping status to a refund request.",
+        "predicted_event_type": "intent_shift",
+        "predicted_user_intent": "refund_request",
+        "ambiguity": "low",
     },
     {
         "input": {
@@ -62,8 +52,9 @@ FEW_SHOT_EXAMPLES = [
             "has_user_speech": True,
             "user_tone_hint": "neutral",
         },
-        "actual_action": "respond_and_continue",
-        "reason": "The user asks a same-topic shipping follow-up.",
+        "predicted_event_type": "same_intent_question",
+        "predicted_user_intent": "shipping_inquiry",
+        "ambiguity": "low",
     },
     {
         "input": {
@@ -73,8 +64,9 @@ FEW_SHOT_EXAMPLES = [
             "has_user_speech": True,
             "user_tone_hint": "neutral",
         },
-        "actual_action": "continue",
-        "reason": "The user only acknowledges, so no interruption is needed.",
+        "predicted_event_type": "backchannel",
+        "predicted_user_intent": None,
+        "ambiguity": "low",
     },
 ]
 
@@ -86,8 +78,8 @@ EXCLUDED_PROMPT_FIELDS = [
 ]
 
 
-class LegacyLLMActionJudgmentProvider:
-    """one-shot LLM structured output을 baseline action candidate로 제공한다."""
+class LLMSignalJudgmentProvider:
+    """LLM structured output으로 runtime 고객 신호만 해석한다."""
 
     def __init__(
         self,
@@ -99,9 +91,9 @@ class LegacyLLMActionJudgmentProvider:
         include_tone_hint: bool,
         policy_guidance: dict[str, object] | None = None,
         extra_few_shots: list[dict[str, object]] | None = None,
-        llm_client: LLMActionClient | None = None,
+        llm_client: LLMSignalClient | None = None,
     ) -> None:
-        self.name = "legacy_llm_action_judgment_provider"
+        self.name = "llm_signal_judgment_provider"
         self.policy_name = policy_name
         self.prompt_version = prompt_version
         self.include_label_definitions = include_label_definitions
@@ -111,8 +103,8 @@ class LegacyLLMActionJudgmentProvider:
         self.extra_few_shots = extra_few_shots or []
         self._llm_client = llm_client or OpenAIResponsesLLMClient()
 
-    def judge(self, policy_input: PolicyInput) -> LLMActionJudgment:
-        """legacy one-shot prompt로 LLM action judgment 후보를 반환한다."""
+    def judge(self, policy_input: PolicyInput) -> LLMSignalJudgment:
+        """LLM prompt로 고객 신호 해석 결과를 반환한다."""
         metadata = {
             "input_fields": self._input_fields(),
             "excluded_fields": self.excluded_fields(),
@@ -121,7 +113,7 @@ class LegacyLLMActionJudgmentProvider:
         if self.policy_guidance is not None:
             metadata["policy_guidance"] = self.policy_guidance
 
-        request = LLMActionRequest(
+        request = LLMSignalRequest(
             policy_name=self.policy_name,
             prompt_version=self.prompt_version,
             developer_prompt=self._developer_prompt(),
@@ -129,7 +121,7 @@ class LegacyLLMActionJudgmentProvider:
             metadata=metadata,
         )
 
-        return self._llm_client.judge_action(request)
+        return self._llm_client.interpret_signal(request)
 
     def snapshot(self) -> dict[str, object]:
         """provider 설정을 run artifact에 남긴다."""
@@ -140,7 +132,7 @@ class LegacyLLMActionJudgmentProvider:
             "llm": self._client_snapshot(),
             "input_fields": self._input_fields(),
             "excluded_fields": self.excluded_fields(),
-            "structured_output": "action_judgment_with_signal_interpretation",
+            "structured_output": "signal_interpretation",
         }
 
         if self.policy_guidance is not None:
@@ -157,29 +149,26 @@ class LegacyLLMActionJudgmentProvider:
         return list(EXCLUDED_PROMPT_FIELDS)
 
     def _developer_prompt(self) -> str:
-        allowed_action_labels = ", ".join(label.value for label in ActionLabel)
         allowed_event_types = ", ".join(item.value for item in EventType)
 
         parts = [
             "You are the AI Action Policy for a Korean commerce support assistant.",
-            "Work in two layers: first interpret the customer's runtime signal, "
-            "then choose the assistant's next action.",
-            f"Allowed action labels: {allowed_action_labels}.",
+            "Interpret the customer's runtime signal. Do not choose the assistant's "
+            "next action.",
             f"Allowed predicted_event_type values: {allowed_event_types}, "
             "or null when no event type is appropriate.",
             "Base your decision only on the supplied text transcript and metadata.",
             "Do not infer from hidden expected answers, event_type labels, or evaluation labels.",
-            "Return predicted_event_type, predicted_user_intent, confidence, "
-            "ambiguity, interpreter_steps, actual_action, and reason.",
-            "Return a concise reason in English or Korean.",
+            "Return only predicted_event_type, predicted_user_intent, confidence, "
+            "ambiguity, and interpreter_steps.",
         ]
 
         if self.include_label_definitions:
             definitions = "\n".join(
-                f"- {label.value}: {text}"
-                for label, text in ACTION_LABEL_DEFINITIONS.items()
+                f"- {event_type.value}: {text}"
+                for event_type, text in EVENT_TYPE_DEFINITIONS.items()
             )
-            parts.append(f"Action label definitions:\n{definitions}")
+            parts.append(f"Customer signal label definitions:\n{definitions}")
 
         if self.policy_guidance is not None:
             parts.append(
@@ -207,7 +196,7 @@ class LegacyLLMActionJudgmentProvider:
             context["user_tone_hint"] = policy_input.user_tone_hint.value
 
         return (
-            "Classify the assistant's next action for this single interruption moment.\n"
+            "Interpret the customer signal for this single interruption moment.\n"
             "Input context JSON:\n"
             f"{json.dumps(context, ensure_ascii=False, indent=2)}"
         )
@@ -243,12 +232,12 @@ class LLMActionPolicy:
         include_tone_hint: bool,
         policy_guidance: dict[str, object] | None = None,
         extra_few_shots: list[dict[str, object]] | None = None,
-        llm_client: LLMActionClient | None = None,
+        llm_client: LLMSignalClient | None = None,
     ) -> None:
         self.name = name
         self.description = description
         self.prompt_version = prompt_version
-        self._judgment_provider = LegacyLLMActionJudgmentProvider(
+        self._judgment_provider = LLMSignalJudgmentProvider(
             policy_name=name,
             prompt_version=prompt_version,
             include_label_definitions=include_label_definitions,
@@ -263,7 +252,7 @@ class LLMActionPolicy:
             prompt_version=prompt_version,
             judgment_provider=self._judgment_provider,
             interpreter=LLMStructuredSignalInterpreter(),
-            action_selector=LLMBaselineActionSelector(),
+            action_selector=RuleBasedActionSelector(),
         )
 
     def predict(self, policy_input: PolicyInput) -> PolicyDecision:

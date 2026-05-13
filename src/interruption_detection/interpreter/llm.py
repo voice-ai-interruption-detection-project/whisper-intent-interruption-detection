@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from interruption_detection.interpreter.base import CustomerSignalInterpreterInput
-from interruption_detection.llm import LLMActionJudgment
+from interruption_detection.llm import LLMSignalJudgment
 from interruption_detection.models import CustomerSignalInterpretation, EventType
 
 
@@ -18,9 +18,9 @@ class LLMStructuredSignalInterpreter:
         """LLM judgment의 signal 필드를 표준 interpretation 모델로 옮긴다."""
         judgment = interpreter_input.judgment
 
-        if not isinstance(judgment, LLMActionJudgment):
+        if not isinstance(judgment, LLMSignalJudgment):
             raise ValueError(
-                "LLMStructuredSignalInterpreter requires LLMActionJudgment"
+                "LLMStructuredSignalInterpreter requires LLMSignalJudgment"
             )
 
         predicted_event_type = judgment.predicted_event_type

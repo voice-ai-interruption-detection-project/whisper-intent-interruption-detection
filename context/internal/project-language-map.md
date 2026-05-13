@@ -19,7 +19,7 @@
 -> failure 분석과 Test Bench run artifact 기록
 ```
 
-지금은 `baseline`과 `policy_v1`에서 LLM structured output이 고객 발화 해석 결과와 `actual_action`을 함께 만들고, 정책 코드가 이를 고객 신호 해석(`Interpreter Pipeline`)과 AI 행동 선택(`AI Action Selector`) 흐름으로 나눠 기록한다. 이 흐름은 특정 policy 하나에만 붙이지 않고 `baseline`과 `policy_v1`이 함께 통과한다.
+지금은 `baseline`, `policy_v1`, `policy_v2`에서 LLM structured output이 고객 발화 해석 결과만 만들고, `AI Action Selector`가 그 해석 결과를 `actual_action`으로 매핑한다. 이 흐름은 특정 policy 하나에만 붙이지 않고 등록된 LLM-backed policy들이 함께 통과한다.
 
 구체 예시는 [Scenario Worked Example](scenario-worked-example.md)을 먼저 본다. 특히 `event_type`, `expected_actions`, `actual_action`이 한 화면에 같이 나와 헷갈릴 때는 예시를 따라가면 된다.
 
