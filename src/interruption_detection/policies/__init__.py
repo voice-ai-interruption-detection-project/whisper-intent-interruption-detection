@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from interruption_detection.llm import LLMActionClient
+from interruption_detection.llm import LLMSignalClient
 from interruption_detection.policies.base import Policy
 from interruption_detection.policies.baseline import BaselinePolicy
 from interruption_detection.policies.policy_v1 import PolicyV1
@@ -8,7 +8,7 @@ from interruption_detection.policies.policy_v2 import PolicyV2
 
 
 def build_policy_registry(
-    llm_client: LLMActionClient | None = None,
+    llm_client: LLMSignalClient | None = None,
 ) -> dict[str, Policy]:
     """같은 LLM client 설정으로 기본 정책 등록소를 만든다."""
     return {

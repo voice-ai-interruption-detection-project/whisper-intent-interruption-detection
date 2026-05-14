@@ -42,7 +42,7 @@ def test_unknown_policy_fails() -> None:
         get_policy("missing")
 
 
-def test_baseline_uses_llm_action_judgment(fake_llm_client) -> None:
+def test_baseline_uses_llm_signal_judgment_and_rule_selector(fake_llm_client) -> None:
     policy = BaselinePolicy(llm_client=fake_llm_client)
 
     decision = policy.predict(make_input(has_user_speech=False))
@@ -50,14 +50,12 @@ def test_baseline_uses_llm_action_judgment(fake_llm_client) -> None:
     assert decision.actual_action == ActionLabel.CONTINUE
     assert decision.signals["mode"] == "interpreter_pipeline_action_selector"
     assert decision.signals["pipeline"] == {
-        "judgment_provider": "legacy_llm_action_judgment_provider",
+        "judgment_provider": "llm_signal_judgment_provider",
         "interpreter": "llm_structured_signal_interpreter",
-        "action_selector": "llm_baseline_action_selector",
+        "action_selector": "rule_based_action_selector",
         "decision_assembler": "policy_decision",
     }
-    assert decision.signals["judgment_provider"] == (
-        "legacy_llm_action_judgment_provider"
-    )
+    assert decision.signals["judgment_provider"] == "llm_signal_judgment_provider"
     assert decision.signals["predicted_event_type"] == "no_speech"
     assert decision.signals["predicted_user_intent"] is None
     assert decision.signals["signal_source"] == "llm_structured_output"
@@ -65,10 +63,10 @@ def test_baseline_uses_llm_action_judgment(fake_llm_client) -> None:
         "read_transcript",
         "classify_customer_signal",
     ]
-    assert decision.signals["selector_source"] == "llm_baseline_action_selector"
+    assert decision.signals["selector_source"] == "rule_based_action_selector"
     assert decision.signals["selector_steps"] == [
         "received_interpretation:no_speech",
-        "use_candidate:legacy_llm_action_judgment",
+        "use_rule:no_meaningful_user_speech",
     ]
     assert set(decision.stage_latencies_ms) == {
         "llm_judgment_provider_ms",
@@ -108,9 +106,11 @@ def test_policy_v1_uses_label_definitions_and_examples_without_tone_hint(
     }
     request = fake_llm_client.requests[-1]
     assert request.prompt_version == "policy_v1_label_examples_no_tone_v1"
-    assert "Action label definitions" in request.developer_prompt
+    assert "Customer signal label definitions" in request.developer_prompt
     assert "Examples:" in request.developer_prompt
     assert "user_tone_hint" not in request.user_prompt
+    assert "actual_action" not in request.developer_prompt
+    assert "reason" not in request.developer_prompt
     assert request.metadata["input_fields"] == [
         "ai_current_intent",
         "ai_utterance",
@@ -136,6 +136,7 @@ def test_policy_v2_adds_backchannel_noise_guidance(fake_llm_client) -> None:
     assert "backchannel_noise_no_speech_stabilization" in request.developer_prompt
     assert "has_user_speech is false" in request.developer_prompt
     assert "환불요." in request.developer_prompt
+    assert "actual_action" not in request.developer_prompt
     assert "user_tone_hint" in request.user_prompt
     assert request.metadata["policy_guidance"]["target_failure"] == "false_stop"
     assert "event_type" not in request.user_prompt
@@ -174,9 +175,9 @@ def test_policy_snapshot_contains_llm_metadata() -> None:
         "has_user_speech",
     ]
     assert snapshot["pipeline"] == {
-        "judgment_provider": "legacy_llm_action_judgment_provider",
+        "judgment_provider": "llm_signal_judgment_provider",
         "interpreter": "llm_structured_signal_interpreter",
-        "action_selector": "llm_baseline_action_selector",
+        "action_selector": "rule_based_action_selector",
         "decision_assembler": "policy_decision",
     }
     assert snapshot["llm"]["provider"] == "fake"
@@ -203,3 +204,4 @@ def test_policy_v2_snapshot_exposes_guidance() -> None:
         "event_type",
         "expected_user_intent",
     ]
+    assert snapshot["structured_output"] == "signal_interpretation"

@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from interruption_detection.llm import LLMActionClient
+from interruption_detection.llm import LLMSignalClient
 from interruption_detection.policies.llm_action import LLMActionPolicy
 
 
 class BaselinePolicy(LLMActionPolicy):
     """최소 transcript context로 공통 해석/행동 선택 흐름을 실행하는 baseline 정책."""
 
-    def __init__(self, llm_client: LLMActionClient | None = None) -> None:
+    def __init__(self, llm_client: LLMSignalClient | None = None) -> None:
         super().__init__(
             name="baseline",
             description=(

@@ -23,7 +23,7 @@ schema key의 나열 순서가 곧 실행 순서는 아니다. schema는 한 판
 
 `event_type`, `expected_user_intent`, `expected_actions`은 사람이 붙인 기준값이다. 현재 LLM structured output prompt에는 `expected_actions`, `event_type`, `expected_user_intent`를 넣지 않는다.
 
-현재 `baseline`과 `policy_v1`은 공통 고객 신호 해석(`Interpreter Pipeline`)을 통과하며, runtime 해석 결과를 `predicted_event_type`, `predicted_user_intent`처럼 따로 남긴 뒤 AI 행동 선택(`AI Action Selector`)에서 `actual_action`을 고른다. 첫 구현은 LLM structured output을 사용해 이 두 층위의 결과를 함께 받고, policy code가 이를 나눠 기록한다.
+현재 `baseline`, `policy_v1`, `policy_v2`는 공통 고객 신호 해석(`Interpreter Pipeline`)을 통과하며, LLM structured output은 `predicted_event_type`, `predicted_user_intent` 같은 runtime 해석 결과만 만든다. AI 행동 선택(`AI Action Selector`)은 그 해석 결과를 보고 `actual_action`을 별도로 고른다.
 
 ## 예시 A. Intent Shift
 
