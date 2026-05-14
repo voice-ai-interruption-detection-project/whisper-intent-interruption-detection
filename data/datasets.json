@@ -1,0 +1,25 @@
+{
+  "datasets": [
+    {
+      "id": "core",
+      "label": "Core scenarios",
+      "path": "data/scenarios.json",
+      "scope": "official",
+      "description": "기본 Text Replay와 Audio File Test가 공유하는 공식 Test Bench dataset",
+      "input_modes": [
+        "text",
+        "audio_file"
+      ]
+    },
+    {
+      "id": "policy_v2_edge",
+      "label": "Policy v2 edge slice",
+      "path": "data/scenarios_policy_v2_edge.json",
+      "scope": "diagnostic",
+      "description": "backchannel, noise, no_speech false_stop 안정화와 짧은 명확 요청 회귀를 보는 진단용 dataset",
+      "input_modes": [
+        "text"
+      ]
+    }
+  ]
+}

@@ -56,6 +56,7 @@ tags: []
 | 2026-05-11 | Context Intent Alignment | active | docs/context-intent-alignment |
 | 2026-05-11 | UI Wording Layer Balance | active | docs/context-intent-alignment |
 | 2026-05-11 | Policy Signal Layer Realignment | exploring |  |
+| 2026-05-12 | LLM Action Policy Component Boundary | active |  |
 
 ## 다른 기록과의 경계
 

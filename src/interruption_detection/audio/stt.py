@@ -86,7 +86,7 @@ class WhisperTranscriber:
 
     name = "whisper"
 
-    def __init__(self, model_name: str = "base") -> None:
+    def __init__(self, model_name: str = "medium") -> None:
         self.model_name = model_name
         self._model = None
 
@@ -149,7 +149,7 @@ def build_transcriber(
         return PrecomputedTranscriber()
 
     if name == "whisper":
-        model_name = whisper_model or os.getenv("WHISPER_MODEL", "base")
+        model_name = whisper_model or os.getenv("WHISPER_MODEL", "medium")
         return WhisperTranscriber(model_name=model_name)
 
     raise AudioProcessingError(

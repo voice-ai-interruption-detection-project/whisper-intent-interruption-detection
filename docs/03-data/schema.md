@@ -13,7 +13,7 @@
   "ai_utterance": "현재 상품은 배송 중이며 내일 오후 도착 예정입니다.",
   "user_utterance": "아 그게 아니라 환불받고 싶은데요.",
   "event_type": "intent_shift",
-  "expected_action": "stop_and_switch",
+  "expected_actions": ["stop_and_switch"],
   "expected_user_intent": "환불요청",
   "user_tone_hint": "neutral",
   "has_user_speech": true,
@@ -101,8 +101,8 @@
 - **값**: 위의 intent 목록 또는 `null` (의도 없음)
 - **예시**: `refund_request` (또는 `null`)
 
-#### `expected_action` (enum, required)
-- **의미**: 이 상황에서 AI가 해야 할 행동
+#### `expected_actions` (array of enum, required)
+- **의미**: 이 상황에서 AI가 해도 되는 행동 목록
 - **가능한 값**:
   - `continue`: 계속 말하기
   - `brief_ack`: 짧게 반응하고 계속
@@ -110,7 +110,8 @@
   - `stop_and_switch`: 주제 바꾸기
   - `ask_clarifying`: 확인 질문
   - `handoff`: 상담사 연결
-- **예시**: `stop_and_switch`
+- **예시**: `["stop_and_switch"]`
+- **참고**: `backchannel`은 `["continue", "brief_ack"]`처럼 복수 정답을 허용한다.
 
 #### `notes` (string, optional)
 - **의미**: 어노테이션 근거 또는 특이사항
@@ -169,12 +170,13 @@
 - 방언/구어체 → 의도 기준으로 분류
 - "음... 잠깐요" → `ambiguous`
 
-### 2️⃣ `expected_action` 라벨링
+### 2️⃣ `expected_actions` 라벨링
 
 **기준:** 고객 입장에서 "자연스러운 AI 행동"을 기준으로 함
 
 - 라벨링 전에 두 명 이상 독립적으로 판단
 - 불일치 시 협의
+- 복수 행동이 모두 자연스러우면 배열에 함께 기록
 
 ### 3️⃣ `level` 책정
 
@@ -208,7 +210,7 @@
   "ai_utterance": "현재 배송 중이며 내일 오후 도착 예정입니다.",
   "user_utterance": "네, 알겠어요.",
   "event_type": "backchannel",
-  "expected_action": "continue",
+  "expected_actions": ["continue", "brief_ack"],
   "expected_user_intent": null,
   "user_tone_hint": "neutral",
   "has_user_speech": true,
@@ -226,7 +228,7 @@
   "ai_utterance": "현재 상품은 배송 중이며 내일 오후 도착 예정입니다.",
   "user_utterance": "아 그게 아니라 환불받고 싶은데요.",
   "event_type": "intent_shift",
-  "expected_action": "stop_and_switch",
+  "expected_actions": ["stop_and_switch"],
   "expected_user_intent": "refund_request",
   "user_tone_hint": "neutral",
   "has_user_speech": true,
@@ -244,7 +246,7 @@
   "ai_utterance": "현재 상품은 배송 중이며 내일 오후 도착 예정입니다.",
   "user_utterance": "배송비는 따로 드나요?",
   "event_type": "same_intent_question",
-  "expected_action": "respond_and_continue",
+  "expected_actions": ["respond_and_continue"],
   "expected_user_intent": "shipping_inquiry",
   "user_tone_hint": "neutral",
   "has_user_speech": true,
@@ -262,7 +264,7 @@
   "ai_utterance": "사이즈는 M, L, XL 세 가지가 있습니다.",
   "user_utterance": "",
   "event_type": "noise",
-  "expected_action": "continue",
+  "expected_actions": ["continue"],
   "expected_user_intent": null,
   "user_tone_hint": "neutral",
   "has_user_speech": false,
@@ -280,7 +282,7 @@
   "ai_utterance": "배송은 정상 진행 중입니다.",
   "user_utterance": "뭐 이딴 배송이야! 지금 당장 와야 돼!",
   "event_type": "complaint",
-  "expected_action": "handoff",
+  "expected_actions": ["handoff"],
   "expected_user_intent": null,
   "user_tone_hint": "urgent",
   "has_user_speech": true,

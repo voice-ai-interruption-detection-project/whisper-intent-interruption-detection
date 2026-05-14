@@ -9,8 +9,10 @@ from typing import Any
 from interruption_detection.models import (
     ActionLabel,
     EventType,
+    PolicyDecision,
     PrimaryFailure,
     RunDecisionLog,
+    Scenario,
 )
 from interruption_detection.policies import get_policy
 from interruption_detection.runner import run_scenario
@@ -26,6 +28,7 @@ def evaluate_dataset(
     command: str | None = None,
     changed: list[str] | None = None,
     run_id: str | None = None,
+    dataset_snapshot: dict[str, object] | None = None,
 ) -> dict[str, Any]:
     """데이터셋 전체를 지정 정책으로 실행하고 run artifact를 생성한다."""
     dataset = Path(dataset_path)
@@ -45,25 +48,7 @@ def evaluate_dataset(
     for scenario in scenarios:
         # 평가기는 공통 runner를 재사용하고, 비교용 메타데이터만 추가한다.
         decision = run_scenario(scenario, policy_name)
-        primary_failure = classify_failure(
-            expected=scenario.expected_action,
-            actual=decision.actual_action,
-            event_type=scenario.event_type,
-        )
-        logs.append(
-            RunDecisionLog(
-                scenario_id=scenario.scenario_id,
-                policy_name=policy_name,
-                event_type=scenario.event_type,
-                expected_action=scenario.expected_action,
-                actual_action=decision.actual_action,
-                reason=decision.reason,
-                signals=decision.signals,
-                stage_latencies_ms=decision.stage_latencies_ms,
-                latency_ms=decision.latency_ms,
-                primary_failure=primary_failure,
-            )
-        )
+        logs.append(build_run_decision_log(scenario, policy_name, decision))
 
     evaluation = build_evaluation(logs)
     total_latency = round(sum(item.latency_ms for item in logs), 3)
@@ -82,6 +67,15 @@ def evaluate_dataset(
         "latency_ms": total_latency,
         "command": command or "",
     }
+    if dataset_snapshot is not None:
+        meta.update(
+            {
+                "dataset_id": dataset_snapshot.get("id"),
+                "dataset_label": dataset_snapshot.get("label"),
+                "dataset_scope": dataset_snapshot.get("scope"),
+                "dataset_snapshot": dataset_snapshot,
+            }
+        )
 
     _write_json(run_dir / "run_meta.json", meta)
     _write_json(run_dir / "evaluation.json", evaluation)
@@ -100,9 +94,11 @@ def evaluate_dataset(
 
 
 def build_evaluation(logs: list[RunDecisionLog]) -> dict[str, Any]:
-    """판단 로그 목록에서 정확도, 실패 수, 혼동 행렬을 계산한다."""
+    """판단 로그 목록에서 정확도, 실패 수, mismatch matrix를 계산한다."""
     total = len(logs)
-    correct = sum(1 for item in logs if item.expected_action == item.actual_action)
+    correct = sum(
+        1 for item in logs if is_action_match(item.expected_actions, item.actual_action)
+    )
 
     failure_counts = Counter(
         item.primary_failure.value for item in logs if item.primary_failure is not None
@@ -116,7 +112,7 @@ def build_evaluation(logs: list[RunDecisionLog]) -> dict[str, Any]:
         "correct": correct,
         "action_accuracy": round(correct / total, 4) if total else 0.0,
         "failures": failures,
-        "confusion_matrix": build_confusion_matrix(logs),
+        "mismatch_matrix": build_mismatch_matrix(logs),
         "latency_ms": {
             "total": round(sum(item.latency_ms for item in logs), 3),
             "average": (
@@ -131,43 +127,57 @@ def build_evaluation(logs: list[RunDecisionLog]) -> dict[str, Any]:
     }
 
 
-def build_confusion_matrix(logs: list[RunDecisionLog]) -> dict[str, dict[str, int]]:
-    """예상 행동과 실제 행동의 교차표를 만든다."""
-    labels = [label.value for label in ActionLabel]
-    matrix = {expected: {actual: 0 for actual in labels} for expected in labels}
+def build_mismatch_matrix(logs: list[RunDecisionLog]) -> dict[str, dict[str, int]]:
+    """복수 정답 set별로 틀린 actual_action만 집계한다."""
+    matrix: dict[str, dict[str, int]] = {}
 
     for item in logs:
-        matrix[item.expected_action.value][item.actual_action.value] += 1
+        if is_action_match(item.expected_actions, item.actual_action):
+            continue
+
+        expected_key = "|".join(
+            sorted(action.value for action in item.expected_actions)
+        )
+        actual_key = item.actual_action.value
+        row = matrix.setdefault(expected_key, {})
+        row[actual_key] = row.get(actual_key, 0) + 1
 
     return matrix
 
 
 def classify_failure(
     *,
-    expected: ActionLabel,
+    expected_actions: list[ActionLabel],
     actual: ActionLabel,
     event_type: EventType,
 ) -> PrimaryFailure | None:
     """예상/실제 행동 불일치를 1차 실패 유형으로 분류한다."""
     # 1차 실패는 근본 원인이 아니라 불일치의 모양을 설명한다.
-    if expected == actual:
+    if is_action_match(expected_actions, actual):
         return None
 
     if event_type == EventType.AMBIGUOUS:
         return PrimaryFailure.AMBIGUOUS_INTENT
 
-    if expected in {ActionLabel.STOP_AND_SWITCH, ActionLabel.HANDOFF} and actual in {
+    if any(
+        action in {ActionLabel.STOP_AND_SWITCH, ActionLabel.HANDOFF}
+        for action in expected_actions
+    ) and actual in {
         ActionLabel.CONTINUE,
         ActionLabel.BRIEF_ACK,
         ActionLabel.RESPOND_AND_CONTINUE,
     }:
         return PrimaryFailure.MISSED_SWITCH
 
-    if expected in {
-        ActionLabel.CONTINUE,
-        ActionLabel.BRIEF_ACK,
-        ActionLabel.RESPOND_AND_CONTINUE,
-    } and actual in {
+    if all(
+        action
+        in {
+            ActionLabel.CONTINUE,
+            ActionLabel.BRIEF_ACK,
+            ActionLabel.RESPOND_AND_CONTINUE,
+        }
+        for action in expected_actions
+    ) and actual in {
         ActionLabel.STOP_AND_SWITCH,
         ActionLabel.ASK_CLARIFYING,
         ActionLabel.HANDOFF,
@@ -177,12 +187,47 @@ def classify_failure(
     return PrimaryFailure.ACTION_CONFUSION
 
 
+def build_run_decision_log(
+    scenario: Scenario,
+    policy_name: str,
+    decision: PolicyDecision,
+) -> RunDecisionLog:
+    """Scenario 기준값과 policy decision을 run artifact 로그 행으로 조립한다."""
+    action_match = is_action_match(scenario.expected_actions, decision.actual_action)
+
+    return RunDecisionLog(
+        scenario_id=scenario.scenario_id,
+        policy_name=policy_name,
+        event_type=scenario.event_type,
+        expected_actions=scenario.expected_actions,
+        actual_action=decision.actual_action,
+        action_match=action_match,
+        reason=decision.reason,
+        signals=decision.signals,
+        stage_latencies_ms=decision.stage_latencies_ms,
+        latency_ms=decision.latency_ms,
+        primary_failure=classify_failure(
+            expected_actions=scenario.expected_actions,
+            actual=decision.actual_action,
+            event_type=scenario.event_type,
+        ),
+    )
+
+
+def is_action_match(
+    expected_actions: list[ActionLabel],
+    actual: ActionLabel,
+) -> bool:
+    """actual_action이 기준 expected_actions에 포함되는지 본다."""
+    return actual in expected_actions
+
+
 def get_criteria_snapshot() -> dict[str, object]:
     """이번 평가에 사용한 라벨과 비교 기준을 스냅샷으로 반환한다."""
     return {
         "action_labels": [label.value for label in ActionLabel],
         "primary_failures": [failure.value for failure in PrimaryFailure],
-        "comparison": "expected_action_vs_actual_action",
+        "comparison": "actual_action_in_expected_actions",
     }
 
 
@@ -216,7 +261,8 @@ def build_error_analysis(
     for item in failed:
         lines.append(
             "- "
-            f"{item.scenario_id}: expected={item.expected_action.value}, "
+            f"{item.scenario_id}: expected_actions="
+            f"{[action.value for action in item.expected_actions]}, "
             f"actual={item.actual_action.value}, primary={item.primary_failure.value}"
         )
 

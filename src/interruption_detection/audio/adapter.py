@@ -9,7 +9,7 @@ from interruption_detection.audio.signals import (
     analyze_audio_file,
     audio_signal_dump,
 )
-from interruption_detection.audio.stt import AudioTranscriber
+from interruption_detection.audio.stt import AudioTranscriber, AudioTranscript
 from interruption_detection.models import PolicyDecision, RunnerInput, Scenario
 from interruption_detection.runner import run_input
 
@@ -21,26 +21,20 @@ def run_audio_item(
     audio_path: str | Path,
     policy_name: str,
     transcriber: AudioTranscriber,
+    input_mode: str = "audio_file",
+    input_adapter: str = "audio_file_adapter",
 ) -> PolicyDecision:
-    """오디오 fixture 하나를 RunnerInput으로 변환한 뒤 기존 policy runner를 호출한다."""
+    """오디오 입력 하나를 RunnerInput으로 변환한 뒤 기존 policy runner를 호출한다."""
     signal_started = perf_counter()
     signal_summary = analyze_audio_file(audio_path)
     signal_ms = round((perf_counter() - signal_started) * 1000, 3)
 
     transcript = transcriber.transcribe(audio_path, item)
+    policy_input_sources = build_audio_policy_input_sources(transcript.source)
 
-    runner_input = RunnerInput(
-        scenario_id=scenario.scenario_id,
-        domain=scenario.domain,
-        level=scenario.level,
-        ai_current_intent=scenario.ai_current_intent,
-        ai_utterance=scenario.ai_utterance,
-        user_utterance=transcript.text,
-        event_type=scenario.event_type,
-        expected_user_intent=scenario.expected_user_intent,
-        user_tone_hint=scenario.user_tone_hint,
-        has_user_speech=transcript.has_user_speech,
-        notes=scenario.notes,
+    runner_input = build_audio_runner_input(
+        scenario=scenario,
+        transcript=transcript,
     )
 
     decision = run_input(runner_input, policy_name)
@@ -53,7 +47,10 @@ def run_audio_item(
 
     signals = {
         **decision.signals,
-        "input_mode": "audio_file",
+        "input_mode": input_mode,
+        "input_adapter": input_adapter,
+        "pipeline_input": "runner_input",
+        "policy_input_sources": policy_input_sources,
         "audio": {
             "scenario_id": item.scenario_id,
             "audio_path": str(audio_path),
@@ -88,6 +85,45 @@ def run_audio_item(
             "stage_latencies_ms": stage_latencies,
             "latency_ms": round(sum(stage_latencies.values()), 3),
         }
+    )
+
+
+def build_audio_policy_input_sources(
+    transcript_source: str | None = None,
+) -> dict[str, str]:
+    """Audio File Test에서 policy input 필드가 온 출처를 run artifact에 남긴다."""
+    transcript_label = (
+        "audio_transcript"
+        if transcript_source is None
+        else f"audio_transcript:{transcript_source}"
+    )
+    return {
+        "ai_current_intent": "scenario_metadata",
+        "ai_utterance": "scenario_metadata",
+        "user_utterance": transcript_label,
+        "has_user_speech": transcript_label,
+        "user_tone_hint": "scenario_metadata",
+    }
+
+
+def build_audio_runner_input(
+    *,
+    scenario: Scenario,
+    transcript: AudioTranscript,
+) -> RunnerInput:
+    """오디오/STT 결과를 Text와 같은 runner 입력 경계로 변환한다."""
+    return RunnerInput(
+        scenario_id=scenario.scenario_id,
+        domain=scenario.domain,
+        level=scenario.level,
+        ai_current_intent=scenario.ai_current_intent,
+        ai_utterance=scenario.ai_utterance,
+        user_utterance=transcript.text,
+        event_type=scenario.event_type,
+        expected_user_intent=scenario.expected_user_intent,
+        user_tone_hint=scenario.user_tone_hint,
+        has_user_speech=transcript.has_user_speech,
+        notes=scenario.notes,
     )
 
 

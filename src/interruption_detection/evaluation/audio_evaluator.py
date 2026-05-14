@@ -6,7 +6,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from interruption_detection.audio.adapter import run_audio_item
+from interruption_detection.audio.adapter import (
+    build_audio_policy_input_sources,
+    run_audio_item,
+)
 from interruption_detection.audio.manifest import (
     AudioManifestItem,
     audio_path_for_item,
@@ -16,7 +19,7 @@ from interruption_detection.audio.stt import AudioProcessingError, AudioTranscri
 from interruption_detection.evaluation.evaluator import (
     build_error_analysis,
     build_evaluation,
-    classify_failure,
+    build_run_decision_log,
     get_criteria_snapshot,
 )
 from interruption_detection.models import RunDecisionLog, Scenario
@@ -35,6 +38,7 @@ def evaluate_audio_manifest(
     command: str | None = None,
     changed: list[str] | None = None,
     run_id: str | None = None,
+    dataset_snapshot: dict[str, object] | None = None,
 ) -> dict[str, Any]:
     """오디오 manifest를 지정 정책으로 실행하고 run artifact를 생성한다."""
     dataset = Path(dataset_path)
@@ -72,26 +76,7 @@ def evaluate_audio_manifest(
             transcriber=transcriber,
         )
 
-        primary_failure = classify_failure(
-            expected=scenario.expected_action,
-            actual=decision.actual_action,
-            event_type=scenario.event_type,
-        )
-
-        logs.append(
-            RunDecisionLog(
-                scenario_id=scenario.scenario_id,
-                policy_name=policy_name,
-                event_type=scenario.event_type,
-                expected_action=scenario.expected_action,
-                actual_action=decision.actual_action,
-                reason=decision.reason,
-                signals=decision.signals,
-                stage_latencies_ms=decision.stage_latencies_ms,
-                latency_ms=decision.latency_ms,
-                primary_failure=primary_failure,
-            )
-        )
+        logs.append(build_run_decision_log(scenario, policy_name, decision))
 
     evaluation = build_evaluation(logs)
     total_latency = round(sum(item.latency_ms for item in logs), 3)
@@ -115,8 +100,18 @@ def evaluate_audio_manifest(
             "audio_manifest": str(manifest_path),
             "audio_manifest_version": manifest.version,
             "transcriber": transcriber.snapshot(),
+            "policy_input_sources": build_audio_policy_input_sources(transcriber.name),
         },
     }
+    if dataset_snapshot is not None:
+        meta.update(
+            {
+                "dataset_id": dataset_snapshot.get("id"),
+                "dataset_label": dataset_snapshot.get("label"),
+                "dataset_scope": dataset_snapshot.get("scope"),
+                "dataset_snapshot": dataset_snapshot,
+            }
+        )
 
     _write_json(run_dir / "run_meta.json", meta)
     _write_json(run_dir / "evaluation.json", evaluation)

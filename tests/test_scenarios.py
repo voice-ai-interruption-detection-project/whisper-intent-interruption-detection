@@ -19,7 +19,7 @@ def test_load_scenarios_loads_current_dataset() -> None:
     scenarios = load_scenarios(DATASET)
 
     assert len(scenarios) == 30
-    assert scenarios[0].expected_action == ActionLabel.CONTINUE
+    assert scenarios[0].expected_actions == [ActionLabel.CONTINUE]
     assert not hasattr(scenarios[0], "actual_action")
 
 
@@ -52,7 +52,7 @@ def test_loader_rejects_actual_action(tmp_path) -> None:
 
 def test_loader_rejects_pause(tmp_path) -> None:
     item = load_scenarios(DATASET)[0].model_dump(mode="json")
-    item["expected_action"] = "pause"
+    item["expected_actions"] = ["pause"]
     path = tmp_path / "scenarios.json"
     path.write_text(json.dumps({"scenarios": [item]}), encoding="utf-8")
 

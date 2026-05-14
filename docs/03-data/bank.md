@@ -81,7 +81,7 @@ complaint → "뭐 이딴 배송이야!"
 ### Step 3: 어노테이션
 
 - event_type 라벨링
-- expected_action 결정 (두 명 이상)
+- expected_actions 결정 (두 명 이상, 복수 허용)
 - level 책정
 - notes 작성 (모호한 경우)
 

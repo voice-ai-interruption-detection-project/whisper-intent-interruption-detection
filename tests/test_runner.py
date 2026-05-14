@@ -28,3 +28,20 @@ def test_run_input_uses_policy_v1() -> None:
 
     assert decision.actual_action == ActionLabel.RESPOND_AND_CONTINUE
     assert decision.policy_name == "policy_v1"
+
+
+def test_run_input_uses_policy_v2() -> None:
+    runner_input = RunnerInput(
+        ai_current_intent="shipping_inquiry",
+        ai_utterance="Shipping takes three days.",
+        user_utterance="",
+        event_type=EventType.NO_SPEECH,
+        expected_user_intent=None,
+        has_user_speech=False,
+    )
+
+    decision = run_input(runner_input, "policy_v2")
+
+    assert decision.actual_action == ActionLabel.CONTINUE
+    assert decision.policy_name == "policy_v2"
+    assert decision.signals["prompt_version"] == "policy_v2_backchannel_noise_v1"

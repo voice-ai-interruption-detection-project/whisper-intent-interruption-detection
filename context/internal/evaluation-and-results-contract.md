@@ -13,22 +13,24 @@
 | `context/internal/` | 평가 기준 초안, 용어, 계약 설명 | 외부 인용 가능한 확정 수치 |
 | `docs/` | 공개/공유용으로 다듬은 설명 | 출처 없는 수치, 실험 전 단정 |
 
-`expected_action`은 사람이 정한 기준이고, `actual_action`은 policy 실행 결과다. 두 값이 같은 파일에 섞이면 기준이 바뀐 것인지 policy가 바뀐 것인지 추적하기 어렵다.
+`expected_actions`는 사람이 정한 기준 행동 목록이고, `actual_action`은 policy 실행 결과다. 두 값이 같은 파일에 섞이면 기준이 바뀐 것인지 policy가 바뀐 것인지 추적하기 어렵다.
 
-`expected_action`과 `actual_action`은 같은 action label vocabulary를 쓴다. 차이는 label 종류가 아니라 평가에서 맡는 역할이다.
+`expected_actions`와 `actual_action`은 같은 action label vocabulary를 쓴다. 차이는 label 종류가 아니라 평가에서 맡는 역할이다.
 
 | 항목 | 평가 역할 | 예시 값 | 저장 위치 |
 | --- | --- | --- | --- |
-| `expected_action` | 기준/정답 | `stop_and_switch` | `data/scenarios.json` |
+| `expected_actions` | 기준/정답 목록 | `["stop_and_switch"]`, `["continue", "brief_ack"]` | `data/scenarios.json` |
 | `actual_action` | policy 결과/예측 | `respond_and_continue` | `results/runs/{run_id}/decision_logs.jsonl` |
 
-`action_accuracy`는 두 값이 같은 action label인지 비교한 비율이다. 값 집합은 같아야 하고, 저장 위치와 생성 시점은 달라야 한다.
+`action_accuracy`는 `actual_action`이 해당 케이스의 `expected_actions`에 포함되는지 비교한 비율이다. 대부분의 케이스는 기준 행동 하나만 허용하지만, `backchannel` 케이스는 팀 검증 기준에 따라 `continue`와 `brief_ack`를 모두 허용한다.
 
-한 판단 케이스(`scenario`)가 `expected_action`과 `actual_action` 비교로 이어지는 구체 예시는 [Scenario Worked Example](scenario-worked-example.md)을 본다.
+복수 정답을 허용하는 케이스에서는 단일 primary label 기준으로 공식 평가하지 않는다. evaluator는 `actual_action in expected_actions`만 공식 match로 보고, 틀린 케이스만 `mismatch_matrix`에 집계한다.
+
+한 판단 케이스(`scenario`)가 `expected_actions`와 `actual_action` 비교로 이어지는 구체 예시는 [Scenario Worked Example](scenario-worked-example.md)을 본다.
 
 ## 행동 평가와 고객 신호 해석 점검
 
-현재 공식 평가는 `expected_action`과 `actual_action`이 같은지 보는 데 둔다. 공통 판단 흐름에 고객 신호 해석(`Interpreter Pipeline`)을 추가한 뒤에도, 최종 평가는 AI가 고른 `actual_action`이 기준과 맞는지 확인하는 방식으로 유지한다.
+현재 공식 평가는 AI가 고른 `actual_action`이 케이스별 `expected_actions`에 포함되는지 보는 데 둔다. 대부분은 기준 행동 하나와 비교하지만, `backchannel`은 `continue`와 `brief_ack`를 모두 자연스러운 행동으로 인정한다. 공통 판단 흐름에 고객 신호 해석(`Interpreter Pipeline`)을 추가한 뒤에도, 최종 평가는 AI가 고른 `actual_action`이 기준과 맞는지 확인하는 방식으로 유지한다.
 
 고객 신호 해석 결과는 처음부터 성능 점수로 세우기보다, 실패 이유를 보는 보조 점검값으로 먼저 남긴다.
 
@@ -36,13 +38,13 @@
 | --- | --- | --- |
 | `event_type` | `predicted_event_type` | 고객 신호 해석이 기준과 맞는지 보는 보조 점검 |
 | `expected_user_intent` | `predicted_user_intent` | 고객 의도 해석이 기준과 맞는지 보는 보조 점검 |
-| `expected_action` | `actual_action` | 최종 행동 평가 |
+| `expected_actions` | `actual_action` | 최종 행동 평가 |
 
 `predicted_event_type`과 `predicted_user_intent`가 추가되더라도 바로 `action_accuracy`와 같은 대표 성능 수치로 말하지 않는다. 먼저 `decision_logs.jsonl`의 `signals`나 별도 점검 필드에 남기고, 실제로 어떤 실패를 설명해 주는지 본다. 공유 문서나 발표에서는 `action_accuracy`와 섞어 말하지 않고, 필요할 때만 "고객 신호 해석 점검값"처럼 조건을 붙여 쓴다.
 
 주의할 점은 사람이 정한 `scenario.event_type`을 policy 실행 중 곧바로 action으로 바꾸지 않는 것이다. 실행 중에는 transcript/signal을 보고 고객 신호를 따로 해석하고, 그 결과를 AI 행동 선택(`AI Action Selector`)이 참고하는 흐름만 허용한다.
 
-기존에도 LLM user prompt에는 `event_type`, `expected_user_intent`, `expected_action`을 넣지 않았다. 이번 구현은 그 guard를 유지하면서, API/evaluator 경계의 `RunnerInput`을 policy 호출 시 runtime 판단에 필요한 필드만 담은 `PolicyInput`으로 변환해 policy 입력 표면을 좁힌다.
+기존에도 LLM user prompt에는 `event_type`, `expected_user_intent`, `expected_actions`를 넣지 않았다. 이번 구현은 그 guard를 유지하면서, API/evaluator 경계의 `RunnerInput`을 policy 호출 시 runtime 판단에 필요한 필드만 담은 `PolicyInput`으로 변환해 policy 입력 표면을 좁힌다.
 
 ## Run Artifact 최소 계약
 
@@ -61,8 +63,8 @@ results/runs/{run_id}/
 | 파일 | 역할 |
 | --- | --- |
 | `run_meta.json` | 실행 조건. `run_id`, `timestamp`, `source`, `mode`, `target`, `changed`, `dataset`, `policy_version`, `policy_snapshot`, `criteria_snapshot`, `latency_ms`, `command`를 포함한다 |
-| `evaluation.json` | 전체 metric, confusion matrix, failure summary, latency |
-| `decision_logs.jsonl` | 판단 케이스별 signals, reason, expected_action, actual_action |
+| `evaluation.json` | 전체 metric, mismatch matrix, failure summary, latency |
+| `decision_logs.jsonl` | 판단 케이스별 signals, reason, expected_actions, actual_action, action_match |
 | `error_analysis.md` | 실패 케이스 해석과 다음 실험 후보 |
 
 같은 `run_id` 폴더를 덮어쓰지 않는다.
@@ -73,7 +75,7 @@ results/runs/{run_id}/
 
 | 지표 | 의미 | 인용 조건 |
 | --- | --- | --- |
-| `action_accuracy` | 6가지 action label 중 expected와 actual이 일치한 비율 | `evaluation.json`에서 확인 |
+| `action_accuracy` | `actual_action`이 `expected_actions`에 포함된 비율 | `evaluation.json`에서 확인 |
 | `binary_metrics.accuracy` | intervention 필요 여부를 이진으로 본 정확도 | binary 기준을 함께 설명 |
 | `false_stop_rate` | 멈추지 말아야 할 때 개입으로 판단한 비율 | 어떤 event/action 기준인지 명시 |
 | `missed_switch_rate` | 전환해야 할 때 전환하지 못한 비율 | intent shift 기준을 명시 |

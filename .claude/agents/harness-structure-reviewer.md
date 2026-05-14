@@ -8,7 +8,7 @@ tools: Read, Grep, Glob, Bash
 
 코드 변경 후 하네스 경계가 새지 않는지 감사한다. 보호하는 경계는 아래에 정의되어 있다.
 
-- `data/`는 read-only ground truth (판단 케이스, expected_action, audio mapping). 여기에 `actual_action`이 들어가면 안 된다 (Test Bench 전용).
+- `data/`는 read-only ground truth (판단 케이스, expected_actions, audio mapping). 여기에 `actual_action`이 들어가면 안 된다 (Test Bench 전용).
 - `src/interruption_detection/models.py`와 `src/interruption_detection/policies/base.py`는 policy I/O 계약을 정의한다. 모든 policy가 공유한다.
 - `src/interruption_detection/audio/*`만 오디오 파일, STT, signal 같은 입력 모달리티 세부 지식을 안다. downstream은 `RunnerInput`만 본다.
 - `src/interruption_detection/policies/*`는 판단 로직과 prompt 구성을 담는다. 파일 I/O는 하지 않고, LLM 외부 호출은 `src/interruption_detection/llm.py` client 경계를 통한다.

@@ -1,0 +1,64 @@
+{
+  "run_id": "20260513_135902_policy_v1",
+  "timestamp": "2026-05-13T13:59:02.488202+09:00",
+  "source": "api",
+  "mode": "compare",
+  "target": "data/scenarios.json",
+  "changed": [
+    "policy:policy_v1"
+  ],
+  "dataset": "data/scenarios.json",
+  "policy_version": "policy_v1",
+  "policy_snapshot": {
+    "name": "policy_v1",
+    "version": "pipeline-components-v1",
+    "mode": "interpreter_pipeline_action_selector",
+    "prompt_version": "policy_v1_text_llm_v1",
+    "llm": {
+      "provider": "openai_responses",
+      "model": "gpt-5.4-mini",
+      "base_url": "https://api.openai.com",
+      "response_format": "json_schema",
+      "timeout_s": 30.0
+    },
+    "pipeline": {
+      "judgment_provider": "legacy_llm_action_judgment_provider",
+      "interpreter": "llm_structured_signal_interpreter",
+      "action_selector": "llm_baseline_action_selector",
+      "decision_assembler": "policy_decision"
+    },
+    "input_fields": [
+      "ai_current_intent",
+      "ai_utterance",
+      "user_utterance",
+      "has_user_speech",
+      "user_tone_hint"
+    ],
+    "excluded_fields": [
+      "expected_actions",
+      "event_type",
+      "expected_user_intent"
+    ],
+    "structured_output": "action_judgment_with_signal_interpretation"
+  },
+  "criteria_snapshot": {
+    "action_labels": [
+      "continue",
+      "brief_ack",
+      "respond_and_continue",
+      "stop_and_switch",
+      "ask_clarifying",
+      "handoff"
+    ],
+    "primary_failures": [
+      "false_stop",
+      "missed_switch",
+      "action_confusion",
+      "ambiguous_intent",
+      "STT_uncertainty"
+    ],
+    "comparison": "actual_action_in_expected_actions"
+  },
+  "latency_ms": 118733.297,
+  "command": "POST /runs"
+}

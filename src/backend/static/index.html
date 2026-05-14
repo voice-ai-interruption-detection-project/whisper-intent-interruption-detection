@@ -79,7 +79,7 @@
                   <p class="eyebrow">선택한 케이스</p>
                   <h3 id="scenarioTitle">케이스를 선택하세요</h3>
                 </div>
-                <span class="chip" id="expectedChip">expected_action</span>
+                <span class="chip" id="expectedChip">expected_actions</span>
               </div>
               <dl class="meta-grid" id="scenarioMeta"></dl>
               <div class="utterance-grid">
@@ -91,6 +91,40 @@
                   <h4>고객 발화 / 신호</h4>
                   <p id="userUtterance">선택한 케이스가 없습니다.</p>
                 </article>
+              </div>
+              <div class="mic-override">
+                <label class="checkbox-field mic-toggle">
+                  <input id="micOverrideToggle" type="checkbox" />
+                  <span>마이크로 고객 발화 대체</span>
+                </label>
+                <div class="mic-controls" id="micControls" hidden>
+                  <div class="mic-actions">
+                    <button class="secondary-button" type="button" id="micStartButton">
+                      녹음 시작
+                    </button>
+                    <button class="ghost-button" type="button" id="micStopButton" disabled>
+                      중지
+                    </button>
+                    <button class="ghost-button" type="button" id="micClearButton" disabled>
+                      비우기
+                    </button>
+                  </div>
+                  <audio id="micPlayback" controls hidden></audio>
+                  <div class="text-form-grid compact-form">
+                    <label>
+                      <span>Transcript adapter</span>
+                      <select id="micTranscriber">
+                        <option value="whisper">whisper</option>
+                        <option value="precomputed">precomputed</option>
+                      </select>
+                    </label>
+                    <label class="wide-field">
+                      <span>Mic transcript</span>
+                      <textarea id="micTranscript" rows="2"></textarea>
+                    </label>
+                  </div>
+                  <p class="mic-status" id="micStatus">녹음 대기</p>
+                </div>
               </div>
             </section>
 
@@ -107,6 +141,7 @@
               </p>
               <dl class="meta-grid compact" id="decisionMeta"></dl>
               <pre id="signals">{}</pre>
+              <div class="playground-review" id="playgroundReview" hidden></div>
             </section>
           </div>
 
@@ -215,6 +250,10 @@
                   <option value="audio_file">Audio File Test</option>
                 </select>
               </label>
+              <label>
+                <span>Dataset</span>
+                <select id="runDataset"></select>
+              </label>
               <label class="audio-run-field">
                 <span>오디오 transcript adapter</span>
                 <select id="audioBenchTranscriber">
@@ -228,7 +267,7 @@
               </label>
               <label class="audio-run-field">
                 <span>Whisper model</span>
-                <input id="audioBenchWhisperModel" type="text" value="base" />
+                <input id="audioBenchWhisperModel" type="text" value="medium" />
               </label>
             </div>
           </section>
@@ -249,7 +288,7 @@
                   <tr>
                     <th>id</th>
                     <th>event_type</th>
-                    <th>expected_action</th>
+                    <th>expected_actions</th>
                     <th>actual_action</th>
                     <th>primary_failure</th>
                     <th>latency</th>

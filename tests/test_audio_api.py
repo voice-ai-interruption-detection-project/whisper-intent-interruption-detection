@@ -83,11 +83,39 @@ def test_audio_predict_uses_runner(client: TestClient, tmp_path) -> None:
 
     assert response.status_code == 200
     body = response.json()
-    assert body["expected_action"] == "stop_and_switch"
+    assert body["expected_actions"] == ["stop_and_switch"]
     assert body["decision"]["actual_action"] == "stop_and_switch"
     assert body["decision"]["signals"]["input_mode"] == "audio_file"
     audio = body["decision"]["signals"]["audio"]
     assert audio["transcript_source"] == "precomputed"
+    assert audio["transcriber"]["provider"] == "precomputed_manifest"
+
+
+def test_scenario_mic_predict_overrides_user_utterance(
+    client: TestClient, tmp_path
+) -> None:
+    audio_path = tmp_path / "mic.webm"
+    write_wav(audio_path)
+
+    response = client.post(
+        "/scenarios/commerce_shipping_to_refund_001/mic/predict",
+        data={
+            "policy": "policy_v1",
+            "transcriber": "precomputed",
+            "transcript": "아 그게 아니라 환불받고 싶어요.",
+        },
+        files={"file": ("mic.webm", audio_path.read_bytes(), "audio/webm")},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["expected_actions"] == ["stop_and_switch"]
+    assert body["decision"]["actual_action"] == "stop_and_switch"
+    assert body["decision"]["signals"]["input_mode"] == "mic_trial"
+    assert body["decision"]["signals"]["input_adapter"] == "mic_recording_adapter"
+    audio = body["decision"]["signals"]["audio"]
+    assert audio["audio_kind"] == "mic_recording"
+    assert audio["transcript"] == "아 그게 아니라 환불받고 싶어요."
     assert audio["transcriber"]["provider"] == "precomputed_manifest"
 
 

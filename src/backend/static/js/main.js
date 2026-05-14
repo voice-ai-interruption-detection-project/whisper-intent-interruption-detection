@@ -3,12 +3,25 @@ const state = {
   activeTab: "playground",
   schema: null,
   policies: [],
+  datasets: [],
   scenarios: [],
   runs: [],
   selectedScenarioId: null,
   selectedRunId: null,
   focusResult: null,
+  focusReview: null,
   comparisonResults: [],
+  mic: {
+    recorder: null,
+    stream: null,
+    chunks: [],
+    blob: null,
+    audioUrl: null,
+    recording: false,
+    stopping: false,
+    transcribing: false,
+    sessionId: 0,
+  },
 };
 
 const ACTION_LABELS = {
@@ -79,17 +92,28 @@ const elements = {
   audioFileInput: document.querySelector("#audioFileInput"),
   audioTranscriber: document.querySelector("#audioTranscriber"),
   audioTranscript: document.querySelector("#audioTranscript"),
+  micOverrideToggle: document.querySelector("#micOverrideToggle"),
+  micControls: document.querySelector("#micControls"),
+  micStartButton: document.querySelector("#micStartButton"),
+  micStopButton: document.querySelector("#micStopButton"),
+  micClearButton: document.querySelector("#micClearButton"),
+  micPlayback: document.querySelector("#micPlayback"),
+  micTranscriber: document.querySelector("#micTranscriber"),
+  micTranscript: document.querySelector("#micTranscript"),
+  micStatus: document.querySelector("#micStatus"),
   compareButton: document.querySelector("#compareButton"),
   actualAction: document.querySelector("#actualAction"),
   matchChip: document.querySelector("#matchChip"),
   reason: document.querySelector("#reason"),
   decisionMeta: document.querySelector("#decisionMeta"),
   signals: document.querySelector("#signals"),
+  playgroundReview: document.querySelector("#playgroundReview"),
   comparisonStatus: document.querySelector("#comparisonStatus"),
   comparisonGrid: document.querySelector("#comparisonGrid"),
   runFocusButton: document.querySelector("#runFocusButton"),
   runAllPoliciesButton: document.querySelector("#runAllPoliciesButton"),
   runInputMode: document.querySelector("#runInputMode"),
+  runDataset: document.querySelector("#runDataset"),
   runInputSummary: document.querySelector("#runInputSummary"),
   audioRunManifest: document.querySelector("#audioRunManifest"),
   audioBenchTranscriber: document.querySelector("#audioBenchTranscriber"),
@@ -111,10 +135,16 @@ elements.refreshRunsButton.addEventListener("click", refreshRuns);
 elements.predictButton.addEventListener("click", predictSelected);
 elements.predictTextButton.addEventListener("click", predictTextInput);
 elements.predictAudioButton.addEventListener("click", predictAudioInput);
+elements.micOverrideToggle.addEventListener("change", renderMicControls);
+elements.micStartButton.addEventListener("click", startMicRecording);
+elements.micStopButton.addEventListener("click", stopMicRecording);
+elements.micClearButton.addEventListener("click", clearMicRecording);
+elements.micTranscriber.addEventListener("change", transcribeMicRecording);
 elements.compareButton.addEventListener("click", comparePolicies);
 elements.runFocusButton.addEventListener("click", runFocusPolicy);
 elements.runAllPoliciesButton.addEventListener("click", runAllPolicies);
 elements.runInputMode.addEventListener("change", renderRunInputControls);
+elements.runDataset.addEventListener("change", renderRunInputControls);
 elements.audioBenchTranscriber.addEventListener("change", renderRunInputControls);
 elements.audioRunManifest.addEventListener("input", renderRunInputControls);
 elements.audioBenchWhisperModel.addEventListener("input", renderRunInputControls);
@@ -126,25 +156,28 @@ elements.tabButtons.forEach((button) => {
 async function bootstrap() {
   await checkHealth();
   // 초기 데이터는 함께 가져와 첫 렌더링의 기준을 서로 맞춘다.
-  const [schema, policies, scenarios, runs] = await Promise.all([
+  const [schema, policies, datasets, scenarios, runs] = await Promise.all([
     fetchJson("/schema"),
     fetchJson("/policies"),
+    fetchJson("/datasets"),
     fetchJson("/scenarios"),
     fetchJson("/runs"),
   ]);
   state.schema = schema;
   state.policies = policies.policies;
+  state.datasets = datasets.datasets;
   state.scenarios = scenarios.scenarios;
   state.runs = runs.runs;
   state.selectedScenarioId = state.scenarios[0]?.scenario_id || null;
   state.selectedRunId = state.runs[0]?.run_id || null;
 
-  renderControls();
+  renderControls(datasets.default_dataset_id);
   renderScenarioList();
   renderSelectedScenario();
   renderRunCards();
   renderRecentRuns();
   renderRunInputControls();
+  renderMicControls();
   setActiveTab("playground");
 }
 
@@ -161,10 +194,11 @@ async function checkHealth() {
 }
 
 // 정책 선택, event_type 필터, 데이터셋 요약의 초기 선택지를 채운다.
-function renderControls() {
+function renderControls(defaultDatasetId) {
   elements.policySelect.replaceChildren(
     ...state.policies.map((policy) => option(policy.name, policy.name))
   );
+  renderDatasetOptions(defaultDatasetId);
   elements.eventFilter.replaceChildren(
     option("", "전체 고객 신호"),
     ...state.schema.event_types.map((eventType) => option(eventType, formatEventType(eventType)))
@@ -174,6 +208,28 @@ function renderControls() {
   );
   renderPolicySnapshot();
   renderDatasetStats();
+}
+
+// Test Bench dataset 선택지는 registry와 input_mode 지원 범위를 기준으로 표시한다.
+function renderDatasetOptions(preferredDatasetId) {
+  const inputMode = elements.runInputMode.value;
+  const currentDatasetId = preferredDatasetId || elements.runDataset.value;
+
+  elements.runDataset.replaceChildren(
+    ...state.datasets.map((dataset) => {
+      const datasetOption = option(dataset.id, `${dataset.label} (${dataset.scope})`);
+      datasetOption.disabled = !datasetSupportsInputMode(dataset, inputMode);
+
+      return datasetOption;
+    })
+  );
+
+  const selected = state.datasets.find((dataset) => {
+    return dataset.id === currentDatasetId && datasetSupportsInputMode(dataset, inputMode);
+  });
+  const fallback = state.datasets.find((dataset) => datasetSupportsInputMode(dataset, inputMode));
+
+  elements.runDataset.value = (selected || fallback)?.id || "";
 }
 
 // 현재 policy snapshot을 사이드바에 표시한다.
@@ -227,6 +283,7 @@ function renderScenarioList() {
       item.addEventListener("click", () => {
         state.selectedScenarioId = scenario.scenario_id;
         clearResults();
+        clearMicRecording();
         renderScenarioList();
         renderSelectedScenario();
       });
@@ -237,8 +294,8 @@ function renderScenarioList() {
 
       const meta = document.createElement("span");
       meta.className = "scenario-meta";
-      meta.textContent = `${formatEventType(scenario.event_type)} / ${formatActionLabel(
-        scenario.expected_action
+      meta.textContent = `${formatEventType(scenario.event_type)} / ${formatExpectedActions(
+        scenario
       )}`;
 
       const utterance = document.createElement("span");
@@ -257,7 +314,7 @@ function renderSelectedScenario() {
   if (!scenario) return;
 
   elements.scenarioTitle.textContent = scenario.scenario_id;
-  elements.expectedChip.textContent = `expected ${scenario.expected_action}`;
+  elements.expectedChip.textContent = `expected ${formatExpectedActions(scenario)}`;
   elements.aiUtterance.textContent = scenario.ai_utterance;
   elements.userUtterance.textContent = scenario.user_utterance || "고객 발화 없음";
 
@@ -269,6 +326,7 @@ function renderSelectedScenario() {
     ["난이도", String(scenario.level)],
   ]);
   fillTextInputsFromScenario(scenario);
+  elements.micTranscript.value = scenario.user_utterance;
 }
 
 // Playground의 선택 판단 케이스(Scenario)를 현재 policy로 실행한다.
@@ -277,15 +335,49 @@ async function predictSelected() {
   if (!scenario) return;
 
   setBusy(elements.predictButton, true);
+  clearReview();
 
   try {
-    const result = await predictScenario(scenario.scenario_id, elements.policySelect.value);
+    const result = elements.micOverrideToggle.checked
+      ? await predictMicInput(scenario)
+      : await predictScenario(scenario.scenario_id, elements.policySelect.value);
 
     state.focusResult = result;
     renderFocusResult(result);
+
+    if (elements.micOverrideToggle.checked) {
+      await reviewFocusResult(result, scenario);
+    }
   } finally {
     setBusy(elements.predictButton, false);
   }
+}
+
+// 선택한 Scenario context에서 고객 발화만 mic 녹음 transcript로 대체해 실행한다.
+async function predictMicInput(scenario) {
+  if (!state.mic.blob) {
+    elements.micStatus.textContent = "녹음 파일이 없습니다";
+    throw new Error("mic recording is required");
+  }
+
+  const form = new FormData();
+  const extension = state.mic.blob.type.includes("webm") ? "webm" : "wav";
+
+  form.append("file", state.mic.blob, `mic-trial.${extension}`);
+  form.append("policy", elements.policySelect.value);
+  form.append("transcriber", elements.micTranscriber.value);
+  form.append("transcript", elements.micTranscript.value);
+
+  elements.micStatus.textContent = "Mic Trial 실행 중";
+
+  const result = await fetchJson(`/scenarios/${scenario.scenario_id}/mic/predict`, {
+    method: "POST",
+    body: form,
+  });
+
+  elements.micStatus.textContent = "Mic Trial 실행 완료";
+
+  return result;
 }
 
 // 직접 입력한 Text Replay transcript를 현재 policy로 실행한다.
@@ -342,6 +434,264 @@ async function predictAudioInput() {
   }
 }
 
+// 브라우저 mic 녹음을 시작하고 완료된 audio blob을 Playground state에 저장한다.
+async function startMicRecording() {
+  if (!window.MediaRecorder || !navigator.mediaDevices?.getUserMedia) {
+    elements.micStatus.textContent = "이 브라우저는 mic 녹음을 지원하지 않습니다";
+    renderMicControls();
+    return;
+  }
+
+  clearMicRecording();
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const recorder = new MediaRecorder(stream);
+    const sessionId = state.mic.sessionId + 1;
+    const chunks = [];
+
+    state.mic.sessionId = sessionId;
+    state.mic.stream = stream;
+    state.mic.recorder = recorder;
+    state.mic.chunks = [];
+    state.mic.stopping = false;
+    state.mic.transcribing = false;
+
+    recorder.addEventListener("dataavailable", (event) => {
+      if (event.data.size > 0 && state.mic.sessionId === sessionId) {
+        chunks.push(event.data);
+      }
+    });
+
+    recorder.addEventListener("stop", () => {
+      if (state.mic.sessionId !== sessionId) {
+        stream.getTracks().forEach((track) => track.stop());
+        return;
+      }
+
+      const mimeType = recorder.mimeType || "audio/webm";
+      state.mic.blob = new Blob(chunks, { type: mimeType });
+      state.mic.chunks = [];
+      state.mic.recording = false;
+      state.mic.stopping = false;
+      state.mic.transcribing = false;
+      stopMicTracks();
+      setMicPlayback();
+      elements.micStatus.textContent = "녹음 완료";
+      renderMicControls();
+      transcribeMicRecording();
+    });
+
+    recorder.start();
+    state.mic.recording = true;
+    state.mic.stopping = false;
+    state.mic.transcribing = false;
+    elements.micStatus.textContent = "녹음 중";
+    renderMicControls();
+  } catch (error) {
+    elements.micStatus.textContent = "마이크 권한을 확인하세요";
+    renderMicControls();
+  }
+}
+
+function stopMicRecording() {
+  if (state.mic.recorder && state.mic.recording && !state.mic.stopping) {
+    elements.micStatus.textContent = "녹음 처리 중";
+    state.mic.stopping = true;
+    state.mic.recorder.stop();
+    renderMicControls();
+  }
+}
+
+function clearMicRecording() {
+  const recorder = state.mic.recorder;
+
+  state.mic.sessionId += 1;
+  state.mic.recording = false;
+  state.mic.stopping = false;
+  state.mic.transcribing = false;
+  state.mic.recorder = null;
+
+  if (recorder && recorder.state !== "inactive") {
+    try {
+      recorder.stop();
+    } catch (error) {
+      // recorder가 이미 종료 중이면 stale stop 이벤트를 무시하면 충분하다.
+    }
+  }
+
+  stopMicTracks();
+
+  if (state.mic.audioUrl) {
+    URL.revokeObjectURL(state.mic.audioUrl);
+  }
+
+  state.mic.recorder = null;
+  state.mic.stream = null;
+  state.mic.chunks = [];
+  state.mic.blob = null;
+  state.mic.audioUrl = null;
+  resetMicPlayback();
+  elements.micStatus.textContent = "녹음 대기";
+  renderMicControls();
+}
+
+function stopMicTracks() {
+  if (!state.mic.stream) return;
+
+  state.mic.stream.getTracks().forEach((track) => track.stop());
+  state.mic.stream = null;
+}
+
+function setMicPlayback() {
+  if (!state.mic.blob) return;
+
+  if (state.mic.audioUrl) {
+    URL.revokeObjectURL(state.mic.audioUrl);
+  }
+
+  state.mic.audioUrl = URL.createObjectURL(state.mic.blob);
+  elements.micPlayback.src = state.mic.audioUrl;
+  elements.micPlayback.hidden = false;
+}
+
+function resetMicPlayback() {
+  elements.micPlayback.removeAttribute("src");
+  elements.micPlayback.hidden = true;
+  elements.micPlayback.load();
+}
+
+async function transcribeMicRecording() {
+  if (!state.mic.blob) return;
+
+  if (elements.micTranscriber.value === "precomputed") {
+    elements.micStatus.textContent = "Mic transcript를 직접 입력하세요";
+    return;
+  }
+
+  state.mic.transcribing = true;
+  elements.micStatus.textContent = "Mic transcript 전사 중";
+  renderMicControls();
+
+  const sessionId = state.mic.sessionId;
+
+  try {
+    const form = new FormData();
+    const extension = state.mic.blob.type.includes("webm") ? "webm" : "wav";
+
+    form.append("file", state.mic.blob, `mic-trial.${extension}`);
+    form.append("transcriber", elements.micTranscriber.value);
+    form.append("language", "ko");
+
+    const result = await fetchJson("/audio/transcribe", {
+      method: "POST",
+      body: form,
+    });
+
+    if (state.mic.sessionId !== sessionId || !state.mic.blob) return;
+
+    elements.micTranscript.value = result.transcript.text || "";
+    elements.micStatus.textContent = "Mic transcript 전사 완료";
+  } catch (error) {
+    if (state.mic.sessionId !== sessionId) return;
+
+    elements.micStatus.textContent = "Mic transcript 전사 실패";
+  } finally {
+    if (state.mic.sessionId === sessionId) {
+      state.mic.transcribing = false;
+      renderMicControls();
+    }
+  }
+}
+
+function renderMicControls() {
+  const enabled = elements.micOverrideToggle.checked;
+  const supported = Boolean(window.MediaRecorder && navigator.mediaDevices?.getUserMedia);
+
+  elements.micControls.hidden = !enabled;
+  elements.micStartButton.disabled =
+    !enabled || !supported || state.mic.recording || state.mic.transcribing;
+  elements.micStopButton.disabled = !enabled || !state.mic.recording || state.mic.stopping;
+  elements.micClearButton.disabled =
+    !enabled ||
+    state.mic.recording ||
+    state.mic.stopping ||
+    state.mic.transcribing ||
+    !state.mic.blob;
+  elements.micTranscriber.disabled =
+    !enabled || state.mic.recording || state.mic.transcribing;
+  elements.micTranscript.disabled =
+    !enabled || state.mic.recording || state.mic.transcribing;
+
+  if (enabled && !supported) {
+    elements.micStatus.textContent = "이 브라우저는 mic 녹음을 지원하지 않습니다";
+  }
+}
+
+// Mic Trial 실행 결과를 공식 metric과 분리된 LLM review로 점검한다.
+async function reviewFocusResult(result, scenario) {
+  renderReviewStatus("LLM review 실행 중");
+
+  try {
+    const audio = result.decision.signals?.audio || {};
+    const response = await fetchJson("/playground/reviews", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ai_current_intent: scenario.ai_current_intent,
+        ai_utterance: scenario.ai_utterance,
+        user_utterance: audio.transcript ?? scenario.user_utterance,
+        user_tone_hint: scenario.user_tone_hint,
+        has_user_speech: audio.has_user_speech ?? scenario.has_user_speech,
+        decision: result.decision,
+      }),
+    });
+
+    state.focusReview = response.review;
+    renderReview(response.review);
+  } catch (error) {
+    renderReviewStatus("LLM review를 실행하지 못했습니다");
+  }
+}
+
+function renderReview(review) {
+  elements.playgroundReview.hidden = false;
+  elements.playgroundReview.dataset.verdict = review.verdict;
+
+  const title = document.createElement("h4");
+  title.textContent = `LLM review: ${review.verdict}`;
+
+  const action = document.createElement("p");
+  action.textContent = `recommended_action: ${review.recommended_action || "n/a"} / confidence: ${
+    review.confidence ?? "n/a"
+  }`;
+
+  const reason = document.createElement("p");
+  reason.textContent = review.reason;
+
+  elements.playgroundReview.replaceChildren(title, action, reason);
+}
+
+function renderReviewStatus(text) {
+  elements.playgroundReview.hidden = false;
+  elements.playgroundReview.dataset.verdict = "";
+
+  const title = document.createElement("h4");
+  title.textContent = "LLM review";
+
+  const status = document.createElement("p");
+  status.textContent = text;
+
+  elements.playgroundReview.replaceChildren(title, status);
+}
+
+function clearReview() {
+  state.focusReview = null;
+  elements.playgroundReview.hidden = true;
+  elements.playgroundReview.dataset.verdict = "";
+  elements.playgroundReview.replaceChildren();
+}
+
 // 선택된 판단 케이스(Scenario)를 등록된 모든 policy로 실행해 결과를 비교한다.
 async function comparePolicies() {
   const scenario = selectedScenario();
@@ -373,8 +723,8 @@ async function predictScenario(scenarioId, policyName) {
 // 단일 policy 판단 결과를 결과 패널의 expected/actual 비교 형태로 표시한다.
 function renderFocusResult(result) {
   const decision = result.decision;
-  const hasExpected = result.expected_action !== undefined && result.expected_action !== null;
-  const isMatch = hasExpected && result.expected_action === decision.actual_action;
+  const hasExpected = Array.isArray(result.expected_actions);
+  const isMatch = hasExpected && resultActionMatch(result);
 
   elements.actualAction.textContent = formatActionLabel(decision.actual_action);
   elements.matchChip.textContent = hasExpected ? (isMatch ? "match" : "mismatch") : "unscored";
@@ -383,7 +733,7 @@ function renderFocusResult(result) {
 
   renderDefinitionList(elements.decisionMeta, [
     ["policy", decision.policy_name],
-    ["expected_action", hasExpected ? result.expected_action : "n/a"],
+    ["expected_actions", hasExpected ? formatExpectedActions(result) : "n/a"],
     ["actual_action", decision.actual_action],
     ["latency", `${decision.latency_ms} ms`],
   ]);
@@ -405,14 +755,14 @@ function fillTextInputsFromScenario(scenario) {
 function renderComparison() {
   const selectedPolicyName = elements.policySelect.value;
   const matches = state.comparisonResults.filter((result) => {
-    return result.expected_action === result.decision.actual_action;
+    return resultActionMatch(result);
   }).length;
 
   elements.comparisonStatus.textContent = `${matches}/${state.comparisonResults.length} match`;
   elements.comparisonGrid.replaceChildren(
     ...state.comparisonResults.map((result) => {
       const decision = result.decision;
-      const isMatch = result.expected_action === decision.actual_action;
+      const isMatch = resultActionMatch(result);
       const card = document.createElement("article");
       card.className = "compare-card";
       card.dataset.state = isMatch ? "match" : "mismatch";
@@ -449,7 +799,7 @@ function renderComparison() {
 
       const expected = document.createElement("p");
       expected.className = "compare-expected";
-      expected.textContent = `expected ${result.expected_action}`;
+      expected.textContent = `expected ${formatExpectedActions(result)}`;
 
       const reason = document.createElement("p");
       reason.className = "compare-reason";
@@ -496,6 +846,11 @@ async function createRun(policyName) {
     policy: policyName,
     input_mode: elements.runInputMode.value,
   };
+  const datasetId = elements.runDataset.value;
+
+  if (datasetId) {
+    body.dataset_id = datasetId;
+  }
 
   if (body.input_mode === "audio_file") {
     body.audio_manifest = elements.audioRunManifest.value;
@@ -644,10 +999,11 @@ async function renderSelectedRun(runId) {
   elements.decisionLogRows.replaceChildren(
     ...artifacts.decision_logs.map((log) => {
       const row = document.createElement("tr");
+      const isMatch = log.action_match ?? logActionMatch(log);
       const cells = [
         log.scenario_id,
         log.event_type,
-        log.expected_action,
+        formatExpectedActions(log),
         log.actual_action,
         log.primary_failure || "none",
         `${log.latency_ms} ms`,
@@ -657,7 +1013,7 @@ async function renderSelectedRun(runId) {
         cell.textContent = value;
 
         if (index === 3) {
-          cell.className = log.expected_action === log.actual_action ? "ok-text" : "bad-text";
+          cell.className = isMatch ? "ok-text" : "bad-text";
         }
 
         row.append(cell);
@@ -687,6 +1043,7 @@ function setActiveTab(tab) {
 function clearResults() {
   state.focusResult = null;
   state.comparisonResults = [];
+  clearReview();
 
   elements.actualAction.textContent = "결과 대기";
   elements.matchChip.textContent = "ready";
@@ -702,14 +1059,20 @@ function clearResults() {
 function renderRunInputControls() {
   const isAudio = elements.runInputMode.value === "audio_file";
 
+  renderDatasetOptions();
+
   document.querySelectorAll(".audio-run-field").forEach((field) => {
     field.hidden = !isAudio;
   });
 
   elements.audioBenchWhisperModel.disabled = elements.audioBenchTranscriber.value !== "whisper";
+  const dataset = selectedDatasetSpec();
+  const datasetSummary = dataset
+    ? `${dataset.label} / ${dataset.scope}`
+    : "dataset";
   elements.runInputSummary.textContent = isAudio
-    ? `Audio File Test / ${elements.audioBenchTranscriber.value} / ${elements.audioRunManifest.value}`
-    : "Text Replay dataset";
+    ? `Audio File Test / ${datasetSummary} / ${elements.audioBenchTranscriber.value}`
+    : `Text Replay / ${datasetSummary}`;
 }
 
 // 현재 선택된 판단 케이스(Scenario) 식별자에 해당하는 객체를 찾는다.
@@ -801,12 +1164,24 @@ function summarizeFailures(failures = {}) {
 
 // run card에서 text/audio target을 짧게 표시한다.
 function runTargetSummary(run) {
+  const datasetLabel = run.dataset_label || run.dataset_id || run.dataset || run.target || "dataset";
+  const datasetScope = run.dataset_scope ? ` / ${run.dataset_scope}` : "";
+
   if (run.mode === "audio_file") {
     const transcriber = run.input_adapter_snapshot?.transcriber?.provider || "audio";
-    return `${run.target || "audio manifest"} / ${transcriber}`;
+    return `${datasetLabel}${datasetScope} / ${transcriber}`;
   }
 
-  return run.dataset || run.target || "text dataset";
+  return `${datasetLabel}${datasetScope}`;
+}
+
+// 현재 선택된 Test Bench dataset registry 항목을 반환한다.
+function selectedDatasetSpec() {
+  return state.datasets.find((dataset) => dataset.id === elements.runDataset.value);
+}
+
+function datasetSupportsInputMode(dataset, inputMode) {
+  return (dataset.input_modes || ["text"]).includes(inputMode);
 }
 
 // 날짜 접두어를 줄여 사이드바에서 실행 식별자를 읽기 쉽게 만든다.
@@ -819,6 +1194,34 @@ function percent(value) {
   if (value === undefined || value === null) return "n/a";
 
   return `${Math.round(Number(value) * 100)}%`;
+}
+
+function resultActionMatch(result) {
+  if (typeof result.action_match === "boolean") {
+    return result.action_match;
+  }
+
+  const expectedActions = Array.isArray(result.expected_actions)
+    ? result.expected_actions
+    : [result.expected_action].filter(Boolean);
+
+  return expectedActions.includes(result.decision.actual_action);
+}
+
+function formatExpectedActions(item) {
+  const expectedActions = Array.isArray(item.expected_actions)
+    ? item.expected_actions
+    : [item.expected_action].filter(Boolean);
+
+  return expectedActions.filter(Boolean).join(", ");
+}
+
+function logActionMatch(log) {
+  const expectedActions = Array.isArray(log.expected_actions)
+    ? log.expected_actions
+    : [log.expected_action].filter(Boolean);
+
+  return expectedActions.includes(log.actual_action);
 }
 
 function formatCodeLabel(value, labels) {
