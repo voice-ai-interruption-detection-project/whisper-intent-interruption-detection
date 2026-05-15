@@ -1,283 +1,137 @@
 # Repository & Code Structure
 
-## GitHub Repository
+## 저장소 구조
 
-**주소:** (구현 완료 후 링크 추가)
-
-```bash
-git clone https://github.com/[user]/whisper-intent-interruption-detection.git
-cd whisper-intent-interruption-detection
-```
-
----
-
-## 폴더 구조
-
-```
+```text
 whisper-intent-interruption-detection/
-│
-├─ README.md                          # 프로젝트 개요
-├─ requirements.txt                   # 의존성
-│
-├─ docs/                              # 문서 (Wind Docs)
-│  ├─ index.md
-│  ├─ 01-problem/
-│  ├─ 02-design/
-│  ├─ 03-data/
-│  ├─ 04-demo/
-│  └─ 05-resources/
-│
-├─ data/                              # 데이터
-│  ├─ scenarios.json                  # 30개 시나리오
-│  ├─ scenario_stats.json             # 통계
-│  └─ audio_samples/                  # 음성 샘플 (10개)
-│
-├─ src/                               # 코드
-│  ├─ scenario_loader.py              # 데이터 로드
-│  ├─ intent_detector.py              # Intent 분류
-│  ├─ evaluator.py                    # 평가 로직
-│  └─ policies/
-│     ├─ p0_vad_only.py
-│     ├─ p1_backchannel_rule.py
-│     ├─ p2_intent_shift.py
-│     └─ p3_action_policy.py
-│
-├─ results/                           # 평가 결과
-│  ├─ evaluation.json                 # 지표
-│  ├─ decision_logs.jsonl             # 판단 로그
-│  ├─ run_meta.json                   # 실행 설정과 기준 snapshot
-│  ├─ metrics_comparison.png
-│  └─ error_analysis.md               # 실패 분석
-│
-├─ demo/                              # 데모 콘솔
-│  ├─ index.html                      # Text Replay UI
-│  ├─ audio_test.html                 # Audio File Test UI
-│  └─ console.js
-│
-└─ notebooks/                         # 분석 노트북
-   ├─ 01_scenario_analysis.ipynb
-   ├─ 02_evaluation_results.ipynb
-   └─ 03_error_analysis.ipynb
+├── README.md
+├── pyproject.toml
+├── poetry.lock
+├── mkdocs.yml
+├── data/
+│   ├── scenarios.json
+│   ├── datasets.json
+│   ├── scenario_stats.json
+│   ├── scenarios_policy_v2_edge.json
+│   ├── scenarios_policy_v3_edge.json
+│   ├── scenarios_policy_v3_challenge.json
+│   └── audio/
+│       ├── manifest.json
+│       └── fixtures/
+├── src/
+│   ├── runner.py
+│   ├── backend/
+│   │   ├── main.py
+│   │   └── static/
+│   └── interruption_detection/
+│       ├── runner.py
+│       ├── models.py
+│       ├── policies/
+│       ├── pipelines/
+│       ├── interpreter/
+│       ├── action_selector/
+│       ├── audio/
+│       └── evaluation/
+├── results/
+│   └── runs/{run_id}/
+├── tests/
+├── docs/
+└── context/
 ```
 
----
+## 핵심 코드 경계
 
-## 설치 및 실행
+| 경로 | 역할 |
+| --- | --- |
+| `src/runner.py` | CLI entry. 단일 scenario 실행, batch run, audio manifest run 지원 |
+| `src/interruption_detection/runner.py` | 공통 policy runner. 모든 surface가 이 경로를 통과 |
+| `src/interruption_detection/models.py` | Scenario, RunnerInput, PolicyInput, PolicyDecision, RunDecisionLog 등 공통 타입 |
+| `src/interruption_detection/policies/` | `baseline`, `policy_v1`, `policy_v2`, `policy_v3`, `policy_v3_1` 등록 |
+| `src/interruption_detection/pipelines/decision_pipeline.py` | judgment, interpreter, selector를 묶어 `PolicyDecision` 생성 |
+| `src/interruption_detection/audio/` | Audio File Test manifest, STT/precomputed transcriber, audio adapter |
+| `src/interruption_detection/evaluation/` | Test Bench evaluator, audio evaluator, run artifact reader |
+| `src/backend/main.py` | FastAPI API. runner/evaluator를 직접 호출하는 얇은 adapter |
+| `src/backend/static/` | 정적 Playground/Test Bench UI |
 
-### 1️⃣ 환경 설정
+## 설치와 실행
 
 ```bash
-# Python 3.8+ 필요
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# venv\Scripts\activate  # Windows
+# Python 3.11, Poetry 2.x
+poetry install
 
-# 의존성 설치
-pip install -r requirements.txt
+# 테스트
+poetry run pytest tests/ -q
+
+# 단일 판단 케이스 실행
+poetry run python src/runner.py \
+  --policy policy_v3_1 \
+  --dataset data/scenarios.json \
+  --scenario-id commerce_shipping_to_refund_001
+
+# Test Bench run artifact 생성
+poetry run python src/runner.py \
+  --policy policy_v3_1 \
+  --dataset data/scenarios.json \
+  --write-results
+
+# Audio File Test run artifact 생성
+poetry run python src/runner.py \
+  --policy policy_v1 \
+  --dataset data/scenarios.json \
+  --audio-manifest data/audio/manifest.json \
+  --audio-transcriber precomputed \
+  --write-results
+
+# Backend API + Playground
+poetry run uvicorn backend.main:app --reload
 ```
 
-### 2️⃣ 데이터 준비
+Playground는 `http://127.0.0.1:8000`에서 열립니다.
+
+실제 LLM 판단을 실행하려면 `OPENAI_API_KEY`가 필요합니다.
 
 ```bash
-# scenarios.json이 data 폴더에 있는지 확인
-ls data/scenarios.json
+export OPENAI_API_KEY=...
+export OPENAI_ACTION_MODEL=gpt-5.4-mini
 ```
 
-### 3️⃣ 정책 실행
+테스트는 fake LLM client를 사용하므로 네트워크 없이 실행됩니다.
 
-```python
-# 기본 평가 실행
-python src/evaluator.py --data data/scenarios.json --output results/
+## 결과 파일
 
-# 결과 확인
-cat results/evaluation.json
-cat results/error_analysis.md
+새 평가 결과는 아래 계약으로 남습니다.
+
+```text
+results/runs/{run_id}/
+├── run_meta.json
+├── evaluation.json
+├── decision_logs.jsonl
+└── error_analysis.md
 ```
 
-### 4️⃣ 데모 콘솔 실행
+공개 문서나 발표에서 수치를 말할 때는 `run_id`, dataset, policy version, `evaluation.json` 경로를 함께 남깁니다.
+
+## 최신 주요 Run
+
+| run_id | dataset | policy | action_accuracy |
+| --- | --- | --- | ---: |
+| `20260515_112306_policy_v2` | `core` | `policy_v2` | 0.8667 |
+| `20260515_111953_policy_v3_1` | `core` | `policy_v3_1` | 0.9000 |
+| `20260515_110153_policy_v2` | `policy_v3_challenge` | `policy_v2` | 0.7778 |
+| `20260515_111904_policy_v3_1` | `policy_v3_challenge` | `policy_v3_1` | 0.9444 |
+
+## MkDocs
 
 ```bash
-# Text Replay 콘솔
-python -m http.server 8000
-# 브라우저에서 http://localhost:8000/demo/index.html 접속
+poetry run mkdocs serve
+poetry run mkdocs build --strict
 ```
 
----
+현재 `pyproject.toml`에는 MkDocs 관련 패키지가 runtime dependency로 들어 있지 않을 수 있습니다. 로컬에서 빌드하려면 `mkdocs`, `mkdocs-material`, `pymdown-extensions`가 설치되어 있어야 합니다.
 
-## 주요 파일별 설명
+## 다음 후보
 
-### `src/policies/*.py`
-
-각 정책(Baseline~Policy v3)의 구현
-
-```python
-# Baseline: VAD-only
-def vad_only_policy(has_user_speech):
-    return "stop_and_switch" if has_user_speech else "continue"
-
-# Policy v1: + Backchannel
-def backchannel_policy(has_user_speech, utterance):
-    if not has_user_speech:
-        return "continue"
-    if is_backchannel(utterance):
-        return "brief_ack"
-    return "stop_and_switch"
-
-# Policy v2: + Intent Shift
-def intent_shift_policy(utterance, current_intent):
-    # SBERT로 의도 유사도 계산
-    similarity = sbert_similarity(utterance, current_intent)
-    return "stop_and_switch" if similarity < 0.6 else "pause"
-
-# Policy v3: Full Policy
-def full_action_policy(event_type, intent_similarity, complaint_severity):
-    # 모든 신호를 종합해 6가지 action 중 선택
-    ...
-```
-
----
-
-### `src/evaluator.py`
-
-평가 실행 및 지표 계산
-
-```bash
-python src/evaluator.py \
-  --data data/scenarios.json \
-  --policies p0 p1 p2 p3 \
-  --output results/ \
-  --generate_report
-```
-
----
-
-### `demo/index.html`
-
-Text Replay 모드 UI
-
-**기능:**
-- Scenario 선택 또는 직접 입력
-- AI 발화 표시
-- 사용자 발화 입력
-- 각 정책의 판단 결과 표시
-- Decision reason 설명
-
----
-
-## 개발 가이드
-
-### 새로운 정책 추가
-
-```python
-# src/policies/p4_prosody_aware.py
-def prosody_aware_policy(event_type, intent_shift, tone_intensity):
-    # 새로운 신호 추가
-    if tone_intensity > URGENT_THRESHOLD:
-        return "handoff"
-    # ... 기존 로직 + 새 신호
-```
-
-### 새로운 intent 추가
-
-```python
-# data/scenarios.json에 새로운 intent 추가
-{
-  "scenario_id": "commerce_subscription_001",
-  "ai_current_intent": "subscription_inquiry",
-  "expected_user_intent": "subscription_cancellation",
-  # ...
-}
-```
-
----
-
-## 테스트
-
-```bash
-# Unit test (아직 미구현, Day 4에 추가)
-pytest tests/
-
-# 전체 파이프라인 테스트
-python tests/test_full_pipeline.py
-```
-
----
-
-## 배포
-
-### Wind Docs (GitHub Pages)
-
-```bash
-# mkdocs 설치
-pip install mkdocs mkdocs-material
-
-# 로컬에서 미리보기
-mkdocs serve
-
-# 배포 (자동 - GitHub Actions)
-git push origin main
-```
-
-### 실제 콘솔 배포 (이후)
-
-```bash
-# Netlify, Vercel 등으로 배포 가능
-# 1주차: 로컬 데모만
-# 이후: 실제 호스팅
-```
-
----
-
-## 문제 해결 (FAQ)
-
-### Q: scenarios.json이 로드되지 않음
-
-```bash
-# 1. 파일 경로 확인
-ls data/scenarios.json
-
-# 2. JSON 형식 검증
-python -c "import json; json.load(open('data/scenarios.json'))"
-```
-
-### Q: SBERT 모델 다운로드가 느림
-
-```python
-# 더 가벼운 모델 사용
-model = SentenceTransformer('distiluse-base-multilingual-cased-v2')
-# 또는 캐시 설정
-export SENTENCE_TRANSFORMERS_HOME=/path/to/cache
-```
-
-### Q: 콘솔 UI가 시나리오를 못 찾음
-
-```bash
-# demo 폴더에서 데이터 경로 확인
-# index.html의 data path: ../data/scenarios.json (상대경로)
-```
-
----
-
-## 다음 단계 (이후 작업)
-
-**Week 2+:**
-- Real STT (Whisper, Google) 통합
-- Prosody 신호 추가
-- 100개 시나리오로 확장
-- 논문화 준비
-
----
-
-## 연락처
-
-질문이나 제안: (구현자 이메일)
-
----
-
-## 라이선스
-
-MIT License (자유롭게 사용, 수정, 배포 가능)
-
----
-
-**Wind Docs v1.0 — 2026-05-07**
+- `policy_v3_1` 반복 실행으로 LLM 변동성 확인
+- `commerce_payment_follow_001`, `commerce_complaint_001` 회귀 분석
+- ambiguous 케이스 기준 정리
+- 독립적인 action selector 구조 실험

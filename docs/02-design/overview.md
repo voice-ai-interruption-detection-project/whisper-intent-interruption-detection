@@ -1,241 +1,77 @@
-# Solution Overview: 4단계 정책 비교
+# Solution Overview: 판단 구조와 정책 비교
 
-## 우리의 접근: 단계적 개선
+## 접근 방식
 
-단일 모델 "완벽한 해결책"을 목표로 하지 않는다.
-대신 각 단계에서 **어떤 신호를 추가했을 때 무엇이 개선되는지** 보여준다.
+Wind의 MVP는 입력 방식보다 뒤쪽 판단 구조를 검증하는 데 초점을 둡니다.
 
----
-
-## 4가지 정책
-
-### 📊 전체 흐름도
-
-```
-Baseline: VAD-only
-├─ 입력: 음성 신호 (speech detected?)
-├─ 판단: 음성이 있으면 interrupt
-└─ 성과: 기준선 (baseline)
-
-Policy v1: + Backchannel Rule
-├─ 입력: 음성 신호 + 텍스트
-├─ 판단: 하지만 "네/음"은 제외
-└─ 성과: False Stop ↓ (괜히 멈추는 비율 감소)
-
-Policy v2: + Intent Shift Detection
-├─ 입력: 텍스트 + 의도 유사도
-├─ 판단: 의도가 달라지면 switch
-└─ 성과: Missed Switch ↓ (의도 전환 놓침 감소)
-
-Policy v3: Full AI Action Policy
-├─ 입력: 모든 신호 종합
-├─ 판단: 6가지 action label 중 선택
-└─ 성과: Accuracy ↑ (전체 성능 향상)
+```text
+Text Replay / Audio File Test / Mic Trial
+-> RunnerInput
+-> PolicyInput
+-> 고객 신호 해석
+-> AI 행동 선택
+-> actual_action
+-> expected_actions와 비교
+-> run artifact 기록
 ```
 
-### 명칭 매핑
+텍스트, 오디오 파일, 마이크 입력은 제품 개념이 아니라 같은 판단 구조를 실행해 보는 입력 경로입니다.
 
-표시 라벨은 외부 문서·발표·README에서 쓰고, 코드 식별자는 파일명·yaml 키·run_id에서 쓴다.
+## 공통 실행 경로
 
-| 표시 라벨 | 코드 식별자 | run_id 접미사 |
-|---|---|---|
-| `Baseline` | `baseline` | `..._baseline` |
-| `Policy v1` | `policy_v1` | `..._policy_v1` |
-| `Policy v2` | `policy_v2` | `..._policy_v2` |
-| `Policy v3` | `policy_v3` | `..._policy_v3` |
+현재 CLI, Backend API, Playground, Test Bench는 같은 runner 계층을 사용합니다.
 
----
+| 계층 | 역할 |
+| --- | --- |
+| `RunnerInput` | API/UI/evaluator가 공유하는 입력. 기준값인 `event_type`, `expected_user_intent`도 포함 |
+| `PolicyInput` | policy 판단에 필요한 runtime 필드만 포함. `expected_actions`, `event_type`, `expected_user_intent` 제외 |
+| `DecisionPipeline` | LLM judgment를 고객 신호 해석과 AI 행동 선택 결과로 정리 |
+| evaluator | `actual_action in expected_actions` 기준으로 평가 |
+| run artifact | 실행 조건, 수치, decision log, 실패 분석 저장 |
 
-## 정책별 상세
+중요한 guard는 policy prompt에 정답 필드가 들어가지 않는 것입니다.
 
-### **Baseline: VAD-only (기준선)**
-
-**입력:**
-```python
-has_user_speech: bool  # 음성이 감지되었는가?
+```text
+excluded_fields:
+- expected_actions
+- event_type
+- expected_user_intent
 ```
 
-**판단 로직:**
-```python
-if not has_user_speech:
-    return "continue"  # 계속 말하기
-else:
-    return "stop_and_switch"  # 무조건 멈춤
-```
+## 정책 버전
 
-**특징:**
-- ✅ 매우 간단하고 빠름
-- ❌ 고객의 의도를 모른다
-- ❌ 모든 음성을 같게 취급
+policy version은 서로 다른 제품이 아니라, 같은 판단 흐름 위에서 어떤 guidance와 기준을 추가했는지 비교하는 단위입니다.
 
-**평가:**
-- Baseline으로 사용
-- 모든 맞장구를 "interrupt"로 인식 → False Stop 높음
-- 모든 의도 전환을 못 봄 → Missed Switch 높음
+| policy | 현재 의미 |
+| --- | --- |
+| `baseline` | 최소 transcript context로 판단하는 LLM-backed 기준선 |
+| `policy_v1` | action label 정의와 예시를 더한 비교 대상 |
+| `policy_v2` | backchannel, noise, no-speech에서 `false_stop`을 줄이는 prompt guidance |
+| `policy_v3` | same-intent follow-up과 intent shift 경계를 강화하는 prompt-only 후보 |
+| `policy_v3_1` | return/refund 인접 workflow 경계를 더 명시한 prompt-only 후보 |
 
----
+## 구현 기준
 
-### **Policy v1: Backchannel Rule 추가**
+현재 MVP는 LLM structured output을 공통 runner/evaluator에 연결해 같은 판단 구조를 반복 실행하고 비교합니다.
 
-**입력:**
-```python
-has_user_speech: bool
-utterance_text: str  # "네", "음" 등
-```
+`DecisionPipeline`은 runtime 입력에서 고객 신호 해석과 AI 행동 선택 결과를 구조화하고, CLI, Backend API, Playground, Test Bench가 같은 실행 결과를 공유하도록 정리합니다.
 
-**판단 로직:**
-```python
-if not has_user_speech:
-    return "continue"
+## 최신 결과 요약
 
-# 맞장구 감지
-backchannel_keywords = ["네", "음", "네요", "알겠어요", "맞아", "그래"]
-if utterance_text in backchannel_keywords:
-    return "continue"  # 또는 "brief_ack"
+| dataset | policy | action_accuracy | 주요 실패 |
+| --- | --- | ---: | --- |
+| core | `policy_v2` | 0.8667 | missed_switch 2, ambiguous_intent 2 |
+| core | `policy_v3_1` | 0.9000 | false_stop 1, missed_switch 1, ambiguous_intent 1 |
+| challenge | `policy_v2` | 0.7778 | missed_switch 3, ambiguous_intent 1 |
+| challenge | `policy_v3_1` | 0.9444 | ambiguous_intent 1 |
 
-else:
-    return "stop_and_switch"
-```
+수치 출처:
 
-**특징:**
-- ✅ Baseline의 False Stop 문제 해결
-- ✅ 매우 간단한 규칙 기반
-- ❌ 아직 의도 전환은 못 봄
+- `results/runs/20260515_112306_policy_v2/evaluation.json`
+- `results/runs/20260515_111953_policy_v3_1/evaluation.json`
+- `results/runs/20260515_110153_policy_v2/evaluation.json`
+- `results/runs/20260515_111904_policy_v3_1/evaluation.json`
 
-**개선:**
-- False Stop Rate: 25% → 8% (↓17%)
-- Missed Switch Rate: 45% → 40% (변화 작음)
+## 다음
 
----
-
-### **Policy v2: Intent Shift Detection 추가**
-
-**입력:**
-```python
-current_intent: str  # AI가 진행 중이던 의도 ("배송조회", "환불요청" 등)
-predicted_user_intent: str  # STT 텍스트로 예측한 고객 의도
-intent_similarity: float  # 0~1 사이의 유사도
-```
-
-**판단 로직:**
-```python
-if not has_user_speech:
-    return "continue"
-
-if is_backchannel(utterance_text):
-    return "continue"
-
-# 의도 유사도로 전환 판단
-if intent_similarity < THRESHOLD:  # 예: 0.5
-    return "stop_and_switch"  # 의도 전환 감지
-else:
-    return "pause"  # 같은 주제 내 질문
-```
-
-**특징:**
-- ✅ Policy v1의 Missed Switch 문제 해결
-- ✅ 의도 유사도를 SBERT로 계산
-- ❌ 아직 상황별 섬세한 대응은 안 함
-
-**개선:**
-- Missed Switch Rate: 40% → 12% (↓28%)
-- Accuracy: 75% → 85% (↑10%)
-
----
-
-### **Policy v3: Full AI Action Policy**
-
-**입력:**
-```python
-# 모든 신호 종합
-has_user_speech: bool
-utterance_text: str
-event_type: str  # backchannel, same_intent_question, intent_shift 등
-predicted_user_intent: str
-intent_similarity: float
-tone_confidence: float  # (향후: 감정/톤 신호)
-```
-
-**판단 로직:**
-```python
-if not has_user_speech:
-    return "continue"
-
-# 이벤트 타입별로 행동 결정
-if event_type == "backchannel":
-    return "brief_ack"  # 또는 "continue"
-
-elif event_type == "same_intent_question":
-    return "pause"  # 멈추고 답하기
-
-elif event_type == "intent_shift":
-    if high_confidence(intent_similarity):
-        return "stop_and_switch"
-    else:
-        return "ask_clarifying"
-
-elif event_type == "complaint":
-    if severity_high:
-        return "handoff"  # 상담사 연결
-    else:
-        return "stop_and_switch"
-
-else:
-    return "continue"
-```
-
-**특징:**
-- ✅ 6가지 action label을 상황별로 선택
-- ✅ 각 행동이 고객 입장에서 자연스러움
-- ✅ 규칙 기반이라 해석 가능
-- ❌ 더 많은 신호를 필요로 함
-
-**개선:**
-- Accuracy: 85% → 89% (↑4%)
-- 각 action label별로 언제 사용되는지 명확
-
----
-
-## 핵심 개념: Event Type
-
-각 정책의 기초가 되는 것은 **"사용자가 어떤 종류의 신호를 보냈는가"**를 분류하는 것.
-
-| Event Type | 예시 | 기본 행동 |
-|------------|------|---------|
-| `no_speech` | - | `continue` |
-| `noise` | 배경음 | `continue` |
-| `backchannel` | "네", "음" | `brief_ack` |
-| `same_intent_question` | 같은 주제 질문 | `pause` |
-| `intent_shift` | 다른 의도 | `stop_and_switch` |
-| `complaint` | 불만/긴급 | `stop_and_switch` / `handoff` |
-| `ambiguous` | 의도 불명확 | `ask_clarifying` |
-
-👉 **[Event Types 상세](./event-types.md)**
-
----
-
-## 평가 전략
-
-각 정책 간 성과를 비교하는 방식:
-
-```
-30개 시나리오 적용
-  ↓
-각 정책별 예측 수행 (Baseline, Policy v1, Policy v2, Policy v3)
-  ↓
-actual_action이 expected_actions에 포함되는지 비교
-  ↓
-Mismatch Matrix, Accuracy, Precision, Recall 계산
-  ↓
-"Baseline vs Policy v1에서 뭐가 개선됐는가?" 분석
-```
-
-👉 **[Evaluation Approach 상세](./evaluation.md)**
-
----
-
-## 다음: 구체적 정의
-
-**👉 [Action Labels](./action-labels.md)** — AI가 선택할 수 있는 6가지 행동
-
-**👉 [Event Types & Intents](./event-types.md)** — 사용자 신호 분류 체계
+👉 [Action Labels](./action-labels.md)

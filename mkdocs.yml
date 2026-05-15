@@ -1,6 +1,8 @@
 site_name: Wind Docs
 site_description: Whisper Intent Interruption Detection - AI Voice Agent Interruption Handling
 site_author: Team WIID
+exclude_docs: |
+  README.md
 
 theme:
   name: material

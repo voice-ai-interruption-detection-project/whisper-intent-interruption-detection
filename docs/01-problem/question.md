@@ -1,108 +1,79 @@
-# 우리의 리서치 질문
+# 우리의 질문
 
 ## 핵심 질문
 
-> **의도를 감지해 고객 상담 중 AI의 행동을 결정할 수 있는가?**
+> AI가 말하는 중 들어온 고객 신호를 보고, AI의 다음 행동을 자연스럽게 고를 수 있는가?
 
-더 구체적으로:
+이 프로젝트가 확인한 것은 단순히 "고객이 말했는가?"가 아닙니다.
 
-1. 고객의 **텍스트(STT)**에서 의도를 인식할 수 있는가?
-2. 현재 AI의 주제와 고객의 의도를 **비교**해 전환을 감지할 수 있는가?
-3. 감지한 의도 변화에 따라 AI가 **자연스러운 행동을 선택**할 수 있는가?
+```text
+고객 발화가 맞장구인가?
+같은 업무 안의 보충 질문인가?
+다른 업무로 바뀐 요청인가?
+불만이나 긴급 상황인가?
+의도가 불명확한가?
 
----
-
-## 구체적 검증 항목
-
-### 1️⃣ Backchannel Detection (쉬운 단계)
-
-**질문**: 맞장구("네", "음")를 다른 의도와 구분할 수 있는가?
-
-```
-고객: "네, 알겠어요."
-AI 판단: backchannel → continue (멈추지 않음) ✅
+그렇다면 AI는 계속 말할까,
+짧게 인정할까,
+답하고 이어갈까,
+멈추고 전환할까,
+확인 질문을 할까?
 ```
 
-**목표**: False Stop Rate를 XXX%에서 XX%로 감소
+## 검증 항목
 
----
+### 1. Backchannel / Noise 안정화
 
-### 2️⃣ Intent Shift Detection (중간 단계)
+**질문:** 짧은 맞장구, 침묵, 의미 없는 소리 때문에 AI가 불필요하게 멈추지 않는가?
 
-**질문**: 고객의 의도 전환을 감지할 수 있는가?
-
-```
-AI 주제: "배송조회"
-고객: "환불받고 싶은데요."
-→ 의도 전환 감지 → stop_and_switch ✅
+```text
+고객: 네, 알겠어요.
+자연스러운 행동: continue 또는 brief_ack
 ```
 
-**목표**: Missed Switch Rate를 XXX%에서 XX%로 감소
+이 축은 `policy_v2`에서 주로 봅니다. 목표 실패 유형은 `false_stop`입니다.
 
----
+### 2. Same Intent Follow-up vs Intent Shift
 
-### 3️⃣ Action Policy (전체 단계)
+**질문:** 고객이 같은 업무 안에서 더 묻는 것과, 다른 업무로 바꾸는 것을 구분하는가?
 
-**질문**: 상황에 따라 6가지 행동 중 적절한 것을 선택할 수 있는가?
+```text
+AI current intent: shipping_inquiry
+고객: 배송비는 얼마예요?
+자연스러운 행동: respond_and_continue
 
-```
-상황: backchannel → continue
-상황: same_intent_question → pause
-상황: intent_shift → stop_and_switch
-상황: complaint → handoff
-...
-```
-
-**목표**: 전체 Accuracy를 XXX%에 도달
-
----
-
-## 평가 방식
-
-우리는 단계적으로 정책을 비교한다:
-
-| 단계 | 정책 | 주요 신호 | 평가 지표 |
-|------|------|---------|----------|
-| Baseline | VAD-only | 음성 신호 | baseline |
-| Policy v1 | + Backchannel | 음성 + 텍스트 | False Stop ↓ |
-| Policy v2 | + Intent Shift | + 의도 유사도 | Missed Switch ↓ |
-| Policy v3 | Full Policy | 모든 신호 종합 | Accuracy ↑ |
-
-각 단계가 이전 단계의 문제를 얼마나 해결했는지 본다.
-
----
-
-## 1주일 MVP의 목표
-
-**Week 1 목표:**
-- Baseline~Policy v3 정책 구현 및 평가
-- Text Replay 기반 검증 (정확도 포커스)
-- 대표 케이스 3개 데모
-- 다음 단계의 기초 다지기
-
-**측정 방식:**
-```
-30개 시나리오 × 4가지 정책 (Baseline~Policy v3)
-→ Confusion Matrix 생성
-→ 각 정책의 강점/약점 분석
+AI current intent: shipping_inquiry
+고객: 환불받고 싶어요.
+자연스러운 행동: stop_and_switch
 ```
 
----
+이 축은 `policy_v3`와 `policy_v3_1`에서 집중적으로 봅니다. 특히 `policy_v3_1`은 return/refund처럼 가까워 보이지만 별도 workflow인 경계를 다룹니다.
 
-## 성공 기준
+### 3. Complaint / Ambiguous 처리
 
-✅ **최소 기준:**
-- Baseline과 Policy v1 사이에 유의미한 차이 (False Stop ↓)
-- Policy v1과 Policy v2 사이에 유의미한 차이 (Missed Switch ↓)
+**질문:** 불만과 모호한 발화에서 잘못된 흐름으로 확정하지 않는가?
 
-✅ **추가 기준:**
-- Policy v3 정책이 일관된 규칙으로 표현 가능한가?
-- 어떤 케이스가 모든 정책을 실패하게 하는가?
+```text
+고객: 뭐 이거 벌써 2주 됐잖아요.
+후보 행동: stop_and_switch 또는 handoff
 
----
+고객: 음... 그게 맞나?
+후보 행동: ask_clarifying
+```
 
-## 다음: 어떻게 풀 것인가?
+이 영역은 현재 MVP에서 일부 케이스를 포함하지만, 세부 정책은 아직 열린 상태입니다.
 
-우리의 해결 접근법:
+## 현재 결론
 
-👉 **[Approach & Design](../02-design/overview.md)**
+`policy_v3_1`은 core dataset에서 `action_accuracy=0.9000`을 기록했습니다.
+
+- run_id: `20260515_111953_policy_v3_1`
+- dataset: `data/scenarios.json`
+- correct / total: `27 / 30`
+- 추가 확인 케이스: `false_stop=1`, `missed_switch=1`, `ambiguous_intent=1`
+
+즉, MVP는 판단 구조가 작동한다는 신호를 보여줬습니다. 이 결과는 다음 개선 지점을 정리하기 위한 실험 결과로 읽습니다.
+
+## 다음
+
+👉 [Solution Overview](../02-design/overview.md)
