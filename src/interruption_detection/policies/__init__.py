@@ -5,6 +5,7 @@ from interruption_detection.policies.base import Policy
 from interruption_detection.policies.baseline import BaselinePolicy
 from interruption_detection.policies.policy_v1 import PolicyV1
 from interruption_detection.policies.policy_v2 import PolicyV2
+from interruption_detection.policies.policy_v3 import PolicyV3, PolicyV31
 
 
 def build_policy_registry(
@@ -15,6 +16,8 @@ def build_policy_registry(
         "baseline": BaselinePolicy(llm_client=llm_client),
         "policy_v1": PolicyV1(llm_client=llm_client),
         "policy_v2": PolicyV2(llm_client=llm_client),
+        "policy_v3": PolicyV3(llm_client=llm_client),
+        "policy_v3_1": PolicyV31(llm_client=llm_client),
     }
 
 

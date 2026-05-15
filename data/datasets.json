@@ -20,6 +20,26 @@
       "input_modes": [
         "text"
       ]
+    },
+    {
+      "id": "policy_v3_edge",
+      "label": "Policy v3 edge slice",
+      "path": "data/scenarios_policy_v3_edge.json",
+      "scope": "diagnostic",
+      "description": "same_intent_question과 intent_shift 경계를 minimal pair로 보는 policy_v3 진단용 dataset",
+      "input_modes": [
+        "text"
+      ]
+    },
+    {
+      "id": "policy_v3_challenge",
+      "label": "Policy v3 challenge slice",
+      "path": "data/scenarios_policy_v3_challenge.json",
+      "scope": "diagnostic",
+      "description": "v2가 넓은 주제 연속으로 묶기 쉬운 인접 업무 경계를 집중적으로 보는 policy_v3 challenge dataset",
+      "input_modes": [
+        "text"
+      ]
     }
   ]
 }

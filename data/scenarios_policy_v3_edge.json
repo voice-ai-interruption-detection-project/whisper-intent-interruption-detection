@@ -1,0 +1,197 @@
+{
+  "scenarios": [
+    {
+      "scenario_id": "policy_v3_shipping_same_intent_fee_001",
+      "level": 2,
+      "domain": "commerce",
+      "ai_current_intent": "shipping_inquiry",
+      "ai_utterance": "주문하신 상품은 내일 오후에 도착할 예정입니다.",
+      "user_utterance": "그럼 배송비는 얼마예요?",
+      "event_type": "same_intent_question",
+      "expected_user_intent": "shipping_inquiry",
+      "user_tone_hint": "neutral",
+      "has_user_speech": true,
+      "notes": "v3 edge: 배송 흐름 안의 보충 질문은 새 업무 전환이 아니다.",
+      "expected_actions": [
+        "respond_and_continue"
+      ]
+    },
+    {
+      "scenario_id": "policy_v3_shipping_to_refund_001",
+      "level": 2,
+      "domain": "commerce",
+      "ai_current_intent": "shipping_inquiry",
+      "ai_utterance": "주문하신 상품은 내일 오후에 도착할 예정입니다.",
+      "user_utterance": "그럼 배송 말고 환불로 바꿔 주세요.",
+      "event_type": "intent_shift",
+      "expected_user_intent": "refund_request",
+      "user_tone_hint": "neutral",
+      "has_user_speech": true,
+      "notes": "v3 edge minimal pair: 같은 말머리지만 배송에서 환불 업무로 전환한다.",
+      "expected_actions": [
+        "stop_and_switch"
+      ]
+    },
+    {
+      "scenario_id": "policy_v3_payment_same_intent_retry_001",
+      "level": 2,
+      "domain": "commerce",
+      "ai_current_intent": "payment_issue",
+      "ai_utterance": "결제 승인 오류가 있어 결제 수단을 다시 확인해 드리겠습니다.",
+      "user_utterance": "이 카드로 다시 결제해도 돼요?",
+      "event_type": "same_intent_question",
+      "expected_user_intent": "payment_issue",
+      "user_tone_hint": "neutral",
+      "has_user_speech": true,
+      "notes": "v3 edge: 결제 오류 처리 안의 보충 질문.",
+      "expected_actions": [
+        "respond_and_continue"
+      ]
+    },
+    {
+      "scenario_id": "policy_v3_payment_to_shipping_001",
+      "level": 2,
+      "domain": "commerce",
+      "ai_current_intent": "payment_issue",
+      "ai_utterance": "결제 승인 오류가 있어 결제 수단을 다시 확인해 드리겠습니다.",
+      "user_utterance": "결제 말고 배송지는 지금 바꿀 수 있어요?",
+      "event_type": "intent_shift",
+      "expected_user_intent": "shipping_address_change",
+      "user_tone_hint": "neutral",
+      "has_user_speech": true,
+      "notes": "v3 edge minimal pair: 결제 흐름에서 배송지 변경 업무로 넘어간다.",
+      "expected_actions": [
+        "stop_and_switch"
+      ]
+    },
+    {
+      "scenario_id": "policy_v3_return_same_intent_pickup_001",
+      "level": 2,
+      "domain": "commerce",
+      "ai_current_intent": "return_request",
+      "ai_utterance": "반품 수거는 접수 후 2~3일 안에 기사님이 방문합니다.",
+      "user_utterance": "그럼 수거 날짜를 바꿀 수 있나요?",
+      "event_type": "same_intent_question",
+      "expected_user_intent": "return_request",
+      "user_tone_hint": "neutral",
+      "has_user_speech": true,
+      "notes": "v3 edge: 반품 수거 흐름 안의 보충 질문.",
+      "expected_actions": [
+        "respond_and_continue"
+      ]
+    },
+    {
+      "scenario_id": "policy_v3_return_to_refund_001",
+      "level": 2,
+      "domain": "commerce",
+      "ai_current_intent": "return_request",
+      "ai_utterance": "반품 수거는 접수 후 2~3일 안에 기사님이 방문합니다.",
+      "user_utterance": "그럼 환불은 언제 들어와요?",
+      "event_type": "intent_shift",
+      "expected_user_intent": "refund_status",
+      "user_tone_hint": "neutral",
+      "has_user_speech": true,
+      "notes": "v3 edge minimal pair: 반품 수거 안내 중 환불 상태 확인으로 업무가 바뀐다.",
+      "expected_actions": [
+        "stop_and_switch"
+      ]
+    },
+    {
+      "scenario_id": "policy_v3_refund_same_intent_account_001",
+      "level": 2,
+      "domain": "commerce",
+      "ai_current_intent": "refund_request",
+      "ai_utterance": "환불은 접수 후 영업일 기준 3~5일 안에 처리됩니다.",
+      "user_utterance": "환불 계좌는 어디서 바꿔요?",
+      "event_type": "same_intent_question",
+      "expected_user_intent": "refund_request",
+      "user_tone_hint": "neutral",
+      "has_user_speech": true,
+      "notes": "v3 edge: 환불 처리 흐름 안의 보충 질문.",
+      "expected_actions": [
+        "respond_and_continue"
+      ]
+    },
+    {
+      "scenario_id": "policy_v3_refund_to_return_001",
+      "level": 2,
+      "domain": "commerce",
+      "ai_current_intent": "refund_request",
+      "ai_utterance": "환불은 접수 후 영업일 기준 3~5일 안에 처리됩니다.",
+      "user_utterance": "환불 전에 반품 수거부터 신청해 주세요.",
+      "event_type": "intent_shift",
+      "expected_user_intent": "return_request",
+      "user_tone_hint": "neutral",
+      "has_user_speech": true,
+      "notes": "v3 edge minimal pair: 환불 안내 중 반품 접수 업무를 새로 요청한다.",
+      "expected_actions": [
+        "stop_and_switch"
+      ]
+    },
+    {
+      "scenario_id": "policy_v3_shipping_similar_prefix_same_001",
+      "level": 2,
+      "domain": "commerce",
+      "ai_current_intent": "shipping_inquiry",
+      "ai_utterance": "배송 상태는 현재 물류센터 출고 단계입니다.",
+      "user_utterance": "아 그럼 배송 추적번호도 알려주세요.",
+      "event_type": "same_intent_question",
+      "expected_user_intent": "shipping_inquiry",
+      "user_tone_hint": "neutral",
+      "has_user_speech": true,
+      "notes": "v3 edge: 말머리는 전환처럼 보일 수 있지만 배송 안의 추가 요청이다.",
+      "expected_actions": [
+        "respond_and_continue"
+      ]
+    },
+    {
+      "scenario_id": "policy_v3_shipping_similar_prefix_shift_001",
+      "level": 2,
+      "domain": "commerce",
+      "ai_current_intent": "shipping_inquiry",
+      "ai_utterance": "배송 상태는 현재 물류센터 출고 단계입니다.",
+      "user_utterance": "아 그럼 주문 취소부터 해주세요.",
+      "event_type": "intent_shift",
+      "expected_user_intent": "order_cancellation",
+      "user_tone_hint": "neutral",
+      "has_user_speech": true,
+      "notes": "v3 edge minimal pair: 비슷한 말머리지만 배송에서 주문 취소로 전환한다.",
+      "expected_actions": [
+        "stop_and_switch"
+      ]
+    },
+    {
+      "scenario_id": "policy_v3_backchannel_control_001",
+      "level": 1,
+      "domain": "commerce",
+      "ai_current_intent": "refund_request",
+      "ai_utterance": "환불은 접수 후 영업일 기준 3~5일 안에 처리됩니다.",
+      "user_utterance": "네 알겠습니다.",
+      "event_type": "backchannel",
+      "expected_user_intent": null,
+      "user_tone_hint": "neutral",
+      "has_user_speech": true,
+      "notes": "v3 edge control: 짧은 수신 확인은 의도 전환이 아니다.",
+      "expected_actions": [
+        "continue",
+        "brief_ack"
+      ]
+    },
+    {
+      "scenario_id": "policy_v3_ambiguous_control_001",
+      "level": 2,
+      "domain": "commerce",
+      "ai_current_intent": "payment_issue",
+      "ai_utterance": "결제 오류 내용을 확인해 드리겠습니다.",
+      "user_utterance": "음... 그럼 잠깐만요.",
+      "event_type": "ambiguous",
+      "expected_user_intent": null,
+      "user_tone_hint": "neutral",
+      "has_user_speech": true,
+      "notes": "v3 edge control: 같은 의도 질문인지 업무 전환인지 아직 불명확하다.",
+      "expected_actions": [
+        "ask_clarifying"
+      ]
+    }
+  ]
+}

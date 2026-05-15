@@ -1,0 +1,293 @@
+{
+  "scenarios": [
+    {
+      "scenario_id": "policy_v3_challenge_return_same_pickup_address_001",
+      "level": 3,
+      "domain": "commerce",
+      "ai_current_intent": "return_request",
+      "ai_utterance": "반품 수거는 접수 후 2~3일 안에 기사님이 방문합니다.",
+      "user_utterance": "수거 주소는 어디서 바꿔요?",
+      "event_type": "same_intent_question",
+      "expected_user_intent": "return_request",
+      "user_tone_hint": "neutral",
+      "has_user_speech": true,
+      "notes": "v3 challenge: 반품 수거 절차 안의 주소 보충 질문.",
+      "expected_actions": [
+        "respond_and_continue"
+      ]
+    },
+    {
+      "scenario_id": "policy_v3_challenge_return_to_refund_account_001",
+      "level": 3,
+      "domain": "commerce",
+      "ai_current_intent": "return_request",
+      "ai_utterance": "반품 수거는 접수 후 2~3일 안에 기사님이 방문합니다.",
+      "user_utterance": "환불 계좌는 어디서 바꿔요?",
+      "event_type": "intent_shift",
+      "expected_user_intent": "refund_request",
+      "user_tone_hint": "neutral",
+      "has_user_speech": true,
+      "notes": "v3 challenge minimal pair: 같은 사후처리처럼 보여도 반품 수거에서 환불 계좌 업무로 전환한다.",
+      "expected_actions": [
+        "stop_and_switch"
+      ]
+    },
+    {
+      "scenario_id": "policy_v3_challenge_return_policy_same_packaging_001",
+      "level": 3,
+      "domain": "commerce",
+      "ai_current_intent": "return_policy",
+      "ai_utterance": "개봉하지 않은 상품은 수령 후 7일 이내 반품할 수 있습니다.",
+      "user_utterance": "포장만 뜯었으면 반품 안 돼요?",
+      "event_type": "same_intent_question",
+      "expected_user_intent": "return_policy",
+      "user_tone_hint": "neutral",
+      "has_user_speech": true,
+      "notes": "v3 challenge: 반품 가능 조건에 대한 같은 업무 보충 질문.",
+      "expected_actions": [
+        "respond_and_continue"
+      ]
+    },
+    {
+      "scenario_id": "policy_v3_challenge_return_policy_to_refund_timing_001",
+      "level": 3,
+      "domain": "commerce",
+      "ai_current_intent": "return_policy",
+      "ai_utterance": "개봉하지 않은 상품은 수령 후 7일 이내 반품할 수 있습니다.",
+      "user_utterance": "그럼 환불금은 언제 들어와요?",
+      "event_type": "intent_shift",
+      "expected_user_intent": "refund_status",
+      "user_tone_hint": "neutral",
+      "has_user_speech": true,
+      "notes": "v3 challenge minimal pair: 반품 가능 조건에서 환불 입금 시점 확인으로 전환한다.",
+      "expected_actions": [
+        "stop_and_switch"
+      ]
+    },
+    {
+      "scenario_id": "policy_v3_challenge_refund_same_account_001",
+      "level": 3,
+      "domain": "commerce",
+      "ai_current_intent": "refund_request",
+      "ai_utterance": "환불은 접수 후 영업일 기준 3~5일 안에 처리됩니다.",
+      "user_utterance": "환불 계좌를 바꾸면 처리도 다시 시작돼요?",
+      "event_type": "same_intent_question",
+      "expected_user_intent": "refund_request",
+      "user_tone_hint": "neutral",
+      "has_user_speech": true,
+      "notes": "v3 challenge: 환불 처리 흐름 안의 계좌 보충 질문.",
+      "expected_actions": [
+        "respond_and_continue"
+      ]
+    },
+    {
+      "scenario_id": "policy_v3_challenge_refund_to_return_pickup_001",
+      "level": 3,
+      "domain": "commerce",
+      "ai_current_intent": "refund_request",
+      "ai_utterance": "환불은 접수 후 영업일 기준 3~5일 안에 처리됩니다.",
+      "user_utterance": "환불 전에 반품 수거부터 다시 잡아주세요.",
+      "event_type": "intent_shift",
+      "expected_user_intent": "return_request",
+      "user_tone_hint": "neutral",
+      "has_user_speech": true,
+      "notes": "v3 challenge minimal pair: 환불 안내 중 반품 수거 업무를 새로 요청한다.",
+      "expected_actions": [
+        "stop_and_switch"
+      ]
+    },
+    {
+      "scenario_id": "policy_v3_challenge_payment_same_retry_card_001",
+      "level": 3,
+      "domain": "commerce",
+      "ai_current_intent": "payment_issue",
+      "ai_utterance": "결제 승인 오류가 있어 결제 수단을 다시 확인해 드리겠습니다.",
+      "user_utterance": "같은 카드로 다시 결제해도 돼요?",
+      "event_type": "same_intent_question",
+      "expected_user_intent": "payment_issue",
+      "user_tone_hint": "neutral",
+      "has_user_speech": true,
+      "notes": "v3 challenge: 결제 오류 해결 안의 재시도 질문.",
+      "expected_actions": [
+        "respond_and_continue"
+      ]
+    },
+    {
+      "scenario_id": "policy_v3_challenge_payment_to_cancel_001",
+      "level": 3,
+      "domain": "commerce",
+      "ai_current_intent": "payment_issue",
+      "ai_utterance": "결제 승인 오류가 있어 결제 수단을 다시 확인해 드리겠습니다.",
+      "user_utterance": "그럼 그냥 주문 취소해 주세요.",
+      "event_type": "intent_shift",
+      "expected_user_intent": "order_cancellation",
+      "user_tone_hint": "neutral",
+      "has_user_speech": true,
+      "notes": "v3 challenge minimal pair: 결제 오류 해결에서 주문 취소 업무로 전환한다.",
+      "expected_actions": [
+        "stop_and_switch"
+      ]
+    },
+    {
+      "scenario_id": "policy_v3_challenge_payment_same_other_card_001",
+      "level": 3,
+      "domain": "commerce",
+      "ai_current_intent": "payment_issue",
+      "ai_utterance": "결제가 실패했습니다. 다른 결제 수단으로 다시 시도할 수 있습니다.",
+      "user_utterance": "다른 카드로 바꾸면 바로 결제돼요?",
+      "event_type": "same_intent_question",
+      "expected_user_intent": "payment_issue",
+      "user_tone_hint": "neutral",
+      "has_user_speech": true,
+      "notes": "v3 challenge: 결제 수단 변경은 현재 결제 오류 해결 안의 보충 질문.",
+      "expected_actions": [
+        "respond_and_continue"
+      ]
+    },
+    {
+      "scenario_id": "policy_v3_challenge_payment_to_shipping_address_001",
+      "level": 3,
+      "domain": "commerce",
+      "ai_current_intent": "payment_issue",
+      "ai_utterance": "결제가 실패했습니다. 다른 결제 수단으로 다시 시도할 수 있습니다.",
+      "user_utterance": "결제 말고 배송지 주소부터 바꿀 수 있어요?",
+      "event_type": "intent_shift",
+      "expected_user_intent": "shipping_address_change",
+      "user_tone_hint": "neutral",
+      "has_user_speech": true,
+      "notes": "v3 challenge minimal pair: 결제 오류 해결에서 배송지 변경 업무로 전환한다.",
+      "expected_actions": [
+        "stop_and_switch"
+      ]
+    },
+    {
+      "scenario_id": "policy_v3_challenge_shipping_same_tracking_001",
+      "level": 3,
+      "domain": "commerce",
+      "ai_current_intent": "shipping_inquiry",
+      "ai_utterance": "배송 상태는 현재 물류센터 출고 단계입니다.",
+      "user_utterance": "아 그럼 배송 추적번호도 알려주세요.",
+      "event_type": "same_intent_question",
+      "expected_user_intent": "shipping_inquiry",
+      "user_tone_hint": "neutral",
+      "has_user_speech": true,
+      "notes": "v3 challenge: 배송 조회 흐름 안의 추적번호 보충 질문.",
+      "expected_actions": [
+        "respond_and_continue"
+      ]
+    },
+    {
+      "scenario_id": "policy_v3_challenge_shipping_to_address_change_001",
+      "level": 3,
+      "domain": "commerce",
+      "ai_current_intent": "shipping_inquiry",
+      "ai_utterance": "배송 상태는 현재 물류센터 출고 단계입니다.",
+      "user_utterance": "아 그럼 배송지 주소를 바꿔주세요.",
+      "event_type": "intent_shift",
+      "expected_user_intent": "shipping_address_change",
+      "user_tone_hint": "neutral",
+      "has_user_speech": true,
+      "notes": "v3 challenge minimal pair: 배송 조회에서 배송지 변경 업무로 전환한다.",
+      "expected_actions": [
+        "stop_and_switch"
+      ]
+    },
+    {
+      "scenario_id": "policy_v3_challenge_shipping_same_eta_001",
+      "level": 3,
+      "domain": "commerce",
+      "ai_current_intent": "shipping_inquiry",
+      "ai_utterance": "주문하신 상품은 내일 오후에 도착할 예정입니다.",
+      "user_utterance": "그럼 몇 시쯤 도착해요?",
+      "event_type": "same_intent_question",
+      "expected_user_intent": "shipping_inquiry",
+      "user_tone_hint": "neutral",
+      "has_user_speech": true,
+      "notes": "v3 challenge: 배송 도착 예정 안내 안의 시간 보충 질문.",
+      "expected_actions": [
+        "respond_and_continue"
+      ]
+    },
+    {
+      "scenario_id": "policy_v3_challenge_shipping_to_cancel_001",
+      "level": 3,
+      "domain": "commerce",
+      "ai_current_intent": "shipping_inquiry",
+      "ai_utterance": "주문하신 상품은 내일 오후에 도착할 예정입니다.",
+      "user_utterance": "그럼 도착 전에 주문 취소할 수 있어요?",
+      "event_type": "intent_shift",
+      "expected_user_intent": "order_cancellation",
+      "user_tone_hint": "neutral",
+      "has_user_speech": true,
+      "notes": "v3 challenge minimal pair: 배송 안내 중 주문 취소 가능 여부로 전환한다.",
+      "expected_actions": [
+        "stop_and_switch"
+      ]
+    },
+    {
+      "scenario_id": "policy_v3_challenge_cancel_same_fee_001",
+      "level": 3,
+      "domain": "commerce",
+      "ai_current_intent": "order_cancellation",
+      "ai_utterance": "출고 전 주문은 바로 취소할 수 있습니다.",
+      "user_utterance": "취소 수수료는 없어요?",
+      "event_type": "same_intent_question",
+      "expected_user_intent": "order_cancellation",
+      "user_tone_hint": "neutral",
+      "has_user_speech": true,
+      "notes": "v3 challenge: 주문 취소 흐름 안의 수수료 보충 질문.",
+      "expected_actions": [
+        "respond_and_continue"
+      ]
+    },
+    {
+      "scenario_id": "policy_v3_challenge_cancel_to_shipping_eta_001",
+      "level": 3,
+      "domain": "commerce",
+      "ai_current_intent": "order_cancellation",
+      "ai_utterance": "출고 전 주문은 바로 취소할 수 있습니다.",
+      "user_utterance": "취소 말고 배송 예정일만 알려주세요.",
+      "event_type": "intent_shift",
+      "expected_user_intent": "shipping_inquiry",
+      "user_tone_hint": "neutral",
+      "has_user_speech": true,
+      "notes": "v3 challenge minimal pair: 주문 취소에서 배송 조회 업무로 전환한다.",
+      "expected_actions": [
+        "stop_and_switch"
+      ]
+    },
+    {
+      "scenario_id": "policy_v3_challenge_backchannel_control_001",
+      "level": 1,
+      "domain": "commerce",
+      "ai_current_intent": "refund_request",
+      "ai_utterance": "환불은 접수 후 영업일 기준 3~5일 안에 처리됩니다.",
+      "user_utterance": "네 알겠습니다.",
+      "event_type": "backchannel",
+      "expected_user_intent": null,
+      "user_tone_hint": "neutral",
+      "has_user_speech": true,
+      "notes": "v3 challenge control: 짧은 수신 확인은 의도 전환이 아니다.",
+      "expected_actions": [
+        "continue",
+        "brief_ack"
+      ]
+    },
+    {
+      "scenario_id": "policy_v3_challenge_ambiguous_control_001",
+      "level": 2,
+      "domain": "commerce",
+      "ai_current_intent": "payment_issue",
+      "ai_utterance": "결제 오류 내용을 확인해 드리겠습니다.",
+      "user_utterance": "음... 그럼 잠깐만요.",
+      "event_type": "ambiguous",
+      "expected_user_intent": null,
+      "user_tone_hint": "neutral",
+      "has_user_speech": true,
+      "notes": "v3 challenge control: 같은 의도 질문인지 업무 전환인지 아직 불명확하다.",
+      "expected_actions": [
+        "ask_clarifying"
+      ]
+    }
+  ]
+}

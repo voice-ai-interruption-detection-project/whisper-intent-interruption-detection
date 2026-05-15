@@ -17,6 +17,7 @@ def test_root_serves_static_ui() -> None:
     assert "단일 케이스 확인" in response.text
     assert "선택한 케이스" in response.text
     assert "마이크로 고객 발화 대체" in response.text
+    assert "Mic expected action" in response.text
     assert "Test Bench" in response.text
     assert "/static/js/main.js" in response.text
 
@@ -30,6 +31,7 @@ def test_ui_javascript_uses_api_vocabularies() -> None:
     assert "/runs" in js
     assert "/mic/predict" in js
     assert "/playground/reviews" in js
+    assert "micExpectedAction" in js
     assert "policy_v1" not in js
     assert "baseline" not in js
     assert "pause" not in js

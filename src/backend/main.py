@@ -300,6 +300,7 @@ async def predict_scenario_mic(
     request: Request,
     file: UploadFile = File(...),
     policy: str = Form(default="baseline"),
+    expected_action: ActionLabel | None = Form(default=None),
     transcript: str | None = Form(default=None),
     transcriber: str = Form(default="precomputed"),
     language: str = Form(default="ko"),
@@ -333,11 +334,28 @@ async def predict_scenario_mic(
         except (AudioProcessingError, ValueError) as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
 
+        match_expected_actions = (
+            [expected_action]
+            if expected_action is not None
+            else scenario.expected_actions
+        )
+
         return {
             "scenario_id": scenario.scenario_id,
-            "expected_actions": [action.value for action in scenario.expected_actions],
+            "scenario_expected_actions": [
+                action.value for action in scenario.expected_actions
+            ],
+            "mic_expected_action": (
+                expected_action.value if expected_action is not None else None
+            ),
+            "action_match_basis": (
+                "mic_expected_action"
+                if expected_action is not None
+                else "scenario_expected_actions"
+            ),
+            "expected_actions": [action.value for action in match_expected_actions],
             "action_match": is_action_match(
-                scenario.expected_actions,
+                match_expected_actions,
                 decision.actual_action,
             ),
             "decision": decision.model_dump(mode="json"),

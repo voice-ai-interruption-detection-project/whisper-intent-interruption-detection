@@ -1,0 +1,88 @@
+{
+  "run_id": "20260515_110153_policy_v2",
+  "timestamp": "2026-05-15T11:01:53.781741+09:00",
+  "source": "cli",
+  "mode": "compare",
+  "target": "data/scenarios_policy_v3_challenge.json",
+  "changed": [
+    "policy:policy_v2"
+  ],
+  "dataset": "data/scenarios_policy_v3_challenge.json",
+  "policy_version": "policy_v2",
+  "policy_snapshot": {
+    "name": "policy_v2",
+    "version": "pipeline-components-v1",
+    "mode": "interpreter_pipeline_action_selector",
+    "prompt_version": "policy_v2_backchannel_noise_v1",
+    "llm": {
+      "provider": "openai_responses",
+      "model": "gpt-5.4-mini",
+      "base_url": "https://api.openai.com",
+      "response_format": "json_schema",
+      "timeout_s": 30.0
+    },
+    "pipeline": {
+      "judgment_provider": "legacy_llm_action_judgment_provider",
+      "interpreter": "llm_structured_signal_interpreter",
+      "action_selector": "llm_baseline_action_selector",
+      "decision_assembler": "policy_decision"
+    },
+    "input_fields": [
+      "ai_current_intent",
+      "ai_utterance",
+      "user_utterance",
+      "has_user_speech",
+      "user_tone_hint"
+    ],
+    "excluded_fields": [
+      "expected_actions",
+      "event_type",
+      "expected_user_intent"
+    ],
+    "structured_output": "action_judgment_with_signal_interpretation",
+    "policy_guidance": {
+      "focus": "backchannel_noise_no_speech_stabilization",
+      "target_failure": "false_stop",
+      "rules": [
+        "If has_user_speech is false or user_utterance is empty/blank, choose continue and do not infer a new customer request.",
+        "Treat short Korean backchannels such as 네, 음, 알겠어요, 맞아요 as not intent shifts.",
+        "For backchannels, choose continue when no response is needed or brief_ack when a small acknowledgement helps, then continue the original AI flow.",
+        "Do not stop or switch only because an input adapter detected sound; there must be a meaningful request in the transcript.",
+        "Even if the utterance is short, clear requests such as refund, cancellation, return, payment issue, or human agent request are not backchannels."
+      ]
+    }
+  },
+  "criteria_snapshot": {
+    "action_labels": [
+      "continue",
+      "brief_ack",
+      "respond_and_continue",
+      "stop_and_switch",
+      "ask_clarifying",
+      "handoff"
+    ],
+    "primary_failures": [
+      "false_stop",
+      "missed_switch",
+      "action_confusion",
+      "ambiguous_intent",
+      "STT_uncertainty"
+    ],
+    "comparison": "actual_action_in_expected_actions"
+  },
+  "latency_ms": 73699.675,
+  "command": "python src/runner.py --policy policy_v2 --dataset data/scenarios_policy_v3_challenge.json --write-results",
+  "dataset_id": "policy_v3_challenge",
+  "dataset_label": "Policy v3 challenge slice",
+  "dataset_scope": "diagnostic",
+  "dataset_snapshot": {
+    "id": "policy_v3_challenge",
+    "label": "Policy v3 challenge slice",
+    "path": "data/scenarios_policy_v3_challenge.json",
+    "scope": "diagnostic",
+    "description": "v2가 넓은 주제 연속으로 묶기 쉬운 인접 업무 경계를 집중적으로 보는 policy_v3 challenge dataset",
+    "input_modes": [
+      "text"
+    ]
+  }
+}

@@ -93,6 +93,8 @@ def test_policies_comes_from_registry(client: TestClient) -> None:
         "baseline",
         "policy_v1",
         "policy_v2",
+        "policy_v3",
+        "policy_v3_1",
     ]
 
 
@@ -105,9 +107,13 @@ def test_datasets_comes_from_registry(client: TestClient) -> None:
     assert [item["id"] for item in body["datasets"]] == [
         "core",
         "policy_v2_edge",
+        "policy_v3_edge",
+        "policy_v3_challenge",
     ]
     assert body["datasets"][1]["scope"] == "diagnostic"
     assert body["datasets"][1]["input_modes"] == ["text"]
+    assert body["datasets"][2]["scope"] == "diagnostic"
+    assert body["datasets"][3]["scope"] == "diagnostic"
 
 
 def test_scenario_predict_uses_runner(client: TestClient) -> None:
@@ -219,6 +225,40 @@ def test_create_run_with_policy_v2_edge_dataset(client: TestClient) -> None:
     assert body["run_meta"]["dataset_id"] == "policy_v2_edge"
     assert body["run_meta"]["dataset_scope"] == "diagnostic"
     assert body["evaluation"]["total"] == 11
+
+
+def test_create_run_with_policy_v3_edge_dataset(client: TestClient) -> None:
+    response = client.post(
+        "/runs",
+        json={
+            "policy": "policy_v2",
+            "dataset_id": "policy_v3_edge",
+            "input_mode": "text",
+        },
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["run_meta"]["dataset_id"] == "policy_v3_edge"
+    assert body["run_meta"]["dataset_scope"] == "diagnostic"
+    assert body["evaluation"]["total"] == 12
+
+
+def test_create_run_with_policy_v3_challenge_dataset(client: TestClient) -> None:
+    response = client.post(
+        "/runs",
+        json={
+            "policy": "policy_v2",
+            "dataset_id": "policy_v3_challenge",
+            "input_mode": "text",
+        },
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["run_meta"]["dataset_id"] == "policy_v3_challenge"
+    assert body["run_meta"]["dataset_scope"] == "diagnostic"
+    assert body["evaluation"]["total"] == 18
 
 
 def test_create_run_rejects_dataset_input_mode_mismatch(

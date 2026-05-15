@@ -13,6 +13,7 @@ from interruption_detection.policies.baseline import BaselinePolicy
 from interruption_detection.policies import get_policy, list_policies
 from interruption_detection.policies.policy_v1 import PolicyV1
 from interruption_detection.policies.policy_v2 import PolicyV2
+from interruption_detection.policies.policy_v3 import PolicyV3, PolicyV31
 
 
 def make_input(
@@ -34,6 +35,8 @@ def test_list_policies_returns_registry_entries() -> None:
         "baseline",
         "policy_v1",
         "policy_v2",
+        "policy_v3",
+        "policy_v3_1",
     ]
 
 
@@ -143,6 +146,67 @@ def test_policy_v2_adds_backchannel_noise_guidance(fake_llm_client) -> None:
     assert "expected_actions" not in request.user_prompt
 
 
+def test_policy_v3_adds_same_intent_boundary_guidance(fake_llm_client) -> None:
+    policy = PolicyV3(llm_client=fake_llm_client)
+
+    decision = policy.predict(
+        PolicyInput(
+            ai_current_intent="shipping_inquiry",
+            ai_utterance="배송 상태는 현재 물류센터 출고 단계입니다.",
+            user_utterance="아 그럼 배송 추적번호도 알려주세요.",
+            user_tone_hint=UserToneHint.NEUTRAL,
+            has_user_speech=True,
+        )
+    )
+
+    assert decision.actual_action == ActionLabel.RESPOND_AND_CONTINUE
+    request = fake_llm_client.requests[-1]
+    assert request.policy_name == "policy_v3"
+    assert request.prompt_version == "policy_v3_same_intent_boundary_v1"
+    assert "Policy-specific guidance" in request.developer_prompt
+    assert "same_intent_question_intent_shift_boundary" in request.developer_prompt
+    assert "그럼 배송비는 얼마예요?" in request.developer_prompt
+    assert "결제 말고 배송지는 지금 바꿀 수 있어요?" in request.developer_prompt
+    assert "user_tone_hint" in request.user_prompt
+    assert request.metadata["policy_guidance"]["target_failure"] == (
+        "false_stop_on_same_intent_question"
+    )
+    assert "event_type" not in request.user_prompt
+    assert "expected_user_intent" not in request.user_prompt
+    assert "expected_actions" not in request.user_prompt
+
+
+def test_policy_v3_1_adds_return_refund_boundary_guidance(fake_llm_client) -> None:
+    policy = PolicyV31(llm_client=fake_llm_client)
+
+    decision = policy.predict(
+        PolicyInput(
+            ai_current_intent="return_policy",
+            ai_utterance="개봉하지 않은 상품은 수령 후 7일 이내 반품할 수 있습니다.",
+            user_utterance="그럼 환불금은 언제 들어와요?",
+            user_tone_hint=UserToneHint.NEUTRAL,
+            has_user_speech=True,
+        )
+    )
+
+    assert decision.actual_action == ActionLabel.STOP_AND_SWITCH
+    request = fake_llm_client.requests[-1]
+    assert request.policy_name == "policy_v3_1"
+    assert request.prompt_version == "policy_v3_1_return_refund_boundary_v1"
+    assert "return_refund_adjacent_workflow_boundary" in request.developer_prompt
+    assert "return and refund as adjacent but separate workflows" in (
+        request.developer_prompt
+    )
+    assert "환불금은 언제 들어와요?" in request.developer_prompt
+    assert "환불 계좌는 어디서 바꿔요?" in request.developer_prompt
+    assert request.metadata["policy_guidance"]["target_failure"] == (
+        "missed_switch_between_return_and_refund"
+    )
+    assert "event_type" not in request.user_prompt
+    assert "expected_user_intent" not in request.user_prompt
+    assert "expected_actions" not in request.user_prompt
+
+
 def test_runner_input_strips_evaluation_fields_before_policy() -> None:
     runner_input = RunnerInput(
         ai_current_intent="shipping_inquiry",
@@ -191,6 +255,56 @@ def test_policy_v2_snapshot_exposes_guidance() -> None:
         "backchannel_noise_no_speech_stabilization"
     )
     assert snapshot["policy_guidance"]["target_failure"] == "false_stop"
+    assert snapshot["input_fields"] == [
+        "ai_current_intent",
+        "ai_utterance",
+        "user_utterance",
+        "has_user_speech",
+        "user_tone_hint",
+    ]
+    assert snapshot["excluded_fields"] == [
+        "expected_actions",
+        "event_type",
+        "expected_user_intent",
+    ]
+
+
+def test_policy_v3_snapshot_exposes_guidance() -> None:
+    snapshot = get_policy("policy_v3").snapshot()
+
+    assert snapshot["name"] == "policy_v3"
+    assert snapshot["prompt_version"] == "policy_v3_same_intent_boundary_v1"
+    assert snapshot["policy_guidance"]["focus"] == (
+        "same_intent_question_intent_shift_boundary"
+    )
+    assert snapshot["policy_guidance"]["target_failure"] == (
+        "false_stop_on_same_intent_question"
+    )
+    assert snapshot["input_fields"] == [
+        "ai_current_intent",
+        "ai_utterance",
+        "user_utterance",
+        "has_user_speech",
+        "user_tone_hint",
+    ]
+    assert snapshot["excluded_fields"] == [
+        "expected_actions",
+        "event_type",
+        "expected_user_intent",
+    ]
+
+
+def test_policy_v3_1_snapshot_exposes_return_refund_guidance() -> None:
+    snapshot = get_policy("policy_v3_1").snapshot()
+
+    assert snapshot["name"] == "policy_v3_1"
+    assert snapshot["prompt_version"] == "policy_v3_1_return_refund_boundary_v1"
+    assert snapshot["policy_guidance"]["focus"] == (
+        "return_refund_adjacent_workflow_boundary"
+    )
+    assert snapshot["policy_guidance"]["target_failure"] == (
+        "missed_switch_between_return_and_refund"
+    )
     assert snapshot["input_fields"] == [
         "ai_current_intent",
         "ai_utterance",

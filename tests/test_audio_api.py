@@ -119,6 +119,37 @@ def test_scenario_mic_predict_overrides_user_utterance(
     assert audio["transcriber"]["provider"] == "precomputed_manifest"
 
 
+def test_scenario_mic_predict_uses_expected_action_override_after_policy(
+    client: TestClient, tmp_path, fake_llm_client
+) -> None:
+    audio_path = tmp_path / "mic.webm"
+    write_wav(audio_path)
+
+    response = client.post(
+        "/scenarios/commerce_shipping_to_refund_001/mic/predict",
+        data={
+            "policy": "policy_v1",
+            "transcriber": "precomputed",
+            "transcript": "배송비는 얼마예요?",
+            "expected_action": "respond_and_continue",
+        },
+        files={"file": ("mic.webm", audio_path.read_bytes(), "audio/webm")},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["scenario_expected_actions"] == ["stop_and_switch"]
+    assert body["mic_expected_action"] == "respond_and_continue"
+    assert body["action_match_basis"] == "mic_expected_action"
+    assert body["expected_actions"] == ["respond_and_continue"]
+    assert body["action_match"] is True
+    assert body["decision"]["actual_action"] == "respond_and_continue"
+
+    request = fake_llm_client.requests[-1]
+    assert "expected_action" not in request.user_prompt
+    assert "expected_actions" not in request.user_prompt
+
+
 def write_wav(path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     sample_rate = 16000

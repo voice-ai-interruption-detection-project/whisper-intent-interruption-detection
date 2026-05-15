@@ -10,10 +10,14 @@ from interruption_detection.audio.manifest import (
     load_audio_manifest,
 )
 from interruption_detection.audio.stt import build_transcriber
+from interruption_detection.datasets import DatasetRegistryError, find_dataset_by_path
 from interruption_detection.evaluation.audio_evaluator import evaluate_audio_manifest
 from interruption_detection.evaluation.evaluator import evaluate_dataset
 from interruption_detection.runner import run_scenario
 from interruption_detection.scenarios import get_scenario_by_id, load_scenarios
+
+
+DATASET_REGISTRY_PATH = Path("data/datasets.json")
 
 
 def main() -> int:
@@ -46,6 +50,7 @@ def main() -> int:
             args.policy,
             source="cli",
             command=" ".join(["python", "src/runner.py", *vars_to_args(args)]),
+            dataset_snapshot=dataset_snapshot_for_cli(dataset),
         )
         print(json.dumps(result, ensure_ascii=False, indent=2))
 
@@ -89,6 +94,7 @@ def run_audio_mode(args: argparse.Namespace, dataset: Path) -> int:
             transcriber,
             source="cli",
             command=" ".join(["python", "src/runner.py", *vars_to_args(args)]),
+            dataset_snapshot=dataset_snapshot_for_cli(dataset),
         )
         print(json.dumps(result, ensure_ascii=False, indent=2))
 
@@ -148,6 +154,19 @@ def vars_to_args(args: argparse.Namespace) -> list[str]:
         output.append("--write-results")
 
     return output
+
+
+def dataset_snapshot_for_cli(dataset: Path) -> dict[str, object] | None:
+    """CLI dataset path가 registry 항목이면 run_meta용 snapshot을 반환한다."""
+    try:
+        item = find_dataset_by_path(DATASET_REGISTRY_PATH, dataset)
+    except DatasetRegistryError:
+        return None
+
+    if item is None:
+        return None
+
+    return item.model_dump(mode="json")
 
 
 if __name__ == "__main__":

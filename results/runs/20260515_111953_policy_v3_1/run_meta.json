@@ -1,0 +1,93 @@
+{
+  "run_id": "20260515_111953_policy_v3_1",
+  "timestamp": "2026-05-15T11:19:53.946515+09:00",
+  "source": "cli",
+  "mode": "compare",
+  "target": "data/scenarios.json",
+  "changed": [
+    "policy:policy_v3_1"
+  ],
+  "dataset": "data/scenarios.json",
+  "policy_version": "policy_v3_1",
+  "policy_snapshot": {
+    "name": "policy_v3_1",
+    "version": "pipeline-components-v1",
+    "mode": "interpreter_pipeline_action_selector",
+    "prompt_version": "policy_v3_1_return_refund_boundary_v1",
+    "llm": {
+      "provider": "openai_responses",
+      "model": "gpt-5.4-mini",
+      "base_url": "https://api.openai.com",
+      "response_format": "json_schema",
+      "timeout_s": 30.0
+    },
+    "pipeline": {
+      "judgment_provider": "legacy_llm_action_judgment_provider",
+      "interpreter": "llm_structured_signal_interpreter",
+      "action_selector": "llm_baseline_action_selector",
+      "decision_assembler": "policy_decision"
+    },
+    "input_fields": [
+      "ai_current_intent",
+      "ai_utterance",
+      "user_utterance",
+      "has_user_speech",
+      "user_tone_hint"
+    ],
+    "excluded_fields": [
+      "expected_actions",
+      "event_type",
+      "expected_user_intent"
+    ],
+    "structured_output": "action_judgment_with_signal_interpretation",
+    "policy_guidance": {
+      "focus": "return_refund_adjacent_workflow_boundary",
+      "target_failure": "missed_switch_between_return_and_refund",
+      "rules": [
+        "First decide whether the user utterance stays inside ai_current_intent or asks for a different commerce workflow.",
+        "Do not choose stop_and_switch only because the user asked a question; if the question asks details, status, timing, fee, account, method, or next step inside the current intent, choose respond_and_continue.",
+        "Choose stop_and_switch when the utterance asks for a different task such as refund, cancellation, return pickup, payment retry, shipping address change, or human agent connection outside the current intent.",
+        "Treat similar Korean openings such as 그럼, 아 그럼, 아니면 as weak signals; route by the requested business task, not by the opening.",
+        "Keep no_speech, noise, and short backchannel handling stable: continue or brief_ack when there is no meaningful request.",
+        "Treat return and refund as adjacent but separate workflows when the current intent is specifically about return pickup, return request, or return policy.",
+        "If ai_current_intent is return_request or return_policy and the user asks about refund account, refund amount, refund timing, refund status, deposit timing, or when money will arrive, choose stop_and_switch.",
+        "If ai_current_intent is refund_request and the user asks to schedule, change, restart, or check return pickup, choose stop_and_switch.",
+        "Only choose respond_and_continue inside return_request or return_policy when the user asks about return eligibility, packaging, pickup address, pickup date, pickup method, or return application steps."
+      ]
+    }
+  },
+  "criteria_snapshot": {
+    "action_labels": [
+      "continue",
+      "brief_ack",
+      "respond_and_continue",
+      "stop_and_switch",
+      "ask_clarifying",
+      "handoff"
+    ],
+    "primary_failures": [
+      "false_stop",
+      "missed_switch",
+      "action_confusion",
+      "ambiguous_intent",
+      "STT_uncertainty"
+    ],
+    "comparison": "actual_action_in_expected_actions"
+  },
+  "latency_ms": 115103.41,
+  "command": "python src/runner.py --policy policy_v3_1 --dataset data/scenarios.json --write-results",
+  "dataset_id": "core",
+  "dataset_label": "Core scenarios",
+  "dataset_scope": "official",
+  "dataset_snapshot": {
+    "id": "core",
+    "label": "Core scenarios",
+    "path": "data/scenarios.json",
+    "scope": "official",
+    "description": "기본 Text Replay와 Audio File Test가 공유하는 공식 Test Bench dataset",
+    "input_modes": [
+      "text",
+      "audio_file"
+    ]
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "total": 18,
+  "correct": 17,
+  "action_accuracy": 0.9444,
+  "failures": {
+    "false_stop": 0,
+    "missed_switch": 0,
+    "action_confusion": 0,
+    "ambiguous_intent": 1,
+    "STT_uncertainty": 0
+  },
+  "mismatch_matrix": {
+    "ask_clarifying": {
+      "continue": 1
+    }
+  },
+  "latency_ms": {
+    "total": 76106.527,
+    "average": 4228.14
+  }
+}

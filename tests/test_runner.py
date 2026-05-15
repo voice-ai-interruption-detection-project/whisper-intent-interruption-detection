@@ -3,6 +3,7 @@ from __future__ import annotations
 from interruption_detection.models import ActionLabel, EventType, RunnerInput
 from interruption_detection.runner import run_input, run_scenario
 from interruption_detection.scenarios import get_scenario_by_id
+from runner import dataset_snapshot_for_cli
 
 
 def test_run_scenario_uses_registered_policy() -> None:
@@ -45,3 +46,11 @@ def test_run_input_uses_policy_v2() -> None:
     assert decision.actual_action == ActionLabel.CONTINUE
     assert decision.policy_name == "policy_v2"
     assert decision.signals["prompt_version"] == "policy_v2_backchannel_noise_v1"
+
+
+def test_cli_dataset_snapshot_uses_registry_for_edge_dataset() -> None:
+    snapshot = dataset_snapshot_for_cli("data/scenarios_policy_v3_edge.json")
+
+    assert snapshot is not None
+    assert snapshot["id"] == "policy_v3_edge"
+    assert snapshot["scope"] == "diagnostic"

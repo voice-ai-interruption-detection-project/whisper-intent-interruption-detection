@@ -99,6 +99,7 @@ const elements = {
   micClearButton: document.querySelector("#micClearButton"),
   micPlayback: document.querySelector("#micPlayback"),
   micTranscriber: document.querySelector("#micTranscriber"),
+  micExpectedAction: document.querySelector("#micExpectedAction"),
   micTranscript: document.querySelector("#micTranscript"),
   micStatus: document.querySelector("#micStatus"),
   compareButton: document.querySelector("#compareButton"),
@@ -205,6 +206,10 @@ function renderControls(defaultDatasetId) {
   );
   elements.textToneHint.replaceChildren(
     ...state.schema.user_tone_hints.map((tone) => option(tone, formatToneHint(tone)))
+  );
+  elements.micExpectedAction.replaceChildren(
+    option("", "scenario expected_actions 기준"),
+    ...state.schema.action_labels.map((action) => option(action, formatActionLabel(action)))
   );
   renderPolicySnapshot();
   renderDatasetStats();
@@ -367,6 +372,10 @@ async function predictMicInput(scenario) {
   form.append("policy", elements.policySelect.value);
   form.append("transcriber", elements.micTranscriber.value);
   form.append("transcript", elements.micTranscript.value);
+
+  if (elements.micExpectedAction.value) {
+    form.append("expected_action", elements.micExpectedAction.value);
+  }
 
   elements.micStatus.textContent = "Mic Trial 실행 중";
 
@@ -620,6 +629,8 @@ function renderMicControls() {
     !state.mic.blob;
   elements.micTranscriber.disabled =
     !enabled || state.mic.recording || state.mic.transcribing;
+  elements.micExpectedAction.disabled =
+    !enabled || state.mic.recording || state.mic.transcribing;
   elements.micTranscript.disabled =
     !enabled || state.mic.recording || state.mic.transcribing;
 
@@ -733,7 +744,16 @@ function renderFocusResult(result) {
 
   renderDefinitionList(elements.decisionMeta, [
     ["policy", decision.policy_name],
-    ["expected_actions", hasExpected ? formatExpectedActions(result) : "n/a"],
+    [
+      "scenario expected_actions",
+      result.scenario_expected_actions
+        ? result.scenario_expected_actions.join(", ")
+        : hasExpected
+          ? formatExpectedActions(result)
+          : "n/a",
+    ],
+    ["mic expected_action", result.mic_expected_action || "없음"],
+    ["match 기준", result.action_match_basis || (hasExpected ? "expected_actions" : "n/a")],
     ["actual_action", decision.actual_action],
     ["latency", `${decision.latency_ms} ms`],
   ]);
