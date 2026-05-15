@@ -1,239 +1,96 @@
-# Evaluation Approach: 정책들을 어떻게 평가하는가?
+# Evaluation Approach: 어떻게 평가하는가?
 
-## 평가의 기본 원칙
+## 기본 원칙
 
-```
-각 정책(Baseline~Policy v3)을 같은 30개 시나리오에 적용
-  ↓
-actual_action이 expected_actions에 포함되는지 비교
-  ↓
-어떤 정책이 어떤 상황을 더 잘 다루는가 분석
-```
+공식 평가는 Playground 화면 수치가 아니라 `results/runs/{run_id}/` artifact를 기준으로 합니다.
 
----
-
-## 평가 대상 3가지
-
-### 1️⃣ Binary Interruption (개입 필요 여부)
-
-**정의:**
-```
-Intervention Required: pause, stop_and_switch, ask_clarifying, handoff
-No Intervention:      continue, brief_ack
+```text
+dataset 로드
+-> policy 실행
+-> decision_logs.jsonl 생성
+-> actual_action in expected_actions 비교
+-> evaluation.json 생성
+-> error_analysis.md 생성
 ```
 
-**의미:**
-- AI가 "멈춰야 하는가" vs "계속 말해야 하는가"
+## 평가 기준
 
----
+`expected_actions`는 사람이 정한 자연스러운 행동 기준이고, `actual_action`은 policy 실행 결과입니다.
 
-### 2️⃣ Action Classification (행동 분류)
-
-**정의:** 6가지 action label 중 정확히 어떤 것을 선택했는가?
-
-**의미:**
-- 단순히 멈추는지 계속하는지만이 아니라
-- **어떤 식으로 멈추고 어떻게 대응할 것인가**
-
----
-
-### 3️⃣ Policy Version Comparison (정책 간 비교)
-
-**정의:** Baseline, Policy v1, Policy v2, Policy v3의 성능을 단계별로 비교
-
-**의미:**
-- 각 단계에서 "새로 추가한 신호"가 실제로 개선을 가져왔는가?
-- 언제 어떤 문제가 해결되는가?
-
----
-
-## 평가 지표 (Metrics)
-
-### 📊 분류 정확도
-
-| 지표 | 정의 | 의미 |
-|------|------|------|
-| **Accuracy** | (TP + TN) / 전체 | 전체 예측이 얼마나 맞았는가? |
-| **Precision** | TP / (TP + FP) | "멈춰야 한다"고 했을 때, 실제로 맞을 확률? |
-| **Recall** | TP / (TP + FN) | 실제로 멈춰야 하는 경우를 놓치지 않았는가? |
-| **F1 Score** | 2 × (P × R) / (P + R) | Precision과 Recall의 균형 |
-
-### 🎯 도메인 특화 지표
-
-| 지표 | 정의 | 고객 입장 |
-|------|------|---------|
-| **False Stop Rate** | 멈추지 말아야 할 때 멈춘 비율 | "왜 내 맞장구에 반응을 안 하지?" |
-| **Missed Switch Rate** | 전환해야 할 때 못한 비율 | "내 의도를 못 알아듣나?" |
-| **Mismatch Matrix** | 복수 정답 set별 오답 actual_action 패턴 | 어떤 허용 행동 묶음에서 무엇으로 틀리는가? |
-
----
-
-## 단계별 평가 전략
-
-### Baseline vs Policy v1 비교
-
-```
-목표: False Stop Rate 감소
-
-측정:
-├─ Baseline (VAD-only)
-│  └─ backchannel 시나리오를 모두 "interrupt"로 판단
-│     → False Stop Rate = 25%
-│
-└─ Policy v1 (+ Backchannel Rule)
-   └─ backchannel을 "continue"로 판단
-      → False Stop Rate = 8%
-      ✅ 개선: 25% → 8% (↓17%)
+```text
+action_match = actual_action in expected_actions
+action_accuracy = correct / total
 ```
 
----
+`backchannel`처럼 `continue`와 `brief_ack`가 모두 자연스러운 케이스는 복수 정답을 허용합니다.
 
-### Policy v1 vs Policy v2 비교
+## Run Artifact 구조
 
-```
-목표: Missed Switch Rate 감소
-
-측정:
-├─ Policy v1 (Backchannel만 봄)
-│  └─ intent_shift 시나리오도 "continue"로 남김
-│     → Missed Switch Rate = 40%
-│
-└─ Policy v2 (+ Intent Shift Detection)
-   └─ intent_shift를 "stop_and_switch"로 판단
-      → Missed Switch Rate = 12%
-      ✅ 개선: 40% → 12% (↓28%)
+```text
+results/runs/{run_id}/
+├── run_meta.json
+├── evaluation.json
+├── decision_logs.jsonl
+└── error_analysis.md
 ```
 
----
+| 파일 | 내용 |
+| --- | --- |
+| `run_meta.json` | 실행 조건, dataset, policy snapshot, criteria snapshot |
+| `evaluation.json` | total, correct, action_accuracy, failures, mismatch_matrix, latency |
+| `decision_logs.jsonl` | 케이스별 expected/actual, reason, signals, failure |
+| `error_analysis.md` | 실패 케이스 요약 |
 
-### Policy v2 vs Policy v3 비교
+## 실패 분류
 
-```
-목표: 종합 정확도(Accuracy) 향상
+| primary failure | 의미 |
+| --- | --- |
+| `false_stop` | 멈추지 않아도 될 때 개입 또는 전환으로 판단 |
+| `missed_switch` | 전환해야 할 때 계속하거나 답하고 이어감 |
+| `action_confusion` | 다른 valid action으로 혼동 |
+| `ambiguous_intent` | 입력 자체의 의도가 불명확한 영역에서 실패 |
+| `STT_uncertainty` | transcript 노이즈가 판단 실패에 영향을 줌 |
 
-측정:
-├─ Policy v2 (Intent Similarity만 봄)
-│  └─ Accuracy = 85%
-│     하지만 complaint나 ambiguous를 다루지 못함
-│
-└─ Policy v3 (Full Policy)
-   └─ 모든 event_type 고려
-      → Accuracy = 89%
-      ✅ 개선: 85% → 89% (↑4%)
-```
+현재 공개 수치에서는 `action_accuracy`와 primary failure를 중심으로 봅니다. binary precision/recall은 계약상 확장 가능하지만, 현재 최종 공유 수치의 중심은 아닙니다.
 
----
+## 최신 Core 결과
 
-## Mismatch Matrix 예시
+dataset: `data/scenarios.json`
 
-```
-Policy v2 정책의 Mismatch Matrix (예시):
+| policy | run_id | correct / total | action_accuracy | failures |
+| --- | --- | ---: | ---: | --- |
+| `policy_v2` | `20260515_112306_policy_v2` | 26 / 30 | 0.8667 | `missed_switch=2`, `ambiguous_intent=2` |
+| `policy_v3_1` | `20260515_111953_policy_v3_1` | 27 / 30 | 0.9000 | `false_stop=1`, `missed_switch=1`, `ambiguous_intent=1` |
 
-Expected actions set                Actual action
-brief_ack|continue                  stop_and_switch: 2
-respond_and_continue                ask_clarifying: 1
-stop_and_switch                     continue: 3
+`policy_v3_1`은 core에서 `policy_v2`보다 1건 더 맞췄습니다. 추가로 확인할 케이스도 함께 남았습니다.
 
-해석:
-- backchannel 허용 set(continue/brief_ack)에서 멈춤 판단이 난 케이스가 있음
-- "same_intent_question"과 "intent_shift" 경계에서 실수 많음
-- 정답 action이 여러 개인 케이스는 primary label로 접지 않고 set membership으로 평가함
-```
+| scenario_id | expected_actions | actual_action | primary_failure |
+| --- | --- | --- | --- |
+| `commerce_payment_follow_001` | `respond_and_continue` | `stop_and_switch` | `false_stop` |
+| `commerce_complaint_001` | `stop_and_switch` | `respond_and_continue` | `missed_switch` |
+| `commerce_ambiguous_002` | `ask_clarifying` | `brief_ack` | `ambiguous_intent` |
 
----
+## 최신 Challenge 결과
 
-## Decision Log 기록
+dataset: `data/scenarios_policy_v3_challenge.json`
 
-각 시나리오에 대해 다음을 기록:
+| policy | run_id | correct / total | action_accuracy | failures |
+| --- | --- | ---: | ---: | --- |
+| `policy_v2` | `20260515_110153_policy_v2` | 14 / 18 | 0.7778 | `missed_switch=3`, `ambiguous_intent=1` |
+| `policy_v3` | `20260515_110243_policy_v3` | 15 / 18 | 0.8333 | `missed_switch=2`, `ambiguous_intent=1` |
+| `policy_v3_1` | `20260515_111904_policy_v3_1` | 17 / 18 | 0.9444 | `ambiguous_intent=1` |
 
-```json
-{
-  "scenario_id": "commerce_refund_001",
-  "policy_version": "Policy v2",
-  
-  "expected_actions": ["stop_and_switch"],
-  "actual_action": "stop_and_switch",
-  "action_match": true,
-  
-  "signals": {
-    "has_user_speech": true,
-    "stt_text": "아 그게 아니라 환불받고 싶은데요.",
-    "predicted_user_intent": "환불요청",
-    "current_intent": "배송조회",
-    "intent_similarity": 0.22
-  },
-  
-  "reason": "사용자 발화가 기존 배송조회 intent와 낮은 유사도를 보이고 환불요청 intent로 분류되어 전환 판단"
-}
-```
+이 challenge dataset은 반품과 환불처럼 비슷해 보이지만 실제 처리 흐름이 다른 요청을 구분하는지 확인합니다. `policy_v3_1`은 이런 요청을 같은 흐름으로 오판해 전환을 놓치는 실패인 `missed_switch`를 0건으로 줄였습니다.
 
----
+## 결과 해석
 
-## 1주차 MVP 평가 계획
+현재 결과에서 읽을 수 있는 내용은 다음입니다.
 
-### 데이터셋
-- **Scenario Bank**: 30개 (level 1~5 고르게 분포)
-- **Test Set**: 모든 30개 (작은 규모라 train/test split 하지 않고 전체 평가)
+- 공통 runner/evaluator와 run artifact 구조는 의도한 흐름대로 동작한다.
+- Text Replay와 Audio File Test는 같은 판단 구조로 합류할 수 있다.
+- `policy_v3_1`은 이전 정책들이 놓치던 반품/환불 경계를 더 명확히 했다. 반품 수거 주소나 포장처럼 현재 반품 흐름 안의 질문은 답하고 이어가지만, 환불 계좌, 금액, 입금 시점처럼 환불 업무로 넘어가는 질문은 전환하도록 개선했다.
+- complaint, ambiguous, 반복 실행 안정성은 후속 기준 정리와 추가 검증 대상으로 남아 있다.
 
-### 평가 흐름
+## 다음
 
-```
-Step 1: Scenario 로드 (30개)
-Step 2: 각 정책 실행 (Baseline, Policy v1, Policy v2, Policy v3)
-Step 3: 결과 기록 (decision_logs.jsonl)
-Step 4: 지표 계산 (accuracy, precision, recall, F1, domain metrics)
-Step 5: 비교 분석 (Baseline vs Policy v1, Policy v1 vs Policy v2, Policy v2 vs Policy v3)
-Step 6: 실패 케이스 분석
-```
-
-### 산출물
-
-```
-results/
-├─ evaluation.json          # 정책별 지표 종합
-├─ decision_logs.jsonl      # 각 시나리오별 판단 로그
-├─ evaluation.json          # action_accuracy, failures, mismatch_matrix, latency
-├─ run_meta.json            # 실행 설정과 기준 snapshot
-├─ metrics_comparison.png   # Accuracy/Precision/Recall 비교
-└─ error_analysis.md        # 실패 케이스 분석
-```
-
----
-
-## 평가의 한계
-
-### 1️⃣ Text-only 평가
-- 실제 음성의 prosody, tone, speed를 반영하지 않음
-- 향후 audio sample로 확장 계획
-
-### 2️⃣ Intent Shift Threshold 고정
-- 현재: 0.6으로 고정
-- 실제로는 domain/task별로 조정 필요
-
-### 3️⃣ 라벨링 편향
-- expected_actions는 우리가 "허용 가능한 행동"으로 정한 것
-- 실제 고객 반응과 다를 수 있음
-
-### 4️⃣ 샘플 크기 작음
-- 30개 시나리오는 통계적으로 유의미하지 않을 수 있음
-- 하지만 MVP 단계에선 경향성을 보는 것이 목표
-
----
-
-## 성공 기준
-
-✅ **최소 기준:**
-- Baseline과 Policy v1 사이에 유의미한 차이 (False Stop ↓)
-- Policy v1과 Policy v2 사이에 유의미한 차이 (Missed Switch ↓)
-- 각 정책의 강점과 약점이 명확히 드러남
-
-✅ **추가 기준:**
-- Policy v3가 "해석 가능한 규칙"으로 표현 가능한가?
-- 어떤 케이스가 모든 정책을 실패하게 하는가?
-- threshold 조정의 여지가 있는가?
-
----
-
-## 다음 섹션
-
-👉 **[Data & Scenarios](../03-data/schema.md)** — 평가 데이터를 어떻게 설계했는가?
+👉 [Data & Scenarios](../03-data/schema.md)

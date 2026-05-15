@@ -2,130 +2,58 @@
 
 ## 개요
 
-모든 시나리오는 다음 JSON 구조를 따른다.
+모든 판단 케이스는 `data/scenarios.json`의 `scenarios` 배열에 들어갑니다. scenario는 AI가 말하던 맥락, 고객 발화, 사람이 붙인 기준 라벨, 기대 action을 함께 담습니다.
 
 ```json
 {
-  "scenario_id": "commerce_refund_001",
+  "scenario_id": "commerce_shipping_to_refund_001",
   "level": 4,
   "domain": "commerce",
-  "ai_current_intent": "배송조회",
+  "ai_current_intent": "shipping_inquiry",
   "ai_utterance": "현재 상품은 배송 중이며 내일 오후 도착 예정입니다.",
-  "user_utterance": "아 그게 아니라 환불받고 싶은데요.",
+  "user_utterance": "아니 환불받고 싶어요.",
   "event_type": "intent_shift",
   "expected_actions": ["stop_and_switch"],
-  "expected_user_intent": "환불요청",
+  "expected_user_intent": "refund_request",
   "user_tone_hint": "neutral",
   "has_user_speech": true,
   "notes": "AI 발화 중 사용자가 다른 업무 의도를 제시한 케이스"
 }
 ```
 
----
+## 필드 계약
 
-## 필드 설명
+| field | type | required | 의미 |
+| --- | --- | --- | --- |
+| `scenario_id` | string | yes | `{domain}_{intent/type}_{number}` 형식의 고유 ID |
+| `level` | integer | yes | 판단 난이도. 현재 core dataset은 1~5 사용 |
+| `domain` | string | yes | 업무 도메인. 현재는 `commerce`만 사용 |
+| `ai_current_intent` | string | yes | AI가 진행 중이던 비즈니스 의도 |
+| `ai_utterance` | string | yes | AI가 말하던 발화 |
+| `user_utterance` | string | yes | 고객의 개입 발화. 발화 없음/noise는 empty string |
+| `has_user_speech` | boolean | yes | 고객 음성 여부. `false`이면 `user_utterance`는 empty string |
+| `user_tone_hint` | string | yes | `neutral`, `frustrated`, `urgent` 중 하나 |
+| `event_type` | string | yes | 사람이 붙인 사용자 신호 기준 라벨 |
+| `expected_user_intent` | string/null | yes | 고객 발화의 기준 비즈니스 의도. 의도 없음은 `null` |
+| `expected_actions` | string[] | yes | 자연스러운 AI 행동 목록. 복수 정답 허용 |
+| `notes` | string | yes | 라벨링 근거 또는 특이사항 |
 
-### 📌 식별 정보
+## 값 목록
 
-#### `scenario_id` (string, required)
-- **의미**: 시나리오의 고유 식별자
-- **형식**: `{domain}_{intent/type}_{number}`
-- **예시**: `commerce_refund_001`
+| 구분 | 허용 값 |
+| --- | --- |
+| `ai_current_intent`, `expected_user_intent` | `shipping_inquiry`, `refund_request`, `return_request`, `payment_issue`, `product_inquiry`, `agent_connection`, `null` |
+| `event_type` | `no_speech`, `noise`, `backchannel`, `same_intent_question`, `intent_shift`, `complaint`, `ambiguous` |
+| `expected_actions` | `continue`, `brief_ack`, `respond_and_continue`, `stop_and_switch`, `ask_clarifying`, `handoff` |
 
-#### `level` (integer 1~5, required)
-- **의미**: 판단 난이도
-- **기준**:
-  - 1~2: 쉬움 (noise, backchannel)
-  - 3: 중간 (같은 주제 질문)
-  - 4~5: 어려움 (의도 경계가 모호)
+## Core Dataset 분포
 
-#### `domain` (string, required)
-- **의미**: 업무 도메인
-- **현재**: `commerce`만 사용 (1주차 범위)
+현재 공식 Test Bench 기준은 `data/scenarios.json`의 30개 케이스입니다.
 
----
+**Event Type**
 
-### 🤖 AI 상황 정보
-
-#### `ai_current_intent` (string, required)
-- **의미**: AI가 진행 중이던 비즈니스 의도
-- **가능한 값**: `shipping_inquiry`, `refund_request`, `return_request`, `payment_issue`, `product_inquiry`, `agent_connection`
-- **예시**: `shipping_inquiry`
-
-#### `ai_utterance` (string, required)
-- **의미**: AI가 말하던 발화
-- **길이**: 20~100글자 (자연스러운 길이)
-- **예시**: `현재 상품은 배송 중이며 내일 오후 도착 예정입니다.`
-
----
-
-### 👤 사용자 신호 정보
-
-#### `user_utterance` (string, required)
-- **의미**: 사용자의 개입 발화
-- **길이**: 3~50글자
-- **예시**: `아 그게 아니라 환불받고 싶은데요.`
-
-#### `has_user_speech` (boolean, required)
-- **의미**: 사용자가 실제로 음성을 냈는가?
-- **값**:
-  - `true`: 사용자 음성 있음
-  - `false`: 사용자 음성 없음 (no_speech, noise)
-- **참고**: `false`인 경우 `user_utterance`는 empty string
-
-#### `user_tone_hint` (string: neutral / frustrated / urgent, required)
-- **의미**: 사용자의 감정/톤 힌트 (향후 확장용)
-- **값**:
-  - `neutral`: 중립적 톤
-  - `frustrated`: 답답함/불만
-  - `urgent`: 긴급/급함
-
----
-
-### 🏷️ 분류 정보
-
-#### `event_type` (enum, required)
-- **의미**: 사용자 신호의 종류
-- **가능한 값**:
-  - `no_speech`: 사용자 발화 없음
-  - `noise`: 배경음/비언어 소리
-  - `backchannel`: 맞장구 ("네", "음")
-  - `same_intent_question`: 같은 업무 내 보충 질문
-  - `intent_shift`: 다른 업무 의도로 전환
-  - `complaint`: 불만/긴급 발화
-  - `ambiguous`: 의도 불명확
-- **예시**: `intent_shift`
-
-#### `expected_user_intent` (string or null, required)
-- **의미**: 사용자 발화에서 추출되는 비즈니스 의도
-- **값**: 위의 intent 목록 또는 `null` (의도 없음)
-- **예시**: `refund_request` (또는 `null`)
-
-#### `expected_actions` (array of enum, required)
-- **의미**: 이 상황에서 AI가 해도 되는 행동 목록
-- **가능한 값**:
-  - `continue`: 계속 말하기
-  - `brief_ack`: 짧게 반응하고 계속
-  - `respond_and_continue`: 고객 질문에 답하고 계속
-  - `stop_and_switch`: 주제 바꾸기
-  - `ask_clarifying`: 확인 질문
-  - `handoff`: 상담사 연결
-- **예시**: `["stop_and_switch"]`
-- **참고**: `backchannel`은 `["continue", "brief_ack"]`처럼 복수 정답을 허용한다.
-
-#### `notes` (string, optional)
-- **의미**: 어노테이션 근거 또는 특이사항
-- **용도**: 라벨링이 모호한 경우 필수 기록
-- **예시**: `AI 발화 중 사용자가 다른 업무 의도를 제시한 케이스`
-
----
-
-## 시나리오 분포
-
-### Event Type별 분포 (목표)
-
-| Event Type | 샘플 수 | 비율 |
-|-----------|--------|------|
+| event_type | 샘플 수 | 비율 |
+| --- | ---: | ---: |
 | `no_speech` | 4 | 13% |
 | `noise` | 4 | 13% |
 | `backchannel` | 6 | 20% |
@@ -135,183 +63,54 @@
 | `ambiguous` | 2 | 7% |
 | **합계** | **30** | **100%** |
 
-### Level별 분포 (목표)
+**Level**
 
-| Level | 의미 | 샘플 수 |
-|-------|------|--------|
-| 1~2 | 쉬움 | 8 |
-| 3 | 중간 | 8 |
-| 4~5 | 어려움 | 14 |
+| level | 의미 | 샘플 수 |
+| --- | --- | ---: |
+| 1 | 쉬움 | 9 |
+| 2 | 쉬움/중간 | 8 |
+| 3 | 중간 | 7 |
+| 4 | 어려움 | 5 |
+| 5 | 어려움 | 1 |
 
-### Intent별 분포 (목표)
+**AI current intent**
 
-| Intent | 샘플 수 |
-|--------|--------|
-| `shipping_inquiry` | 8 |
-| `refund_request` | 8 |
-| `return_request` | 5 |
+| intent | 샘플 수 |
+| --- | ---: |
+| `shipping_inquiry` | 11 |
+| `refund_request` | 5 |
+| `return_request` | 4 |
 | `payment_issue` | 5 |
-| `product_inquiry` | 3 |
-| `agent_connection` | 1 |
+| `product_inquiry` | 5 |
 
----
+## 주요 필드 작성 기준
 
-## 어노테이션 기준
+| 대상 | 기준 |
+| --- | --- |
+| `event_type` | 고객 발화 텍스트를 먼저 보고, 맞장구, 같은 업무 질문, 의도 전환, 불만, 모호함을 구분 |
+| `expected_actions` | 고객 입장에서 자연스러운 AI 행동을 기준으로 하며, 자연스러운 행동이 여러 개이면 배열에 함께 기록 |
+| `level` | policy가 판단하기 어려운 정도. 1~2는 명확, 3은 중간, 4~5는 경계가 모호한 케이스 |
+| `notes` | 라벨링 근거가 불명확하거나 경계 케이스이면 기록 |
 
-### 1️⃣ `event_type` 라벨링
+## 대표 예시
 
-**기준:**
-1. `user_utterance`의 텍스트 내용을 먼저 봄
-2. 맞장구 keyword 확인 → `backchannel`
-3. intent shift 확인 → `intent_shift`
-4. 같은 주제 내 질문 → `same_intent_question`
-
-**특별한 경우:**
-- 방언/구어체 → 의도 기준으로 분류
-- "음... 잠깐요" → `ambiguous`
-
-### 2️⃣ `expected_actions` 라벨링
-
-**기준:** 고객 입장에서 "자연스러운 AI 행동"을 기준으로 함
-
-- 라벨링 전에 두 명 이상 독립적으로 판단
-- 불일치 시 협의
-- 복수 행동이 모두 자연스러우면 배열에 함께 기록
-
-### 3️⃣ `level` 책정
-
-**기준:** Policy가 판단하기 어려운 정도
-
-- Level 1~2: 명확한 케이스 (noise, 뚜렷한 맞장구)
-- Level 3: 중간 (같은 주제 질문, 경계가 조금 모호)
-- Level 4~5: 어려운 케이스 (intent shift 경계 모호, 복합 상황)
-
-### 4️⃣ `notes` 작성
-
-**규칙:** 라벨링 근거가 불명확하면 반드시 작성
-
-예시:
-```
-"맞장구와 긍정 응답의 경계가 있지만, 
-문맥상 동의 신호로 봄"
-```
-
----
-
-## 예시 시나리오 5개
-
-### 예1: Backchannel (쉬움)
-```json
-{
-  "scenario_id": "commerce_backchannel_001",
-  "level": 1,
-  "domain": "commerce",
-  "ai_current_intent": "shipping_inquiry",
-  "ai_utterance": "현재 배송 중이며 내일 오후 도착 예정입니다.",
-  "user_utterance": "네, 알겠어요.",
-  "event_type": "backchannel",
-  "expected_actions": ["continue", "brief_ack"],
-  "expected_user_intent": null,
-  "user_tone_hint": "neutral",
-  "has_user_speech": true,
-  "notes": ""
-}
-```
-
-### 예2: Intent Shift (중간)
-```json
-{
-  "scenario_id": "commerce_refund_001",
-  "level": 4,
-  "domain": "commerce",
-  "ai_current_intent": "shipping_inquiry",
-  "ai_utterance": "현재 상품은 배송 중이며 내일 오후 도착 예정입니다.",
-  "user_utterance": "아 그게 아니라 환불받고 싶은데요.",
-  "event_type": "intent_shift",
-  "expected_actions": ["stop_and_switch"],
-  "expected_user_intent": "refund_request",
-  "user_tone_hint": "neutral",
-  "has_user_speech": true,
-  "notes": "shipping_inquiry와 refund_request 간 명확한 의도 전환"
-}
-```
-
-### 예3: Same Intent Question (중간)
-```json
-{
-  "scenario_id": "commerce_shipping_follow_001",
-  "level": 3,
-  "domain": "commerce",
-  "ai_current_intent": "shipping_inquiry",
-  "ai_utterance": "현재 상품은 배송 중이며 내일 오후 도착 예정입니다.",
-  "user_utterance": "배송비는 따로 드나요?",
-  "event_type": "same_intent_question",
-  "expected_actions": ["respond_and_continue"],
-  "expected_user_intent": "shipping_inquiry",
-  "user_tone_hint": "neutral",
-  "has_user_speech": true,
-  "notes": "shipping_inquiry 주제 내 추가 질문"
-}
-```
-
-### 예4: Noise (쉬움)
-```json
-{
-  "scenario_id": "commerce_noise_001",
-  "level": 1,
-  "domain": "commerce",
-  "ai_current_intent": "product_inquiry",
-  "ai_utterance": "사이즈는 M, L, XL 세 가지가 있습니다.",
-  "user_utterance": "",
-  "event_type": "noise",
-  "expected_actions": ["continue"],
-  "expected_user_intent": null,
-  "user_tone_hint": "neutral",
-  "has_user_speech": false,
-  "notes": "배경음 - 기침"
-}
-```
-
-### 예5: Complaint (어려움)
-```json
-{
-  "scenario_id": "commerce_complaint_001",
-  "level": 5,
-  "domain": "commerce",
-  "ai_current_intent": "shipping_inquiry",
-  "ai_utterance": "배송은 정상 진행 중입니다.",
-  "user_utterance": "뭐 이딴 배송이야! 지금 당장 와야 돼!",
-  "event_type": "complaint",
-  "expected_actions": ["handoff"],
-  "expected_user_intent": null,
-  "user_tone_hint": "urgent",
-  "has_user_speech": true,
-  "notes": "긴급 불만 - severity high, 상담사 연결 필요"
-}
-```
-
----
+| 유형 | scenario_id | expected_actions | 핵심 |
+| --- | --- | --- | --- |
+| Backchannel | `commerce_backchannel_001` | `continue`, `brief_ack` | 맞장구는 현재 흐름을 유지 |
+| Intent Shift | `commerce_shipping_to_refund_001` | `stop_and_switch` | 배송 안내 중 환불 요청으로 전환 |
+| Same Intent Question | `commerce_shipping_follow_001` | `respond_and_continue` | 배송 업무 안의 보충 질문 |
+| Noise | `commerce_noise_001` | `continue` | 의미 없는 소리는 무시하고 계속 |
+| Complaint | `commerce_complaint_002` | `handoff` | 긴급 불만은 상담사 연결 |
 
 ## 파일 형식
 
-### Single File (`data/scenarios.json`)
 ```json
 {
   "scenarios": [
-    { scenario 1 },
-    { scenario 2 },
-    ...
-  ],
-  "metadata": {
-    "total": 30,
-    "version": "1.0",
-    "created_date": "2026-05-07"
-  }
+    { "...": "scenario 1" },
+    { "...": "scenario 2" }
+  ]
 }
 ```
 
----
-
-## 다음
-
-👉 **[Scenario Bank](./bank.md)** — 시나리오 수집 진행 상황
+[Scenario Bank](./bank.md)

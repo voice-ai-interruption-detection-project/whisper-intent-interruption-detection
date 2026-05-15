@@ -1,0 +1,15 @@
+:root,
+[data-md-color-scheme="slate"] {
+  --wind-accent-beige: #d8c3a5;
+  --wind-accent-beige-soft: rgba(216, 195, 165, 0.16);
+  --md-accent-fg-color: var(--wind-accent-beige);
+  --md-accent-fg-color--transparent: var(--wind-accent-beige-soft);
+}
+
+.md-typeset a:hover,
+.md-nav__link:hover,
+.md-tabs__link:hover,
+.md-header__button:hover,
+.md-search-result__link:hover {
+  color: var(--wind-accent-beige);
+}

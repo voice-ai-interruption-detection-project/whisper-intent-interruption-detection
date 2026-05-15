@@ -1,6 +1,10 @@
 site_name: Wind Docs
 site_description: Whisper Intent Interruption Detection - AI Voice Agent Interruption Handling
 site_author: Team WIID
+site_url: https://voice-ai-interruption-detection-project.github.io/whisper-intent-interruption-detection/
+repo_url: https://github.com/voice-ai-interruption-detection-project/whisper-intent-interruption-detection
+exclude_docs: |
+  README.md
 
 theme:
   name: material
@@ -8,7 +12,7 @@ theme:
   palette:
     scheme: slate
     primary: brown
-    accent: cyan
+    accent: brown
   features:
     - navigation.instant
     - navigation.tabs
@@ -40,11 +44,9 @@ nav:
   - Demo & Examples:
     - Demo 1 - False Stop: 04-demo/demo1.md
     - Demo 2 - Missed Intent Switch: 04-demo/demo2.md
-    - Demo 3 - Ambiguous Case: 04-demo/demo3.md
 
   - Resources:
     - Team & Timeline: 05-resources/team.md
-    - Papers & References: 05-resources/papers.md
     - Repository: 05-resources/repo.md
 
 plugins:
@@ -67,3 +69,6 @@ markdown_extensions:
       toc_depth: "2-3"
 
 copyright: Copyright &copy; 2026 Team WIID
+
+extra_css:
+  - stylesheets/extra.css
