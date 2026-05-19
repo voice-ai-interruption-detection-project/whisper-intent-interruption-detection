@@ -68,4 +68,4 @@ core run에서는 아래 케이스를 추가로 확인했습니다.
 
 ## 다음
 
-👉 [Demo 3: Ambiguous Case](./demo3.md)
+👉 [Team & Timeline](../05-resources/team.md)

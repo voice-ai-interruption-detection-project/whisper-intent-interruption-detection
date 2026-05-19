@@ -80,17 +80,15 @@ dataset: `data/scenarios_policy_v3_challenge.json`
 | `policy_v3` | `20260515_110243_policy_v3` | 15 / 18 | 0.8333 | `missed_switch=2`, `ambiguous_intent=1` |
 | `policy_v3_1` | `20260515_111904_policy_v3_1` | 17 / 18 | 0.9444 | `ambiguous_intent=1` |
 
-이 slice에서는 return/refund처럼 가까워 보이지만 다른 workflow인 경계를 더 강하게 봅니다. `policy_v3_1`은 이 목표 실패인 `missed_switch`를 0건으로 줄였습니다.
+이 challenge dataset은 반품과 환불처럼 비슷해 보이지만 실제 처리 흐름이 다른 요청을 구분하는지 확인합니다. `policy_v3_1`은 이런 요청을 같은 흐름으로 오판해 전환을 놓치는 실패인 `missed_switch`를 0건으로 줄였습니다.
 
 ## 결과 해석
 
-이 수치는 MVP의 고정 scenario bank에서 판단 구조와 policy 차이를 비교한 결과입니다.
-
 현재 결과에서 읽을 수 있는 내용은 다음입니다.
 
-- 공통 runner/evaluator와 run artifact 계약은 동작한다.
+- 공통 runner/evaluator와 run artifact 구조는 의도한 흐름대로 동작한다.
 - Text Replay와 Audio File Test는 같은 판단 구조로 합류할 수 있다.
-- `policy_v3_1`은 return/refund 인접 workflow 경계에서 개선 신호를 보였다.
+- `policy_v3_1`은 이전 정책들이 놓치던 반품/환불 경계를 더 명확히 했다. 반품 수거 주소나 포장처럼 현재 반품 흐름 안의 질문은 답하고 이어가지만, 환불 계좌, 금액, 입금 시점처럼 환불 업무로 넘어가는 질문은 전환하도록 개선했다.
 - complaint, ambiguous, 반복 실행 안정성은 후속 기준 정리와 추가 검증 대상으로 남아 있다.
 
 ## 다음

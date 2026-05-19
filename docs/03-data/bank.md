@@ -63,7 +63,7 @@ diagnostic run은 core accuracy와 섞지 않습니다. run metadata의 `dataset
 | 강한 불만 | `commerce_complaint_002` | `handoff` |
 | 모호한 발화 | `commerce_ambiguous_002` | `ask_clarifying` |
 
-## Source of Truth
+## 기준 데이터
 
 `data/scenarios.json`에는 기준 원본만 둡니다.
 

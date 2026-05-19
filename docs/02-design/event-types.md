@@ -10,8 +10,6 @@ runtime 해석 후보: predicted_event_type
 AI 행동 결과: actual_action
 ```
 
-policy prompt에는 `event_type`, `expected_user_intent`, `expected_actions`를 넣지 않습니다. 이 값들은 evaluator와 error analysis에서 기준으로 사용합니다.
-
 ## 7가지 Event Type
 
 | event_type | 의미 | 기본 expected_actions |

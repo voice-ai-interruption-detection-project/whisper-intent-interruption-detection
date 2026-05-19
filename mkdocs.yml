@@ -42,11 +42,9 @@ nav:
   - Demo & Examples:
     - Demo 1 - False Stop: 04-demo/demo1.md
     - Demo 2 - Missed Intent Switch: 04-demo/demo2.md
-    - Demo 3 - Ambiguous Case: 04-demo/demo3.md
 
   - Resources:
     - Team & Timeline: 05-resources/team.md
-    - Papers & References: 05-resources/papers.md
     - Repository: 05-resources/repo.md
 
 plugins:

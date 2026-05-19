@@ -46,8 +46,6 @@
 | `event_type` | `no_speech`, `noise`, `backchannel`, `same_intent_question`, `intent_shift`, `complaint`, `ambiguous` |
 | `expected_actions` | `continue`, `brief_ack`, `respond_and_continue`, `stop_and_switch`, `ask_clarifying`, `handoff` |
 
-`event_type`, `expected_user_intent`, `expected_actions`는 기준 라벨입니다. policy prompt에는 넣지 않고 evaluator와 error analysis에서 사용합니다.
-
 ## Core Dataset 분포
 
 현재 공식 Test Bench 기준은 `data/scenarios.json`의 30개 케이스입니다.
@@ -85,7 +83,7 @@
 | `payment_issue` | 5 |
 | `product_inquiry` | 5 |
 
-## 어노테이션 기준
+## 주요 필드 작성 기준
 
 | 대상 | 기준 |
 | --- | --- |

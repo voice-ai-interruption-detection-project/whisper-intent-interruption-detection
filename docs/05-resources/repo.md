@@ -128,10 +128,3 @@ poetry run mkdocs build --strict
 ```
 
 현재 `pyproject.toml`에는 MkDocs 관련 패키지가 runtime dependency로 들어 있지 않을 수 있습니다. 로컬에서 빌드하려면 `mkdocs`, `mkdocs-material`, `pymdown-extensions`가 설치되어 있어야 합니다.
-
-## 다음 후보
-
-- `policy_v3_1` 반복 실행으로 LLM 변동성 확인
-- `commerce_payment_follow_001`, `commerce_complaint_001` 회귀 분석
-- ambiguous 케이스 기준 정리
-- 독립적인 action selector 구조 실험
