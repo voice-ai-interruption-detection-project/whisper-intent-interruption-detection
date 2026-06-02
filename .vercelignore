@@ -1,0 +1,15 @@
+.env
+.env.*
+!.env.example
+.venv
+venv
+__pycache__
+*.pyc
+.pytest_cache
+.ruff_cache
+.DS_Store
+site
+results/runs
+# Vercel serverless 배포는 requirements.txt의 경량 의존성만 설치한다.
+pyproject.toml
+poetry.lock

@@ -25,6 +25,7 @@ Wind는 음성 AI 상담 중 고객이 말을 끊거나 요청을 바꿨을 때,
 - [기술 스택](#-기술-스택)
 - [프로젝트 구조](#-프로젝트-구조)
 - [빠른 시작](#-빠른-시작)
+- [배포](#-배포)
 - [구조](#-구조)
 - [Policy 버전](#-policy-버전)
 - [평가 방식](#-평가-방식)
@@ -315,6 +316,22 @@ poetry run uvicorn backend.main:app --reload
 ```
 
 Playground와 Test Bench UI는 `http://127.0.0.1:8000`에서 확인합니다.
+
+<br>
+
+# 🚢 배포
+
+Vercel 배포는 FastAPI 앱을 `api/index.py`에서 로드하고, 정적 Playground UI와 API 요청을 같은 서버리스 함수로 라우팅합니다.
+
+```bash
+pnpm dlx vercel --prod
+```
+
+Vercel Git 연동 배포는 GitHub에 push된 commit을 기준으로 빌드합니다. `pyproject.toml`과 `poetry.lock`은 local/dev용 전체 의존성을 담고 있어 서버리스 번들 제한을 초과하므로, 배포에서는 `.vercelignore`로 제외하고 `requirements.txt`의 경량 의존성만 설치합니다.
+
+`OPENAI_API_KEY`와 `OPENAI_ACTION_MODEL`은 LLM policy/review를 배포 환경에서 실행할 때 Vercel environment variable로 설정합니다. UI, schema, dataset 조회는 별도 키 없이 열리지만 등록된 policy 실행은 `OPENAI_API_KEY`가 필요합니다.
+
+서버리스 배포에서는 local Whisper 모델 실행과 run artifact 영구 보존을 보장하지 않습니다. 운영용 STT와 결과 저장이 필요하면 별도 서버/스토리지 경계를 추가합니다.
 
 <br>
 

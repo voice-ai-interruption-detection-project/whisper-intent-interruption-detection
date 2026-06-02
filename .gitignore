@@ -15,3 +15,4 @@ site/
 
 # local/generated doc scratch
 /doc/
+.vercel
