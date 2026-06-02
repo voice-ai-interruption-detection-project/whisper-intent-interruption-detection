@@ -32,6 +32,9 @@ def test_ui_javascript_uses_api_vocabularies() -> None:
     assert "/mic/predict" in js
     assert "/playground/reviews" in js
     assert "micExpectedAction" in js
+    assert "renderFocusError" in js
+    assert "responseErrorMessage" in js
+    assert "OPENAI_API_KEY" in js
     assert "policy_v1" not in js
     assert "baseline" not in js
     assert "pause" not in js

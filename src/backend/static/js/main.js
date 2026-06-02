@@ -353,6 +353,8 @@ async function predictSelected() {
     if (elements.micOverrideToggle.checked) {
       await reviewFocusResult(result, scenario);
     }
+  } catch (error) {
+    renderFocusError(error);
   } finally {
     setBusy(elements.predictButton, false);
   }
@@ -409,6 +411,8 @@ async function predictTextInput() {
 
     state.focusResult = result;
     renderFocusResult(result);
+  } catch (error) {
+    renderFocusError(error);
   } finally {
     setBusy(elements.predictTextButton, false);
   }
@@ -438,6 +442,8 @@ async function predictAudioInput() {
 
     state.focusResult = result;
     renderFocusResult(result);
+  } catch (error) {
+    renderFocusError(error);
   } finally {
     setBusy(elements.predictAudioButton, false);
   }
@@ -759,6 +765,24 @@ function renderFocusResult(result) {
   ]);
 
   elements.signals.textContent = JSON.stringify(decision.signals, null, 2);
+}
+
+// API 실패를 결과 패널에 표시해 사용자가 배포/env 문제를 바로 알 수 있게 한다.
+function renderFocusError(error) {
+  const message = errorMessage(error);
+
+  state.focusResult = null;
+  clearReview();
+
+  elements.actualAction.textContent = "실행 실패";
+  elements.matchChip.textContent = "error";
+  elements.matchChip.dataset.state = "mismatch";
+  elements.reason.textContent = message;
+  renderDefinitionList(elements.decisionMeta, [
+    ["status", "API error"],
+    ["확인할 설정", message.includes("OPENAI_API_KEY") ? "OPENAI_API_KEY" : "request"],
+  ]);
+  elements.signals.textContent = JSON.stringify({ error: message }, null, 2);
 }
 
 // 선택한 판단 케이스(Scenario)를 텍스트/오디오 입력의 시작값으로 복사한다.
@@ -1282,9 +1306,29 @@ function setBusy(button, busy) {
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);
   if (!response.ok) {
-    const message = await response.text();
+    const message = await responseErrorMessage(response);
     throw new Error(message);
   }
 
   return response.json();
+}
+
+async function responseErrorMessage(response) {
+  const text = await response.text();
+  if (!text) return `${response.status} ${response.statusText}`;
+
+  try {
+    const body = JSON.parse(text);
+    if (typeof body.detail === "string") return body.detail;
+    if (body.detail) return JSON.stringify(body.detail);
+    if (body.message) return String(body.message);
+  } catch (error) {
+    // JSON이 아닌 오류 응답은 원문을 그대로 표시한다.
+  }
+
+  return text;
+}
+
+function errorMessage(error) {
+  return error instanceof Error ? error.message : String(error);
 }
